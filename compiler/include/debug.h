@@ -28,22 +28,28 @@ class debug_data
  public:
   static bool can_debug() { return true; }
   debug_data(llvm::Module &m) : dibuilder(m){}
-  void finalize(){dibuilder.finalize();}
-  void create_compile_unit(const char *file, const char *directory, bool is_optimized, const char *flags);
+  void finalize(){dibuilder.finalize();} //codegen.cpp
+  void create_compile_unit(const char *file, const char *directory, bool is_optimized, const char *flags);//codegen.cpp
 
   llvm::DIType construct_type(Type *type);
-  llvm::DIType get_type(Type *type);
+  llvm::DIType get_type(Type *type); //symbol.cpp
 
   llvm::DIFile construct_file(const char *file);
   llvm::DIFile get_file(const char *file);
 
   llvm::DINameSpace construct_module_scope(ModuleSymbol* modSym);
-  llvm::DINameSpace get_module_scope(ModuleSymbol* modSym);
+  llvm::DINameSpace get_module_scope(ModuleSymbol* modSym);//symbol.cpp
 
   llvm::DIType get_function_type(FnSymbol *function);
   llvm::DISubprogram construct_function(FnSymbol *function);
-  llvm::DISubprogram get_function(FnSymbol *function);
+  llvm::DISubprogram get_function(FnSymbol *function); //stmt.cpp, symbol.cpp
+//-----------Added debug functions by Hui Zhang-------------------------//
 
+  llvm::DIGlobalVariable construct_global_variable(VarSymbol *gVarSym);
+  llvm::DIGlobalVariable get_global_variable(VarSymbol *gVarSym);
+  llvm::DIVariable construct_variable(VarSymbol *varSym);
+  llvm::DIVariable get_variable(VarSymbol *varSym);
+//----------------------------------------------------------------------//      
  private:
   llvm::DIBuilder dibuilder;
   bool optimized;

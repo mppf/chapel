@@ -158,6 +158,10 @@ class VarSymbol : public Symbol {
   // with C escapes - that is newline is 2 chars \ n
   Immediate   *immediate;
 
+#ifdef HAVE_LLVM
+  llvm::MDNode *llvmDIGlobalVariable;
+  llvm::MDNode *llvmDIVariable;
+#endif
   //changed isconstant flag to reflect var, const, param: 0, 1, 2
   VarSymbol(const char* init_name, Type* init_type = dtUnknown);
   ~VarSymbol();

@@ -215,6 +215,11 @@ VarSymbol::VarSymbol(const char *init_name,
   Symbol(E_VarSymbol, init_name, init_type),
   immediate(NULL),
   doc(NULL)
+#ifdef HAVE_LLVM
+  ,
+  llvmDIGlobalVariable(NULL),
+  llvmDIVariable(NULL)
+#endif
 {
   gVarSymbols.add(this);
 }
@@ -790,7 +795,11 @@ void VarSymbol::codegenDef() {
         globalValue->setInitializer(llvm::cast<llvm::Constant>(
               codegenImmediateLLVM(immediate)));
       }
-
+      //-------------added by Hui Zhang-------------------//
+      if(debug_info){
+	debug_info->get_global_variable(this);
+      }
+      //---------------------------------------------------//
       info->lvt->addGlobalValue(cname, globalValue, GEN_VAL, ! is_signed(type));
     }
     llvm::Type *varType = type->codegen().type;
@@ -807,6 +816,11 @@ void VarSymbol::codegenDef() {
         }
       }
     }
+    //-------------added by Hui Zhang-------------------------//
+    if(debug_info){
+      debug_info->get_variable(this);
+    }
+    //--------------------------------------------------------//
 #endif
   }
 }
@@ -1262,7 +1276,7 @@ GenRet TypeSymbol::codegen() {
       // code generated, so code generate it now. This can get called
       // when adding types partway through code generation.
       codegenDef();
-      // codegenMetadata(); TODO -- enable TBAA generation in the future.
+       codegenMetadata(); //TODO -- enable TBAA generation in the future.
     }
     ret.type = llvmType;
 #endif

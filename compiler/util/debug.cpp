@@ -1,5 +1,5 @@
 #include "debug.h"
-
+// This is debug-new branch !
 #include "stringutil.h"
 #include "expr.h"
 #include "codegen.h"
@@ -12,7 +12,9 @@
 #ifdef HAVE_LLVM
 #include "llvmUtil.h"
 #include "llvm/ADT/ArrayRef.h"
-
+//-----added by Hui Zhang-----//
+#include "genret.h" 
+#include "llvm/Support/Dwarf.h"
 /*
 LLVM provides a class called DIBuilder, you pass the LLVM module to this
 class and it will attach the debug information to the LLVM code after the
@@ -86,6 +88,7 @@ llvm::DIType debug_data::construct_type(Type *type)
         8*layout->getABITypeAlignment(ty),
         llvm::dwarf::DW_ATE_float);
   } else if(ty->isPointerTy()) {
+      if(type != type->getValType()) //Add this condition to avoid segFault, leave it to unhandled
     return this->dibuilder.createPointerType(
         get_type(type->getValType()),
         layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
@@ -249,7 +252,7 @@ llvm::DISubprogram debug_data::construct_function(FnSymbol *function)
   ModuleSymbol* modSym = (ModuleSymbol*) function->defPoint->parentSymbol;
   const char *file_name = function->astloc.filename;
   int line_number = function->astloc.lineno;
-  llvm::Function* llFunc = getFunctionLLVM(function->cname);
+  llvm::Function* llFunc = getFunctionLLVM(function->cname); // why cname, not name?
 
   llvm::DINameSpace module = get_module_scope(modSym);
   llvm::DIFile file = get_file(file_name);
@@ -278,5 +281,81 @@ llvm::DISubprogram debug_data::get_function(FnSymbol *function)
   return llvm::DISubprogram(function->llvmDISubprogram); 
 }
 
+//-----------------Added Debug Functions by Hui ZHang---------------------------//
+
+llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
+{
+  GenInfo *info = gGenInfo; 
+  const char *name = gVarSym->name;
+  const char *cname = gVarSym->cname;
+  //ModuleSymbol *modSym = (ModuleSymbol*) gVarSym->defPoint->parentSymbol;
+  const char *file_name = gVarSym->astloc.filename;
+  int line_number = gVarSym->astloc.lineno;
+  
+  llvm::DIFile file = get_file(file_name);
+  llvm::DIType gVarSym_type = get_type(gVarSym->type); // type is member of Symbol
+
+  GenRet got = info->lvt->getValue(cname); //?use cname since get_function uses it?
+  llvm::Value *llVal = NULL;
+  if( got.val ) 
+    llVal = got.val;  // Not sure if it's a right way to grab the 
+	              // corresponding llvm::Value of a VarSymbol
+  else {
+   // llvm::Value *llVal = NULL;
+    printf("Couldn't find the llvm::Value of a gVarSym !\n");
+  }
+  return this->dibuilder.createGlobalVariable(
+      name, /* name */
+      cname, /* linkage name */
+      file, line_number, gVarSym_type, 
+      !gVarSym->hasFlag(FLAG_EXPORT), /* is local to unit */
+      llVal); /* llvm::Value */
+}
+
+llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
+{
+  if( NULL == gVarSym->llvmDIGlobalVariable ) {
+    gVarSym->llvmDIGlobalVariable = construct_global_variable(gVarSym);
+  }
+  return llvm::DIGlobalVariable(gVarSym->llvmDIGlobalVariable);
+}
+
+llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
+{
+  GenInfo *info = gGenInfo;
+  const char *name = varSym->name;
+  const char *file_name = varSym->astloc.filename;
+  int line_number = varSym->astloc.lineno;
+  FnSymbol *funcSym = NULL;
+  if(isFnSymbol(varSym->defPoint->parentSymbol))
+    funcSym = (FnSymbol*)varSym->defPoint->parentSymbol; //TODO: if the parent is a block
+  else {
+    //FnSymbol *funcSym = NULL;
+    printf("Couldn't find the function parent of this variable!\n");
+  }
+  llvm::DISubprogram scope = get_function(funcSym); //TODO: Scope maybe just a block 
+  llvm::DIFile file = get_file(file_name);
+  llvm::DIType varSym_type = get_type(varSym->type);
+  
+  return this->dibuilder.createLocalVariable(
+      llvm::dwarf::DW_TAG_auto_variable, /*Tag: local vas declared in the body of a function */
+      scope, /* Scope */
+      name, /*Name*/
+      file, /*File*/
+      line_number, /*Lineno*/
+      varSym_type, /*Type*/
+      true/*AlwaysPreserve, won't be removed when optimized*/
+      ); // omit the  Flags and ArgNo
+}
+
+llvm::DIVariable debug_data::get_variable(VarSymbol *varSym)
+{
+  if( NULL == varSym->llvmDIVariable ){
+    varSym->llvmDIVariable = construct_variable(varSym);
+  }
+  return llvm::DIVariable(varSym->llvmDIVariable);
+}
+
+//------------------------------------------------------------------------------//
 // end if LLVM
 #endif
