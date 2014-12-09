@@ -904,6 +904,10 @@ void AggregateType::codegenPrototype() {
  
       llvm::StructType* st;
       st = llvm::StructType::create(info->module->getContext(), struct_name);
+      ////////////////////////////////////////////////
+      if(!strcmp(struct_name, "chpl__ddata_chpl_TableEntry_chpl_taskID_t_object"))
+	  printf("I'm adding the unhandled class !\n");
+      ////////////////////////////////////////////////
       info->lvt->addGlobalType(struct_name, st);
 
       llvm::PointerType* pt = llvm::PointerType::getUnqual(st);
@@ -1106,6 +1110,9 @@ int AggregateType::getFieldPosition(const char* name, bool fatal) {
 
 
 Symbol* AggregateType::getField(const char* name, bool fatal) {
+  /////////////////////////////////////
+    //printf("I am called in AggregateType::getField !\n");
+  /////////////////////////////////////
   Vec<Type*> next, current;
   Vec<Type*>* next_p = &next, *current_p = &current;
   current_p->set_add(this);
@@ -1113,7 +1120,7 @@ Symbol* AggregateType::getField(const char* name, bool fatal) {
     forv_Vec(Type, t, *current_p) {
       if (AggregateType* ct = toAggregateType(t)) {
         for_fields(sym, ct) {
-          if (!strcmp(sym->name, name))
+          if (!strcmp(sym->name, name))//strcmp returns 0 if ==
             return sym;
         }
         forv_Vec(Type, parent, ct->dispatchParents) {

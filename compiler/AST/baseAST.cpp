@@ -335,10 +335,12 @@ FnSymbol* BaseAST::getFunction() {
 Type* BaseAST::getValType() {
   Type* type = typeInfo();
   INT_ASSERT(type);
-  if (type->symbol->hasFlag(FLAG_REF))
+  if (type->symbol->hasFlag(FLAG_REF)){
     return type->getField("_val")->type;
-  else if (type->symbol->hasFlag(FLAG_WIDE))
+  }
+  else if (type->symbol->hasFlag(FLAG_WIDE)){
     return type->getField("addr")->getValType();
+  }
   else
     return type;
 }

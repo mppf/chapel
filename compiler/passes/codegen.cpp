@@ -425,7 +425,7 @@ static inline bool shouldCodegenAggregate(AggregateType* ct)
 }
 
 
-static void codegen_aggregate_def(AggregateType* ct) {
+static void codegen_aggregate_def(AggregateType* ct) { //DFS, check visited 
   if (!shouldCodegenAggregate(ct)) return;
   if (ct->symbol->hasFlag(FLAG_CODEGENNED)) return;
   ct->symbol->addFlag(FLAG_CODEGENNED);
@@ -1140,7 +1140,7 @@ void codegen(void) {
       debug_info = new debug_data(*info->module);
     }
     if(debug_info) {
-      // first fine the main module, this will be the compile unit.
+      // first find the main module, this will be the compile unit.
       forv_Vec(ModuleSymbol, currentModule, allModules) {
         if(currentModule->modTag == MOD_MAIN) {
           //So, this is pretty quick. I'm assuming that the main module is in the current dir, no optimization (need to figure out how to get this)

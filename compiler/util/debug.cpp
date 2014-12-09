@@ -25,7 +25,7 @@ call to finalize() on DIBuilder. The initialization happens in the
 constructor of debug_data (inlined in the header). It is instanced during
 codegen after setting up the LLVM module and put into debug_info. If the
 -g flag wasn't passed to the compiler then debug_info is null. The
-finalize call happens in codegen() right after the finishClangGeneration()
+finalize call happens in codegen() right after the finishCodegenLLVM()
 call.
 As for all the additional data structures, all of that was built into LLVM
 rather than me. The functions to create the debug information requires the
@@ -80,8 +80,7 @@ void debug_data::create_compile_unit(const char *file, const char *directory, bo
 llvm::DIType debug_data::construct_type(Type *type)
 {
   GenInfo* info = gGenInfo;
-  LLVM_TARGET_DATA * layout = info->targetData;
-
+  LLVM_TARGET_DATA * layout = info->targetData; //define LLVM_TARGET_DATA llvm::DataLayout
   llvm::Type* ty = type->symbol->llvmType;
   //const char* cname = type->symbol->cname;
   const char* name = type->symbol->name;
@@ -91,6 +90,9 @@ llvm::DIType debug_data::construct_type(Type *type)
 
   if(!ty) return llvm::DIType();
   if(ty->isIntegerTy()) {
+      ///////////////////////////////////
+      printf("isIntegerTy, type: %s  astTag=%i\n",type->symbol->name,type->astTag);
+      ////////////////////////////////////
     return this->dibuilder.createBasicType(
         name,
         layout->getTypeSizeInBits(ty),
@@ -99,6 +101,9 @@ llvm::DIType debug_data::construct_type(Type *type)
                       (llvm::dwarf::DW_ATE_signed):
                       (llvm::dwarf::DW_ATE_unsigned));
   } else if(ty->isFloatingPointTy()) {
+      /////////////////////////////////////////
+      printf("isFloatingPointTy, type: %s  astTag=%i\n",type->symbol->name, type->astTag);
+      /////////////////////////////////////////
     return this->dibuilder.createBasicType(
         name,
         layout->getTypeSizeInBits(ty),
@@ -108,19 +113,106 @@ llvm::DIType debug_data::construct_type(Type *type)
       ///////////////////
       printf("\nI'm HERE 1 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
       //////////////////
-      //------------added by Hui Zhang-------------------------//
-
-      //--------------------------------------------------------//
-      if(type != type->getValType()){ //Add this condition to avoid segFault, leave it to unhandled
+      if(type != type->getValType()) { //Add this condition to avoid segFault, leave it to unhandled
 	/////////////////////////////  
 	printf("I'm HERE 2 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
 	////////////////////////////
 	return this->dibuilder.createPointerType(
-        get_type(type->getValType()),
+        get_type(type->getValType()),//it's supposed to return the DIType of pointee
         layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
         0, /* alignment */
         name);
       }
+      //-----Added by Hui(hacky way to resolve the unhandled type issue)-----//
+      else {
+	if(type->astTag == E_PrimitiveType) {
+	  //TODO: Solve string, c_string, nil, opaque,etc.
+	    llvm::Type *PointeeTy = ty->getPointerElementType();
+	    printf("The pointeeTy->getTypeID = %i\n",PointeeTy->getTypeID());
+	    PointeeTy->dump();
+	}
+	else if(type->astTag == E_AggregateType) {
+	    // dealing with classes
+	    AggregateType *this_class = (AggregateType *)type;
+	    llvm::SmallVector<llvm::Value *, 8> EltTys;
+	    llvm::DIType derivedFrom;
+	    if( type->dispatchParents.length() > 0 )
+	      derivedFrom = get_type(type->dispatchParents.first());
+
+	    // solve the data class: _ddata
+	    if(this_class->symbol->hasFlag(FLAG_DATA_CLASS)){
+	      Type* vt = getDataClassType(this_class->symbol)->typeInfo();
+	      if(vt) {
+		return this->dibuilder.createPointerType(
+		    get_type(vt),
+		    layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
+		    0,
+		    name);
+	      }
+	    } //Not sure whether I should directly return getType(vt)
+		
+	    const llvm::StructLayout* slayout = NULL;
+	    //llvm::StructType* struct_type = llvm::cast<llvm::StructType>(ty);
+	    const char *struct_name = this_class->classStructName(true);
+	    llvm::Type* st = getTypeLLVM(struct_name);
+	    printf("struct_name=%s  hasFlag(FLAG_DATA_CLASS)=%i  hasFlag(FLAG_REF)=%i  hasFlag(FLAG_EXTERN)=%i\n",struct_name,this_class->symbol->hasFlag(FLAG_DATA_CLASS),this_class->symbol->hasFlag(FLAG_REF),this_class->symbol->hasFlag(FLAG_EXTERN));
+	    if(st){
+		llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
+		/////////////////////////////////////////////////////////////////////////////
+    /*	    printf("this.struct_name = %s\tthis.cname = %s\n",struct_name,this_class->symbol->cname);
+		for_fields(field, this_class) {
+		  TypeSymbol *fts = field->type->symbol;
+		  printf("the field->name = %s, field-type-name = %s\n",field->name, fts->name);
+		}
+    */	    ////////////////////////////////////////////////////////////////////////////
+		printf("struct_name = %s, ST->isOpaque = %i\n",struct_name, struct_type->isOpaque());
+		if(!struct_type->isOpaque()){
+		    slayout = layout->getStructLayout(struct_type); //This is the problem !!!
+		    for_fields(field, this_class) {
+		      // field is a Symbol
+		      const char* fieldDefFile = field->defPoint->fname();
+		      int fieldDefLine = field->defPoint->linenum();
+		      TypeSymbol* fts = field->type->symbol;
+		      llvm::Type* fty = fts->llvmType;
+		      llvm::DIType mty; //be NULL if following condition not met
+		      //TODO: figure out how to use the dummy type for 'BaseArr'
+		      if(strcmp(fts->name,this_class->symbol->name)){ //if not equal
+			  mty = this->dibuilder.createMemberType(
+			  get_module_scope(defModule),
+			  field->name,
+			  get_file(fieldDefFile),
+			  fieldDefLine,
+			  layout->getTypeSizeInBits(fty),
+			  8*layout->getABITypeAlignment(fty),
+			  slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)),
+			  0,
+			  get_type(field->type));
+		      }
+		      else printf("Collision: fts->name = %s\n",fts->name);
+		      EltTys.push_back(mty);
+		    }
+
+		    if(this_class->aggregateTag == AGGREGATE_CLASS) {
+			////////////////////////////////////////////////////
+			printf("I'm in PointerTy--AGGREGATE_CLASS\n");
+			///////////////////////////////////////////////////
+		      return this->dibuilder.createStructType( //why NOT use createClassType??
+			  get_module_scope(defModule),
+			  name,
+			  get_file(defFile),
+			  defLine,
+			  layout->getTypeSizeInBits(ty),
+			  8*layout->getABITypeAlignment(ty),
+			  0,
+			  derivedFrom,
+			  this->dibuilder.getOrCreateArray(EltTys));
+		    } 
+		    else printf("Error: I'm in PtrType-ast18,but not CLASS,  aggregateTag=%i\n",this_class->aggregateTag);
+		}//end of if(!Opaque)
+	    }// end of if(st)
+	} // end of astTag == E_AggregateTy
+     } // end of else (type==type->getType)
+    //-------------------------------------------------------------------------------------//
   } else if(ty->isStructTy() && type->astTag == E_AggregateType) {
       ////////////////////////////////////////////////////
       printf("I'm in ty->isStructTy() && type->astTag == E_AggregateType\n");
@@ -136,10 +228,10 @@ llvm::DIType debug_data::construct_type(Type *type)
     slayout = layout->getStructLayout(struct_type);
 
     for_fields(field, this_class) {
-      // field is a Symbol
+      // field is a Symbol, in each iteration, it's assigned "sym" field of a DefExpr
       const char* fieldDefFile = field->defPoint->fname();
       int fieldDefLine = field->defPoint->linenum();
-      TypeSymbol* fts = field->type->symbol;
+      TypeSymbol* fts = field->type->symbol; // Symbol:(Type*)type:(TypeSymbol*)symbol
       llvm::Type* fty = fts->llvmType;
 
       llvm::DIType mty = this->dibuilder.createMemberType(
@@ -201,6 +293,32 @@ llvm::DIType debug_data::construct_type(Type *type)
           this->dibuilder.getOrCreateArray(EltTys));
     }
   }
+//------------------Added by Hui Zhang----------------------------//
+  else if(ty->isArrayTy() && type->astTag == E_AggregateType) {
+//  TODO: need to figure out how to get the eTy and size
+
+    AggregateType *this_class = (AggregateType *)type;
+    // Subscripts are "ranges" for each dimention of the array
+    llvm::SmallVector<llvm::Value*, 4> Subscripts;
+    //llvm::ArrayType *array_type = llvm::dyn_cast<llvm::ArrayType>(ty);
+    //llvm::Type *elementType = array_type->getElementType();
+    //printf("array_type_name = %s  element_type_name = %s\ eleTyID = %i\n",array_type->getStructName(),elementType->getStructName(),elementType->getTypeID());
+    //printf("The size of Array = %d\n",this_class->fields.length);
+    //for_fields(field, this_class){
+//	TypeSymbol* fts = field->type->symbol;
+//	printf("the field->name = %s, field-type-name = %s\n",field->name, fts->name);
+    int Asize = this_class->fields.length;
+    // C-style language always has 1D for array, and index starts with "0"
+    Subscripts.push_back(this->dibuilder.getOrCreateSubrange(0, Asize));
+    Symbol *eleSym = toDefExpr(this_class->fields.head)->sym;
+    Type *eleType = eleSym->type;
+    return this->dibuilder.createArrayType(
+	Asize, //Array size: uint64_t
+	8*layout->getABITypeAlignment(ty), // Alighment: uint64_t
+	get_type(eleType),  // Element type: DIType
+	this->dibuilder.getOrCreateArray(Subscripts)); //Subscripts: DIArray
+  }
+//-----------------------------------------------------------------//
 
   printf("Unhandled type: %s\n\ttype->astTag=%i\n", type->symbol->name, type->astTag);
   if(type->symbol->llvmType) {
@@ -330,6 +448,9 @@ llvm::DISubprogram debug_data::get_function(FnSymbol *function)
 
 llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
 {
+    ///////////////////////////////////////////////
+    printf("construct_global_variable CALLED !\n");
+    //////////////////////////////////////////////
   GenInfo *info = gGenInfo; 
   const char *name = gVarSym->name;
   const char *cname = gVarSym->cname;
@@ -349,12 +470,17 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
    // llvm::Value *llVal = NULL;
     printf("Couldn't find the llvm::Value of a gVarSym !\n");
   }
+
+  if(gVarSym_type)
   return this->dibuilder.createGlobalVariable(
       name, /* name */
       cname, /* linkage name */
       file, line_number, gVarSym_type, 
       !gVarSym->hasFlag(FLAG_EXPORT), /* is local to unit */
       llVal); /* llvm::Value */
+  ///////////////////////////////////////////////
+  else 
+    printf("For this unsolved GV: type-name = %s astTag = %i\n",gVarSym->type->symbol->name, gVarSym->type->astTag);
 }
 
 llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
@@ -367,6 +493,9 @@ llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
 
 llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
 {
+    ///////////////////////////////////////////////
+    printf("construct_variable CALLED !\n");
+    //////////////////////////////////////////////
   GenInfo *info = gGenInfo;
   const char *name = varSym->name;
   const char *file_name = varSym->astloc.filename;
@@ -383,8 +512,8 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
   llvm::DIType varSym_type = get_type(varSym->type);
       
       ///////for testing/////////////
-  printf("isType = %d\tvarSym->type->symbol->name = %s\ttype->symbol->llvmType->getTypeID() = %d\n",varSym_type.isType(),varSym->type->symbol->name,varSym->type->symbol->llvmType->getTypeID());
-  
+//   printf("In contruct LV: isType = %d\tvarSym->type->symbol->name = %s\ttype->symbol->llvmType->getTypeID() = %d\n",varSym_type.isType(),varSym->type->symbol->name,varSym->type->symbol->llvmType->getTypeID());
+  if(varSym_type)
   return this->dibuilder.createLocalVariable(
       llvm::dwarf::DW_TAG_auto_variable, /*Tag: local vas declared in the body of a function */
       scope, /* Scope */
@@ -394,6 +523,10 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
       varSym_type, /*Type*/
       true/*AlwaysPreserve, won't be removed when optimized*/
       ); // omit the  Flags and ArgNo
+  ///////////////////////////////////////////////
+  else 
+    printf("For this unsolved LV: type-name = %s astTag = %i\n",varSym->type->symbol->name, varSym->type->astTag);
+
 }
 
 llvm::DIVariable debug_data::get_variable(VarSymbol *varSym)
