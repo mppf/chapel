@@ -1007,8 +1007,8 @@ void cleanupExternC(void) {
     gExternBlockStmts.clear();
   }
 }
-
-Function* getFunctionLLVM(const char* name)
+// add llvm:: in front of Function by Hui Zhang
+llvm::Function* getFunctionLLVM(const char* name)
 {
   GenInfo* info = gGenInfo;
   Function* fn = info->module->getFunction(name);
@@ -1257,7 +1257,7 @@ LayeredValueTable::Storage* LayeredValueTable::get(StringRef name) {
 
     if(j != i->end())
     {
-      return &j->second;
+      return &j->second;//it returns the address of the 'value' in a pair referenced by j
     }
   }
 

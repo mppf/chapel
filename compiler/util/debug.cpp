@@ -18,6 +18,7 @@
 #include "llvm/Support/raw_os_ostream.h"
 #include <iostream>
 #include "llvm/Assembly/Writer.h"
+#include "llvm/ADT/DenseMap.h"
 /*
 LLVM provides a class called DIBuilder, you pass the LLVM module to this
 class and it will attach the debug information to the LLVM code after the
@@ -51,18 +52,39 @@ for more information on LLVM debug information.
 
 extern char *current_dir;
 //const char *null_name = "<internal>";
+// global variale to store Type Info
+llvm::DenseMap<const Type *, llvm::MDNode *> myTypeDescriptors;
+
+std::string myGetTypeName(llvm::Type *ty) {
+  std::string TypeName;
+  llvm::raw_string_ostream TypeStream(TypeName);
+  if(ty)
+    ty->print(TypeStream);
+  else
+    TypeStream << "Printing <null> Type";
+  TypeStream.flush();
+  return TypeName;
+}
+
+llvm::MDNode *myGetType(const Type *type) {
+  typedef llvm::DenseMap<const Type*, llvm::MDNode *>::const_iterator TypeNodeIter;
+  TypeNodeIter i = myTypeDescriptors.find(type);
+  if(i != myTypeDescriptors.end())
+    return i->second;
+  return NULL;
+}
 
 /////////////////////////////////////////////////
 void printTypeInfo(Type *type, llvm::Type* ty)
 {
-    //llvm::Type *ty = type->symbol->llvmType;
-    printf("IN ty->isPointerTy\n");
-    printf("Everything about type:\n");
-    printf("type->symbol->name=%s\ttype->astTag=%d\ttype->defaultValue=%s\n",
-	    type->symbol->name,type->astTag,type->defaultValue->name);
-    printf("Everything about llvmType:\n");
-    llvm::raw_os_ostream OS(std::cout);
-    ty->print(OS); //print function in llvm::Type
+  //llvm::Type *ty = type->symbol->llvmType;
+  printf("IN ty->isPointerTy\n");
+  printf("Everything about type:\n");
+  printf("type->symbol->name=%s\ttype->astTag=%d\ttype->defaultValue=%s\n",
+    type->symbol->name,type->astTag,type->defaultValue->name);
+  printf("Everything about llvmType:\n");
+  llvm::raw_os_ostream OS(std::cout);
+  ty->print(OS); //print function in llvm::Type
 }
 /////////////////////////////////////////////////
 
@@ -79,6 +101,9 @@ void debug_data::create_compile_unit(const char *file, const char *directory, bo
 
 llvm::DIType debug_data::construct_type(Type *type)
 {
+  llvm::MDNode *N = myGetType(type);
+  if(N)
+    return llvm::DIType(N);//get the type directly from myTypeDescriptors if parsed before
   GenInfo* info = gGenInfo;
   LLVM_TARGET_DATA * layout = info->targetData; //define LLVM_TARGET_DATA llvm::DataLayout
   llvm::Type* ty = type->symbol->llvmType;
@@ -93,22 +118,26 @@ llvm::DIType debug_data::construct_type(Type *type)
       ///////////////////////////////////
       printf("isIntegerTy, type: %s  astTag=%i\n",type->symbol->name,type->astTag);
       ////////////////////////////////////
-    return this->dibuilder.createBasicType(
+      N = this->dibuilder.createBasicType(
         name,
         layout->getTypeSizeInBits(ty),
         8*layout->getABITypeAlignment(ty),
         (is_signed(type))?
-                      (llvm::dwarf::DW_ATE_signed):
-                      (llvm::dwarf::DW_ATE_unsigned));
+            (llvm::dwarf::DW_ATE_signed):
+            (llvm::dwarf::DW_ATE_unsigned));
+      myTypeDescriptors[type] = N;
+      return llvm::DIType(N);
   } else if(ty->isFloatingPointTy()) {
       /////////////////////////////////////////
       printf("isFloatingPointTy, type: %s  astTag=%i\n",type->symbol->name, type->astTag);
       /////////////////////////////////////////
-    return this->dibuilder.createBasicType(
+      N = this->dibuilder.createBasicType(
         name,
         layout->getTypeSizeInBits(ty),
         8*layout->getABITypeAlignment(ty),
         llvm::dwarf::DW_ATE_float);
+      myTypeDescriptors[type] = N;
+      return llvm::DIType(N);
   } else if(ty->isPointerTy()) {
       ///////////////////
       printf("\nI'm HERE 1 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
@@ -117,11 +146,13 @@ llvm::DIType debug_data::construct_type(Type *type)
 	/////////////////////////////  
 	printf("I'm HERE 2 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
 	////////////////////////////
-	return this->dibuilder.createPointerType(
-        get_type(type->getValType()),//it's supposed to return the DIType of pointee
-        layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
-        0, /* alignment */
-        name);
+	N = this->dibuilder.createPointerType(
+          get_type(type->getValType()),//it's supposed to return the DIType of pointee
+          layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
+          0, /* alignment */
+          name);
+	myTypeDescriptors[type] = N;
+	return llvm::DIType(N);
       }
       //-----Added by Hui(hacky way to resolve the unhandled type issue)-----//
       else {
@@ -129,7 +160,53 @@ llvm::DIType debug_data::construct_type(Type *type)
 	  //TODO: Solve string, c_string, nil, opaque,etc.
 	    llvm::Type *PointeeTy = ty->getPointerElementType();
 	    printf("The pointeeTy->getTypeID = %i\n",PointeeTy->getTypeID());
-	    PointeeTy->dump();
+	    // handle string, c_string, c_string_copy, nil, opaque, c_void_ptr
+	    if(PointeeTy->isIntegerTy()){
+		//////////////////////////////
+		printf("pointee-isInt\n");
+		llvm::DIType pteIntDIType; //create the DI-pointeeType
+		pteIntDIType = this->dibuilder.createBasicType(
+		    myGetTypeName(PointeeTy), 
+		    layout->getTypeSizeInBits(PointeeTy),
+		    8*layout->getABITypeAlignment(PointeeTy),
+		    llvm::dwarf::DW_ATE_unsigned);
+
+		N = this->dibuilder.createPointerType(
+		    pteIntDIType, 
+		    layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
+		    0,
+		    name);
+		myTypeDescriptors[type] = N;
+		return llvm::DIType(N);
+	    }
+	    // handle qio_channel_ptr_t, _task_list, qio_file_ptr_t, syserr, _file
+	    else if(PointeeTy->isStructTy()){
+		////////////////////////////
+		printf("pointee-isStr, the name = %s\n",PointeeTy->getStructName());
+		llvm::DIType pteStrDIType; //create the DI-pointeeType
+		pteStrDIType = this->dibuilder.createStructType(
+		    get_module_scope(defModule),
+		    PointeeTy->getStructName(),
+		    get_file(defFile),
+		    0,
+		    (PointeeTy->isSized()?
+			layout->getTypeSizeInBits(PointeeTy):
+			8),
+		    (PointeeTy->isSized()?
+			8*layout->getABITypeAlignment(PointeeTy):
+			8),
+		    0,
+		    llvm::DIType(NULL),
+		    llvm::DIArray(NULL));
+		
+		N = this->dibuilder.createPointerType(
+		    pteStrDIType,
+		    layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
+		    0,
+		    name);
+		myTypeDescriptors[type] = N;
+		return llvm::DIType(N);
+	    }
 	}
 	else if(type->astTag == E_AggregateType) {
 	    // dealing with classes
@@ -143,11 +220,13 @@ llvm::DIType debug_data::construct_type(Type *type)
 	    if(this_class->symbol->hasFlag(FLAG_DATA_CLASS)){
 	      Type* vt = getDataClassType(this_class->symbol)->typeInfo();
 	      if(vt) {
-		return this->dibuilder.createPointerType(
+		N = this->dibuilder.createPointerType(
 		    get_type(vt),
 		    layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
 		    0,
 		    name);
+		myTypeDescriptors[type] = N;
+		return llvm::DIType(N);
 	      }
 	    } //Not sure whether I should directly return getType(vt)
 		
@@ -155,18 +234,28 @@ llvm::DIType debug_data::construct_type(Type *type)
 	    //llvm::StructType* struct_type = llvm::cast<llvm::StructType>(ty);
 	    const char *struct_name = this_class->classStructName(true);
 	    llvm::Type* st = getTypeLLVM(struct_name);
+	    ///////////////////////////////////////////////////////////////////////////
 	    printf("struct_name=%s  hasFlag(FLAG_DATA_CLASS)=%i  hasFlag(FLAG_REF)=%i  hasFlag(FLAG_EXTERN)=%i\n",struct_name,this_class->symbol->hasFlag(FLAG_DATA_CLASS),this_class->symbol->hasFlag(FLAG_REF),this_class->symbol->hasFlag(FLAG_EXTERN));
 	    if(st){
 		llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
-		/////////////////////////////////////////////////////////////////////////////
-    /*	    printf("this.struct_name = %s\tthis.cname = %s\n",struct_name,this_class->symbol->cname);
-		for_fields(field, this_class) {
-		  TypeSymbol *fts = field->type->symbol;
-		  printf("the field->name = %s, field-type-name = %s\n",field->name, fts->name);
-		}
-    */	    ////////////////////////////////////////////////////////////////////////////
 		printf("struct_name = %s, ST->isOpaque = %i\n",struct_name, struct_type->isOpaque());
 		if(!struct_type->isOpaque()){
+		    N = this->dibuilder.createStructType(
+			get_module_scope(defModule),
+			name,
+			get_file(defFile),
+			defLine,
+			layout->getTypeSizeInBits(ty),
+			8*layout->getABITypeAlignment(ty),
+			0,
+			derivedFrom,
+			llvm::DIArray(NULL)); //filled in later
+	 // N is added to the map (early) so that element search below can find it,
+	 // so as to avoid infinite recursion for structs that contain pointers to
+	 // their own type.
+		    myTypeDescriptors[type] = N;
+		    llvm::DICompositeType StructDescriptor(N);
+
 		    slayout = layout->getStructLayout(struct_type); //This is the problem !!!
 		    for_fields(field, this_class) {
 		      // field is a Symbol
@@ -176,8 +265,8 @@ llvm::DIType debug_data::construct_type(Type *type)
 		      llvm::Type* fty = fts->llvmType;
 		      llvm::DIType mty; //be NULL if following condition not met
 		      //TODO: figure out how to use the dummy type for 'BaseArr'
-		      if(strcmp(fts->name,this_class->symbol->name)){ //if not equal
-			  mty = this->dibuilder.createMemberType(
+		      //if(strcmp(fts->name,this_class->symbol->name))
+		      mty = this->dibuilder.createMemberType(
 			  get_module_scope(defModule),
 			  field->name,
 			  get_file(fieldDefFile),
@@ -187,27 +276,12 @@ llvm::DIType debug_data::construct_type(Type *type)
 			  slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)),
 			  0,
 			  get_type(field->type));
-		      }
-		      else printf("Collision: fts->name = %s\n",fts->name);
+		      //else printf("Collision: fts->name = %s\n",fts->name);
 		      EltTys.push_back(mty);
 		    }
-
-		    if(this_class->aggregateTag == AGGREGATE_CLASS) {
-			////////////////////////////////////////////////////
-			printf("I'm in PointerTy--AGGREGATE_CLASS\n");
-			///////////////////////////////////////////////////
-		      return this->dibuilder.createStructType( //why NOT use createClassType??
-			  get_module_scope(defModule),
-			  name,
-			  get_file(defFile),
-			  defLine,
-			  layout->getTypeSizeInBits(ty),
-			  8*layout->getABITypeAlignment(ty),
-			  0,
-			  derivedFrom,
-			  this->dibuilder.getOrCreateArray(EltTys));
-		    } 
-		    else printf("Error: I'm in PtrType-ast18,but not CLASS,  aggregateTag=%i\n",this_class->aggregateTag);
+		    // set struct elements
+		    StructDescriptor.setTypeArray(this->dibuilder.getOrCreateArray(EltTys));
+		    return llvm::DIType(N);
 		}//end of if(!Opaque)
 	    }// end of if(st)
 	} // end of astTag == E_AggregateTy
@@ -252,7 +326,7 @@ llvm::DIType debug_data::construct_type(Type *type)
 	printf("I'm in AGGREGATE_RECORD\n");
 	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	///////////////////////////////////////////////////
-      return this->dibuilder.createStructType(
+        N = this->dibuilder.createStructType(
 	  get_module_scope(defModule),
           name,
           get_file(defFile),
@@ -262,12 +336,14 @@ llvm::DIType debug_data::construct_type(Type *type)
           0,
           derivedFrom,
           this->dibuilder.getOrCreateArray(EltTys));
+	myTypeDescriptors[type] = N;
+	return llvm::DIType(N);
     } else if(this_class->aggregateTag == AGGREGATE_CLASS) {
 	////////////////////////////////////////////////////
 	printf("I'm in AGGREGATE_CLASS\n");
 	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	///////////////////////////////////////////////////
-      return this->dibuilder.createStructType( //why NOT use createClassType??
+        N = this->dibuilder.createStructType( //why NOT use createClassType??
           get_module_scope(defModule),
           name,
           get_file(defFile),
@@ -277,12 +353,14 @@ llvm::DIType debug_data::construct_type(Type *type)
           0,
           derivedFrom,
           this->dibuilder.getOrCreateArray(EltTys));
+	myTypeDescriptors[type] = N;
+	return llvm::DIType(N);
     } else if(this_class->aggregateTag == AGGREGATE_UNION) {
  	////////////////////////////////////////////////////
 	printf("I'm in AGGREGATE_UNION\n");
 	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	////////////////////////////////////////////////////    
-      return this->dibuilder.createUnionType(
+        N = this->dibuilder.createUnionType(
           get_module_scope(defModule),
           name,
           get_file(defFile),
@@ -291,6 +369,8 @@ llvm::DIType debug_data::construct_type(Type *type)
           8*layout->getABITypeAlignment(ty),
           0,
           this->dibuilder.getOrCreateArray(EltTys));
+	myTypeDescriptors[type] = N;
+	return llvm::DIType(N);
     }
   }
 //------------------Added by Hui Zhang----------------------------//
@@ -312,20 +392,19 @@ llvm::DIType debug_data::construct_type(Type *type)
     Subscripts.push_back(this->dibuilder.getOrCreateSubrange(0, Asize));
     Symbol *eleSym = toDefExpr(this_class->fields.head)->sym;
     Type *eleType = eleSym->type;
-    return this->dibuilder.createArrayType(
+    N = this->dibuilder.createArrayType(
 	Asize, //Array size: uint64_t
 	8*layout->getABITypeAlignment(ty), // Alighment: uint64_t
 	get_type(eleType),  // Element type: DIType
 	this->dibuilder.getOrCreateArray(Subscripts)); //Subscripts: DIArray
+    myTypeDescriptors[type] = N;
+    return llvm::DIType(N);
   }
 //-----------------------------------------------------------------//
 
   printf("Unhandled type: %s\n\ttype->astTag=%i\n", type->symbol->name, type->astTag);
   if(type->symbol->llvmType) {
     printf("\tllvmType->getTypeID() = %i\n", type->symbol->llvmType->getTypeID());
-    //llvm::raw_os_ostream OS(std::cout);
-    //type->symbol->llvmType->print(OS);
-    //printf("\n");
   } else {
     printf("\tllvmType is NULL\n");
   }
@@ -511,8 +590,6 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
   llvm::DIFile file = get_file(file_name);
   llvm::DIType varSym_type = get_type(varSym->type);
       
-      ///////for testing/////////////
-//   printf("In contruct LV: isType = %d\tvarSym->type->symbol->name = %s\ttype->symbol->llvmType->getTypeID() = %d\n",varSym_type.isType(),varSym->type->symbol->name,varSym->type->symbol->llvmType->getTypeID());
   if(varSym_type)
   return this->dibuilder.createLocalVariable(
       llvm::dwarf::DW_TAG_auto_variable, /*Tag: local vas declared in the body of a function */
