@@ -479,7 +479,7 @@ GenRet VarSymbol::codegen() {
 
   if( outfile ) {
     if (immediate) {
-      ret.isLVPtr = GEN_VAL;
+      ret.isLVPtr = GEN_VAL; //genret.h  GEN_VAL=0, read-only
       if (immediate->const_kind == CONST_KIND_STRING) {
         ret.c += '"';
         ret.c += immediate->v_string;
@@ -745,7 +745,11 @@ void VarSymbol::codegenGlobalDef() {
                                  : llvm::GlobalVariable::InternalLinkage,
             llvm::Constant::getNullValue(llTy), /* initializer, */
             cname);
-
+      //------------------added by Hui Zhang---------------------------//
+      if(debug_info){
+	debug_info->get_global_variable(this);
+      }
+      //---------------------------------------------------------------//
       info->lvt->addGlobalValue(cname, gVar, GEN_PTR, ! is_signed(type) );
     }
 #endif
@@ -795,14 +799,17 @@ void VarSymbol::codegenDef() {
         globalValue->setInitializer(llvm::cast<llvm::Constant>(
               codegenImmediateLLVM(immediate)));
       }
-      //-------------added by Hui Zhang-------------------//
-      if(debug_info){
-	debug_info->get_global_variable(this);
-      }
+//      //-------------added by Hui Zhang-------------------//
+//      if(debug_info){
+//	debug_info->get_global_variable(this);
+//      }
       //---------------------------------------------------//
       info->lvt->addGlobalValue(cname, globalValue, GEN_VAL, ! is_signed(type));
     }
     llvm::Type *varType = type->codegen().type;
+    //////////////////////////////////////////////
+    printf("Creating variable: %s\n",cname);
+    /////////////////////////////////////////////
     llvm::Value *varAlloca = createTempVarLLVM(varType, cname);
     info->lvt->addValue(cname, varAlloca, GEN_PTR, ! is_signed(type));
     

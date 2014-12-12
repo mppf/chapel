@@ -384,7 +384,7 @@ llvm::DIType debug_data::construct_type(Type *type)
     //llvm::Type *elementType = array_type->getElementType();
     //printf("array_type_name = %s  element_type_name = %s\ eleTyID = %i\n",array_type->getStructName(),elementType->getStructName(),elementType->getTypeID());
     //printf("The size of Array = %d\n",this_class->fields.length);
-    //for_fields(field, this_class){
+    //for_fields(field, this_class)
 //	TypeSymbol* fts = field->type->symbol;
 //	printf("the field->name = %s, field-type-name = %s\n",field->name, fts->name);
     int Asize = this_class->fields.length;
@@ -527,12 +527,12 @@ llvm::DISubprogram debug_data::get_function(FnSymbol *function)
 
 llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
 {
-    ///////////////////////////////////////////////
-    printf("construct_global_variable CALLED !\n");
-    //////////////////////////////////////////////
   GenInfo *info = gGenInfo; 
   const char *name = gVarSym->name;
   const char *cname = gVarSym->cname;
+   ///////////////////////////////////////////////////
+    printf("construct_global_variable CALLED on %s!\n", name);
+    //////////////////////////////////////////////
   //ModuleSymbol *modSym = (ModuleSymbol*) gVarSym->defPoint->parentSymbol;
   const char *file_name = gVarSym->astloc.filename;
   int line_number = gVarSym->astloc.lineno;
@@ -572,11 +572,12 @@ llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
 
 llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
 {
-    ///////////////////////////////////////////////
-    printf("construct_variable CALLED !\n");
-    //////////////////////////////////////////////
   GenInfo *info = gGenInfo;
   const char *name = varSym->name;
+  const char *cname = varSym->cname;
+     ///////////////////////////////////////////////
+    printf("construct_variable CALLED on %s!\n",cname);
+    //////////////////////////////////////////////
   const char *file_name = varSym->astloc.filename;
   int line_number = varSym->astloc.lineno;
   FnSymbol *funcSym = NULL;
