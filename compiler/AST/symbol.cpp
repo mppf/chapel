@@ -745,12 +745,13 @@ void VarSymbol::codegenGlobalDef() {
                                  : llvm::GlobalVariable::InternalLinkage,
             llvm::Constant::getNullValue(llTy), /* initializer, */
             cname);
+      info->lvt->addGlobalValue(cname, gVar, GEN_PTR, ! is_signed(type) );
+
       //------------------added by Hui Zhang---------------------------//
       if(debug_info){
 	debug_info->get_global_variable(this);
       }
       //---------------------------------------------------------------//
-      info->lvt->addGlobalValue(cname, gVar, GEN_PTR, ! is_signed(type) );
     }
 #endif
   }
@@ -855,6 +856,10 @@ ArgSymbol::ArgSymbol(IntentTag iIntent, const char* iName,
   defaultExpr(NULL),
   variableExpr(NULL),
   instantiatedFrom(NULL)
+#ifdef HAVE_LLVM
+  ,
+  llvmDIFormal(NULL)
+#endif
 {
   if (intentsResolved) {
     if (iIntent == INTENT_BLANK || iIntent == INTENT_CONST) {
@@ -1905,6 +1910,7 @@ void FnSymbol::codegenDef() {
     }
 
     llvm::Function::arg_iterator ai = func->arg_begin();
+    unsigned int ArgNo = 1; //start from 1 to cooperate with createLocalVariable
     for_formals(arg, this) {
       if (arg->defPoint == formals.head && hasFlag(FLAG_ON_BLOCK))
         continue; // do not print locale argument for on blocks
@@ -1919,8 +1925,13 @@ void FnSymbol::codegenDef() {
 
         info->lvt->addValue(arg->cname, tempVar.val,
                             tempVar.isLVPtr, !is_signed(type));
+	// Added by Hui: debug info for formal arguments
+	if(debug_info){
+	  debug_info->get_formal_arg(arg, ArgNo);
+	}
       }
       ++ai;
+      ArgNo++;
     }
 
 #endif

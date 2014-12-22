@@ -199,6 +199,10 @@ public:
             Expr*       iDefaultExpr  = NULL,
             Expr*       iVariableExpr = NULL);
 
+#ifdef HAVE_LLVM
+  llvm::MDNode *llvmDIFormal;
+#endif
+ 
   // Interface for BaseAST
   virtual GenRet  codegen();
 

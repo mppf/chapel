@@ -1,5 +1,4 @@
 #include "debug.h"
-// This is debug-new branch !
 #include "stringutil.h"
 #include "expr.h"
 #include "codegen.h"
@@ -263,8 +262,8 @@ llvm::DIType debug_data::construct_type(Type *type)
 		      int fieldDefLine = field->defPoint->linenum();
 		      TypeSymbol* fts = field->type->symbol;
 		      llvm::Type* fty = fts->llvmType;
-		      llvm::DIType mty; //be NULL if following condition not met
-		      //TODO: figure out how to use the dummy type for 'BaseArr'
+		      llvm::DIType mty; //
+		      //use the dummy type for 'BaseArr'
 		      //if(strcmp(fts->name,this_class->symbol->name))
 		      mty = this->dibuilder.createMemberType(
 			  get_module_scope(defModule),
@@ -273,9 +272,9 @@ llvm::DIType debug_data::construct_type(Type *type)
 			  fieldDefLine,
 			  layout->getTypeSizeInBits(fty),
 			  8*layout->getABITypeAlignment(fty),
-			  slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)),
-			  0,
-			  get_type(field->type));
+			  slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)), //GEP is map<string, int> of 
+			  0,									  //<name, idx> to get the info
+			  get_type(field->type));						  // of a structure
 		      //else printf("Collision: fts->name = %s\n",fts->name);
 		      EltTys.push_back(mty);
 		    }
@@ -289,7 +288,7 @@ llvm::DIType debug_data::construct_type(Type *type)
     //-------------------------------------------------------------------------------------//
   } else if(ty->isStructTy() && type->astTag == E_AggregateType) {
       ////////////////////////////////////////////////////
-      printf("I'm in ty->isStructTy() && type->astTag == E_AggregateType\n");
+      printf("I'm %s in ty->isStructTy() && type->astTag == E_AggregateType\n",type->symbol->name);
       /////////////////////////////////////////////////////
     AggregateType *this_class = (AggregateType *)type;
     llvm::SmallVector<llvm::Value *, 8> EltTys;
@@ -307,7 +306,13 @@ llvm::DIType debug_data::construct_type(Type *type)
       int fieldDefLine = field->defPoint->linenum();
       TypeSymbol* fts = field->type->symbol; // Symbol:(Type*)type:(TypeSymbol*)symbol
       llvm::Type* fty = fts->llvmType;
-
+///////////////////////////////////////////////////////////////
+      if(!fty){
+	fty = getTypeLLVM(fts->name);
+	if(!fty)
+	  printf("fts->name=%s\n",fts->name);
+      }
+///////////////////////////////////////////////////////////////
       llvm::DIType mty = this->dibuilder.createMemberType(
         get_module_scope(defModule),
         field->name,
@@ -543,11 +548,10 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
   GenRet got = info->lvt->getValue(cname); //?use cname since get_function uses it?
   llvm::Value *llVal = NULL;
   if( got.val ) 
-    llVal = got.val;  // Not sure if it's a right way to grab the 
-	              // corresponding llvm::Value of a VarSymbol
+    llVal = got.val;  
   else {
    // llvm::Value *llVal = NULL;
-    printf("Couldn't find the llvm::Value of a gVarSym !\n");
+    printf("Couldn't find the llvm::Value of name=%s cname=%s !\n",name,cname);
   }
 
   if(gVarSym_type)
@@ -603,7 +607,7 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
       ); // omit the  Flags and ArgNo
   ///////////////////////////////////////////////
   else 
-    printf("For this unsolved LV: type-name = %s astTag = %i\n",varSym->type->symbol->name, varSym->type->astTag);
+    printf("For this unsolved LV: %s  type-name = %s astTag = %i\n",name,varSym->type->symbol->name, varSym->type->astTag);
 
 }
 
@@ -615,6 +619,52 @@ llvm::DIVariable debug_data::get_variable(VarSymbol *varSym)
   return llvm::DIVariable(varSym->llvmDIVariable);
 }
 
+llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned int ArgNo)
+{
+  GenInfo *info = gGenInfo;
+  const char *name = argSym->name;
+  const char *cname = argSym->cname;
+     ///////////////////////////////////////////////
+    printf("construct_formal_arg CALLED on %s!\n",cname);
+    //////////////////////////////////////////////
+  const char *file_name = argSym->astloc.filename;
+  int line_number = argSym->astloc.lineno;
+  FnSymbol *funcSym = NULL;
+  if(isFnSymbol(argSym->defPoint->parentSymbol))
+    funcSym = (FnSymbol*)argSym->defPoint->parentSymbol; //TODO: if the parent is a block
+  else {
+    //FnSymbol *funcSym = NULL;
+    printf("Couldn't find the function parent of this variable!\n");
+  }
+  llvm::DISubprogram scope = get_function(funcSym); //TODO: Scope maybe just a block 
+  llvm::DIFile file = get_file(file_name);
+  llvm::DIType argSym_type = get_type(argSym->type);
+      
+  if(argSym_type)
+  return this->dibuilder.createLocalVariable(
+      llvm::dwarf::DW_TAG_arg_variable, /*Tag: formal arg to a function */
+      scope, /* Scope */
+      name, /*Name*/
+      file, /*File*/
+      line_number, /*Lineno*/
+      argSym_type, /*Type*/
+      true,/*AlwaysPreserve, won't be removed when optimized*/
+      0,  /*Flags*/
+      ArgNo
+      ); 
+  ///////////////////////////////////////////////
+  else 
+    printf("For this unsolved formal_arg: %s  type-name = %s astTag = %i\n",name,argSym->type->symbol->name, argSym->type->astTag);
+
+}
+
+llvm::DIVariable debug_data::get_formal_arg(ArgSymbol *argSym, unsigned int ArgNo)
+{
+  if( NULL == argSym->llvmDIFormal ){
+    argSym->llvmDIFormal = construct_formal_arg(argSym, ArgNo);
+  }
+  return llvm::DIVariable(argSym->llvmDIFormal);
+}
 //------------------------------------------------------------------------------//
 // end if LLVM
 #endif

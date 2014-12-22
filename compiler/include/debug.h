@@ -49,6 +49,8 @@ class debug_data
   llvm::DIGlobalVariable get_global_variable(VarSymbol *gVarSym);
   llvm::DIVariable construct_variable(VarSymbol *varSym);
   llvm::DIVariable get_variable(VarSymbol *varSym);
+  llvm::DIVariable construct_formal_arg(ArgSymbol *argSym, unsigned int ArgNo);
+  llvm::DIVariable get_formal_arg(ArgSymbol *argSym, unsigned int ArgNo);
 //----------------------------------------------------------------------//      
  private:
   llvm::DIBuilder dibuilder;

@@ -904,10 +904,6 @@ void AggregateType::codegenPrototype() {
  
       llvm::StructType* st;
       st = llvm::StructType::create(info->module->getContext(), struct_name);
-      ////////////////////////////////////////////////
-      if(!strcmp(struct_name, "chpl__ddata_chpl_TableEntry_chpl_taskID_t_object"))
-	  printf("I'm adding the unhandled class !\n");
-      ////////////////////////////////////////////////
       info->lvt->addGlobalType(struct_name, st);
 
       llvm::PointerType* pt = llvm::PointerType::getUnqual(st);
