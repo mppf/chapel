@@ -139,11 +139,11 @@ llvm::DIType debug_data::construct_type(Type *type)
       return llvm::DIType(N);
   } else if(ty->isPointerTy()) {
       ///////////////////
-      printf("\nI'm HERE 1 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
+      //printf("\nI'm HERE 1 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
       //////////////////
       if(type != type->getValType()) { //Add this condition to avoid segFault, leave it to unhandled
 	/////////////////////////////  
-	printf("I'm HERE 2 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
+	//printf("I'm HERE 2 ! type: %s astTag=%i\n",type->symbol->name,type->astTag);
 	////////////////////////////
 	N = this->dibuilder.createPointerType(
           get_type(type->getValType()),//it's supposed to return the DIType of pointee
@@ -158,7 +158,7 @@ llvm::DIType debug_data::construct_type(Type *type)
 	if(type->astTag == E_PrimitiveType) {
 	  //TODO: Solve string, c_string, nil, opaque,etc.
 	    llvm::Type *PointeeTy = ty->getPointerElementType();
-	    printf("The pointeeTy->getTypeID = %i\n",PointeeTy->getTypeID());
+	    //printf("The pointeeTy->getTypeID = %i\n",PointeeTy->getTypeID());
 	    // handle string, c_string, c_string_copy, nil, opaque, c_void_ptr
 	    if(PointeeTy->isIntegerTy()){
 		//////////////////////////////
@@ -234,10 +234,10 @@ llvm::DIType debug_data::construct_type(Type *type)
 	    const char *struct_name = this_class->classStructName(true);
 	    llvm::Type* st = getTypeLLVM(struct_name);
 	    ///////////////////////////////////////////////////////////////////////////
-	    printf("struct_name=%s  hasFlag(FLAG_DATA_CLASS)=%i  hasFlag(FLAG_REF)=%i  hasFlag(FLAG_EXTERN)=%i\n",struct_name,this_class->symbol->hasFlag(FLAG_DATA_CLASS),this_class->symbol->hasFlag(FLAG_REF),this_class->symbol->hasFlag(FLAG_EXTERN));
+	    //printf("struct_name=%s  hasFlag(FLAG_DATA_CLASS)=%i  hasFlag(FLAG_REF)=%i  hasFlag(FLAG_EXTERN)=%i\n",struct_name,this_class->symbol->hasFlag(FLAG_DATA_CLASS),this_class->symbol->hasFlag(FLAG_REF),this_class->symbol->hasFlag(FLAG_EXTERN));
 	    if(st){
 		llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
-		printf("struct_name = %s, ST->isOpaque = %i\n",struct_name, struct_type->isOpaque());
+		//printf("struct_name = %s, ST->isOpaque = %i\n",struct_name, struct_type->isOpaque());
 		if(!struct_type->isOpaque()){
 		    N = this->dibuilder.createStructType(
 			get_module_scope(defModule),
@@ -328,8 +328,8 @@ llvm::DIType debug_data::construct_type(Type *type)
 
     if(this_class->aggregateTag == AGGREGATE_RECORD) {
 	////////////////////////////////////////////////////
-	printf("I'm in AGGREGATE_RECORD\n");
-	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
+	//printf("I'm in AGGREGATE_RECORD\n");
+	//printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	///////////////////////////////////////////////////
         N = this->dibuilder.createStructType(
 	  get_module_scope(defModule),
@@ -345,8 +345,8 @@ llvm::DIType debug_data::construct_type(Type *type)
 	return llvm::DIType(N);
     } else if(this_class->aggregateTag == AGGREGATE_CLASS) {
 	////////////////////////////////////////////////////
-	printf("I'm in AGGREGATE_CLASS\n");
-	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
+	//printf("I'm in AGGREGATE_CLASS\n");
+	//printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	///////////////////////////////////////////////////
         N = this->dibuilder.createStructType( //why NOT use createClassType??
           get_module_scope(defModule),
@@ -362,8 +362,8 @@ llvm::DIType debug_data::construct_type(Type *type)
 	return llvm::DIType(N);
     } else if(this_class->aggregateTag == AGGREGATE_UNION) {
  	////////////////////////////////////////////////////
-	printf("I'm in AGGREGATE_UNION\n");
-	printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
+	//printf("I'm in AGGREGATE_UNION\n");
+	//printf("\ttype: %s  type->astTag=%i  llvmType->getTypeID=%i\n",type->symbol->name, type->astTag, type->symbol->llvmType->getTypeID());
 	////////////////////////////////////////////////////    
         N = this->dibuilder.createUnionType(
           get_module_scope(defModule),
@@ -385,11 +385,6 @@ llvm::DIType debug_data::construct_type(Type *type)
     AggregateType *this_class = (AggregateType *)type;
     // Subscripts are "ranges" for each dimention of the array
     llvm::SmallVector<llvm::Value*, 4> Subscripts;
-    //llvm::ArrayType *array_type = llvm::dyn_cast<llvm::ArrayType>(ty);
-    //llvm::Type *elementType = array_type->getElementType();
-    //printf("array_type_name = %s  element_type_name = %s\ eleTyID = %i\n",array_type->getStructName(),elementType->getStructName(),elementType->getTypeID());
-    //printf("The size of Array = %d\n",this_class->fields.length);
-    //for_fields(field, this_class)
 //	TypeSymbol* fts = field->type->symbol;
 //	printf("the field->name = %s, field-type-name = %s\n",field->name, fts->name);
     int Asize = this_class->fields.length;
@@ -536,7 +531,7 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
   const char *name = gVarSym->name;
   const char *cname = gVarSym->cname;
    ///////////////////////////////////////////////////
-    printf("construct_global_variable CALLED on %s!\n", name);
+    //printf("construct_global_variable CALLED on %s!\n", name);
     //////////////////////////////////////////////
   //ModuleSymbol *modSym = (ModuleSymbol*) gVarSym->defPoint->parentSymbol;
   const char *file_name = gVarSym->astloc.filename;
@@ -551,7 +546,7 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
     llVal = got.val;  
   else {
    // llvm::Value *llVal = NULL;
-    printf("Couldn't find the llvm::Value of name=%s cname=%s !\n",name,cname);
+    //printf("Couldn't find the llvm::Value of name=%s cname=%s !\n",name,cname);
   }
 
   if(gVarSym_type)
@@ -562,8 +557,8 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
       !gVarSym->hasFlag(FLAG_EXPORT), /* is local to unit */
       llVal); /* llvm::Value */
   ///////////////////////////////////////////////
-  else 
-    printf("For this unsolved GV: type-name = %s astTag = %i\n",gVarSym->type->symbol->name, gVarSym->type->astTag);
+  //else 
+    //printf("For this unsolved GV: type-name = %s astTag = %i\n",gVarSym->type->symbol->name, gVarSym->type->astTag);
 }
 
 llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
@@ -580,7 +575,7 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
   const char *name = varSym->name;
   const char *cname = varSym->cname;
      ///////////////////////////////////////////////
-    printf("construct_variable CALLED on %s!\n",cname);
+    //printf("construct_variable CALLED on %s!\n",cname);
     //////////////////////////////////////////////
   const char *file_name = varSym->astloc.filename;
   int line_number = varSym->astloc.lineno;
@@ -589,7 +584,7 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
     funcSym = (FnSymbol*)varSym->defPoint->parentSymbol; //TODO: if the parent is a block
   else {
     //FnSymbol *funcSym = NULL;
-    printf("Couldn't find the function parent of this variable!\n");
+    //printf("Couldn't find the function parent of this variable!\n");
   }
   llvm::DISubprogram scope = get_function(funcSym); //TODO: Scope maybe just a block 
   llvm::DIFile file = get_file(file_name);
@@ -606,8 +601,8 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
       true/*AlwaysPreserve, won't be removed when optimized*/
       ); // omit the  Flags and ArgNo
   ///////////////////////////////////////////////
-  else 
-    printf("For this unsolved LV: %s  type-name = %s astTag = %i\n",name,varSym->type->symbol->name, varSym->type->astTag);
+  //else 
+    //printf("For this unsolved LV: %s  type-name = %s astTag = %i\n",name,varSym->type->symbol->name, varSym->type->astTag);
 
 }
 
@@ -624,8 +619,8 @@ llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned in
   GenInfo *info = gGenInfo;
   const char *name = argSym->name;
   const char *cname = argSym->cname;
-     ///////////////////////////////////////////////
-    printf("construct_formal_arg CALLED on %s!\n",cname);
+    ////////////////////////////////////////////////
+    //printf("construct_formal_arg CALLED on %s!\n",cname);
     //////////////////////////////////////////////
   const char *file_name = argSym->astloc.filename;
   int line_number = argSym->astloc.lineno;
@@ -634,7 +629,7 @@ llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned in
     funcSym = (FnSymbol*)argSym->defPoint->parentSymbol; //TODO: if the parent is a block
   else {
     //FnSymbol *funcSym = NULL;
-    printf("Couldn't find the function parent of this variable!\n");
+    //printf("Couldn't find the function parent of this variable!\n");
   }
   llvm::DISubprogram scope = get_function(funcSym); //TODO: Scope maybe just a block 
   llvm::DIFile file = get_file(file_name);
@@ -653,8 +648,8 @@ llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned in
       ArgNo
       ); 
   ///////////////////////////////////////////////
-  else 
-    printf("For this unsolved formal_arg: %s  type-name = %s astTag = %i\n",name,argSym->type->symbol->name, argSym->type->astTag);
+  //else 
+    //printf("For this unsolved formal_arg: %s  type-name = %s astTag = %i\n",name,argSym->type->symbol->name, argSym->type->astTag);
 
 }
 
