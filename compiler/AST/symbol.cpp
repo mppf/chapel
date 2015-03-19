@@ -809,7 +809,7 @@ void VarSymbol::codegenDef() {
     }
     llvm::Type *varType = type->codegen().type;
     //////////////////////////////////////////////
-    printf("Creating variable: %s\n",cname);
+    //printf("Creating variable: %s\n",cname);
     /////////////////////////////////////////////
     llvm::Value *varAlloca = createTempVarLLVM(varType, cname);
     info->lvt->addValue(cname, varAlloca, GEN_PTR, ! is_signed(type));
