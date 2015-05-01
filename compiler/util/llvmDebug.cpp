@@ -125,7 +125,7 @@ llvm::DIType debug_data::construct_type(Type *type)
   else if(ty->isPointerTy()) {
     if(type != type->getValType()) {//Add this condition to avoid segFault 
       N = this->dibuilder.createPointerType(
-        get_type(type->getValType()),//it's supposed to return the DIType of pointee
+        get_type(type->getValType()),//it should return the pointee's DIType
         layout->getPointerSizeInBits(ty->getPointerAddressSpace()),
         0, /* alignment */
         name);
@@ -138,7 +138,6 @@ llvm::DIType debug_data::construct_type(Type *type)
         llvm::Type *PointeeTy = ty->getPointerElementType();
         // handle string, c_string, c_string_copy, nil, opaque, c_void_ptr
         if(PointeeTy->isIntegerTy()) {
-          printf("pointee-isInt\n");
           llvm::DIType pteIntDIType; //create the DI-pointeeType
           pteIntDIType = this->dibuilder.createBasicType(
           myGetTypeName(PointeeTy), 
@@ -210,8 +209,12 @@ llvm::DIType debug_data::construct_type(Type *type)
         const char *struct_name = this_class->classStructName(true);
         llvm::Type* st = getTypeLLVM(struct_name);
         if(st){
+          printf("I'm in st==true\n");
           llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
           if(!struct_type->isOpaque()){
+            printf("I'm in struct_type != isOpaque\n");
+#if HAVE_LLVM_VER >= 36
+            printf("I'm in LLVM3.6\n");
             N = this->dibuilder.createForwardDecl(
               llvm::dwarf::DW_TAG_structure_type, 
               name,
@@ -222,9 +225,9 @@ llvm::DIType debug_data::construct_type(Type *type)
               layout->getTypeSizeInBits(ty),
               8*layout->getABITypeAlignment(ty));
      
-            // N is added to the map (early) so that element search below can find it,
-            // so as to avoid infinite recursion for structs that contain pointers to
-            // their own type.
+            //N is added to the map (early) so that element search below can find it,
+            //so as to avoid infinite recursion for structs that contain pointers to
+            //their own type.
             myTypeDescriptors[type] = N;
 
             slayout = layout->getStructLayout(struct_type); 
@@ -261,7 +264,51 @@ llvm::DIType debug_data::construct_type(Type *type)
               0, // RuntimeLang
               derivedFrom,
               this->dibuilder.getOrCreateArray(EltTys));
-            
+#else
+            // Create the DIType for the struct at first
+            printf("I'm in LLVM3.3\n");
+            N = this->dibuilder.createStructType(
+			  get_module_scope(defModule),
+			  name,
+			  get_file(defFile),
+			  defLine,
+			  layout->getTypeSizeInBits(ty),
+			  8*layout->getABITypeAlignment(ty),
+			  0,
+			  derivedFrom,
+			  llvm::DIArray(NULL)); //filled in later
+	 
+            //N is added to the map (early) so that element search below can find it,
+	        //so as to avoid infinite recursion for structs that contain pointers to
+	        //their own type.
+            myTypeDescriptors[type] = N;
+            llvm::DICompositeType StructDescriptor(N);
+
+            slayout = layout->getStructLayout(struct_type); 
+            for_fields(field, this_class) {
+              // field is a Symbol
+              const char* fieldDefFile = field->defPoint->fname();
+              int fieldDefLine = field->defPoint->linenum();
+              TypeSymbol* fts = field->type->symbol;
+              llvm::Type* fty = fts->llvmType;
+              llvm::DIType mty; //
+              //use the dummy type for classes like 'BaseArr'
+              mty = this->dibuilder.createMemberType(
+                get_module_scope(defModule),
+                field->name,
+                get_file(fieldDefFile),
+                fieldDefLine,
+                layout->getTypeSizeInBits(fty),
+                8*layout->getABITypeAlignment(fty),
+                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)), 
+                0,				  
+                get_type(field->type));
+		      
+              EltTys.push_back(mty);
+		    }
+		    // set struct elements
+		    StructDescriptor.setTypeArray(this->dibuilder.getOrCreateArray(EltTys));
+#endif
             return llvm::DIType(N);
           }//end of if(!Opaque)
         }// end of if(st)

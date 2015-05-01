@@ -43,7 +43,8 @@ class debug_data
   static bool can_debug() { return true; }
   debug_data(llvm::Module &m) : dibuilder(m){}
   void finalize(){dibuilder.finalize();}
-  void create_compile_unit(const char *file, const char *directory, bool is_optimized, const char *flags);
+  void create_compile_unit(const char *file, const char *directory, 
+                            bool is_optimized, const char *flags);
 
   llvm::DIType construct_type(Type *type);
   llvm::DIType get_type(Type *type);
