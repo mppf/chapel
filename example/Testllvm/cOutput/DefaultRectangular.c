@@ -1,0 +1,2947 @@
+/* DefaultRectangular.chpl:23 */
+/*  235305 */ static void chpl__init_DefaultRectangular(int64_t _ln, c_string _fn) {
+  /* 1273973 */ c_string modFormatStr;
+  /* 1273974 */ c_string modStr;
+  /* 1273990 */ _ref_int32_t refIndentLevel = NULL;
+  /*  295089 */ int64_t const_tmp;
+  /*  343659 */ chpl_bool call_tmp;
+  /* 1095417 */ chpl_bool call_tmp2;
+  /*  343674 */ c_string call_tmp3;
+  /*  295121 */ chpl_bool const_tmp2;
+  /*  343694 */ chpl_bool call_tmp4;
+  /* 1095426 */ chpl_bool call_tmp5;
+  /*  343714 */ c_string call_tmp6;
+  /*  295153 */ int64_t const_tmp3;
+  /*  343719 */ chpl_bool call_tmp7;
+  /* 1095435 */ chpl_bool call_tmp8;
+  /*  343734 */ c_string call_tmp9;
+  /* 1109232 */ chpl_bool call_tmp10;
+  /* 1106112 */ chpl_bool call_tmp11;
+  /* 1108226 */ DefaultDist this7 = NULL;
+  /* 1108228 */ int64_t call_tmp12;
+  /* 1108234 */ chpl_opaque cast_tmp;
+  /* 1108249 */ atomic_refcnt this8;
+  /* 1108251 */ atomic_int64 _init_class_tmp_;
+  /* 1108257 */ atomic_int64 this9;
+  /* 1108259 */ atomic_int_least64_t ret;
+  /* 1108261 */ atomic_int_least64_t type_tmp;
+  /* 1108266 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1108280 */ atomic_int64 wrap_call_tmp;
+  /* 1108292 */ atomic_refcnt wrap_call_tmp2;
+  /* 1108300 */ list_BaseDom this10;
+  /* 1108314 */ listNode_BaseDom call_tmp13 = NULL;
+  /* 1108325 */ listNode_BaseDom call_tmp14 = NULL;
+  /* 1108340 */ list_BaseDom wrap_call_tmp3;
+  /* 1108350 */ atomicflag this11;
+  /* 1108352 */ atomic_flag ret2;
+  /* 1108354 */ atomic_flag type_tmp2;
+  /* 1108359 */ _ref_atomic_flag _ref_tmp_2 = NULL;
+  /* 1108373 */ atomicflag wrap_call_tmp4;
+  /* 1108381 */ DefaultDist wrap_call_tmp5 = NULL;
+  /* 1038136 */ _ref_DefaultDist ret_to_arg_ref_tmp_ = NULL;
+  /* 235306*/ /* 1274009*/ if (chpl__init_DefaultRectangular_p) /* 1274010*/ {
+    /* 1274006*/ goto _exit_chpl__init_DefaultRectangular;
+  }
+  /* 1273982*/ modFormatStr = "%*s\n";
+  /* 1273985*/ modStr = "DefaultRectangular";
+  /* 1273988*/ printModuleInit(modFormatStr, modStr, INT64(18), _ln, _fn);
+  /* 1273994*/ refIndentLevel = &moduleInitLevel;
+  /* 1273997*/ *(refIndentLevel) += INT64(1);
+  /* 1273971*/ chpl__init_DefaultRectangular_p = true;
+  /* 1273239*/ {
+    /* 1273240*/ chpl__init_DSIUtil(_ln, _fn);
+    /* 1273242*/ chpl__init_ChapelArray(_ln, _fn);
+  }
+  /* 343662*/ call_tmp = chpl_config_has_value("dataParTasksPerLocale", "Built-in");
+  /* 1095419*/ call_tmp2 = (! call_tmp);
+  /* 295114*/ if (call_tmp2) /* 295115*/ {
+    /* 295119*/ const_tmp = INT64(0);
+  } else /* 295116*/ {
+    /* 343677*/ call_tmp3 = chpl_config_get_value("dataParTasksPerLocale", "Built-in");
+    /* 295112*/ const_tmp = _command_line_cast(call_tmp3, _ln, _fn);
+  }
+  /* 295091*/ dataParTasksPerLocale = const_tmp;
+  /* 343697*/ call_tmp4 = chpl_config_has_value("dataParIgnoreRunningTasks", "Built-in");
+  /* 1095428*/ call_tmp5 = (! call_tmp4);
+  /* 295146*/ if (call_tmp5) /* 295147*/ {
+    /* 295151*/ const_tmp2 = false;
+  } else /* 295148*/ {
+    /* 343717*/ call_tmp6 = chpl_config_get_value("dataParIgnoreRunningTasks", "Built-in");
+    /* 295144*/ const_tmp2 = _command_line_cast2(call_tmp6, _ln, _fn);
+  }
+  /* 295123*/ dataParIgnoreRunningTasks = const_tmp2;
+  /* 343722*/ call_tmp7 = chpl_config_has_value("dataParMinGranularity", "Built-in");
+  /* 1095437*/ call_tmp8 = (! call_tmp7);
+  /* 295178*/ if (call_tmp8) /* 295179*/ {
+    /* 295190*/ const_tmp3 = INT64(1);
+  } else /* 295180*/ {
+    /* 343737*/ call_tmp9 = chpl_config_get_value("dataParMinGranularity", "Built-in");
+    /* 295176*/ const_tmp3 = _command_line_cast3(call_tmp9, _ln, _fn);
+  }
+  /* 295155*/ dataParMinGranularity = const_tmp3;
+  /* 1109234*/ call_tmp10 = (dataParTasksPerLocale < INT64(0));
+  /* 70195*/ if (call_tmp10) /* 70196*/ {
+    /* 70191*/ halt("dataParTasksPerLocale must be >= 0", _ln, _fn);
+  }
+  /* 1106114*/ call_tmp11 = (dataParMinGranularity <= INT64(0));
+  /* 70211*/ if (call_tmp11) /* 70212*/ {
+    /* 70207*/ halt("dataParMinGranularity must be > 0", _ln, _fn);
+  }
+  /* 1108230*/ call_tmp12 = sizeof(chpl_DefaultDist_object);
+  /* 1108236*/ cast_tmp = chpl_here_alloc(call_tmp12, INT16(4), _ln, _fn);
+  /* 1108242*/ this7 = ((DefaultDist)(cast_tmp));
+  /* 1108247*/ ((object)(this7))->chpl__cid = chpl__cid_DefaultDist;
+  /* 1108253*/ (&this8)->_cnt = _init_class_tmp_;
+  /* 1108263*/ ret = type_tmp;
+  /* 1108268*/ _ref_tmp_ = &ret;
+  /* 1108273*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1108276*/ (&this9)->_v = ret;
+  /* 1108282*/ wrap_call_tmp = _construct_atomic_int64(ret, &this9, _ln, _fn);
+  /* 1108288*/ (&this8)->_cnt = wrap_call_tmp;
+  /* 1108294*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this8, _ln, _fn);
+  /* 1108302*/ (&this10)->first = nil;
+  /* 1108306*/ (&this10)->last = nil;
+  /* 1108310*/ (&this10)->length = INT64(0);
+  /* 1108316*/ call_tmp13 = ((listNode_BaseDom)(nil));
+  /* 1108321*/ (&this10)->first = call_tmp13;
+  /* 1108327*/ call_tmp14 = ((listNode_BaseDom)(nil));
+  /* 1108332*/ (&this10)->last = call_tmp14;
+  /* 1108336*/ (&this10)->length = INT64(0);
+  /* 1108342*/ wrap_call_tmp3 = _construct_list2(call_tmp13, call_tmp14, INT64(0), &this10, _ln, _fn);
+  /* 1108356*/ ret2 = type_tmp2;
+  /* 1108361*/ _ref_tmp_2 = &ret2;
+  /* 1108366*/ atomic_init_flag(_ref_tmp_2, false);
+  /* 1108369*/ (&this11)->_v = ret2;
+  /* 1108375*/ wrap_call_tmp4 = _construct_atomicflag(ret2, &this11, _ln, _fn);
+  /* 1108383*/ wrap_call_tmp5 = _construct_DefaultDist(&wrap_call_tmp2, &wrap_call_tmp3, &wrap_call_tmp4, this7, _ln, _fn);
+  /* 1038139*/ ret_to_arg_ref_tmp_ = &defaultDist;
+  /* 70459*/ chpl__buildDistValue(wrap_call_tmp5, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1274000*/ *(refIndentLevel) -= INT64(1);
+  _exit_chpl__init_DefaultRectangular:;
+  /* 275323*/ return;
+}
+
+/* DefaultRectangular.chpl:43 */
+/*  194031 */ static DefaultDist _construct_DefaultDist(atomic_refcnt* const _distCnt, list_BaseDom* const _doms, atomicflag* const _domsLock, DefaultDist meme, int64_t _ln, c_string _fn) {
+  /*  194033 */ DefaultDist this7 = NULL;
+  /*  194165 */ BaseDist T = NULL;
+  /* 194032*/ /* 194038*/ this7 = meme;
+  /* 1275206*/ chpl_check_nil(this7, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 194172*/ T = &((this7)->super);
+  /* 194140*/ _construct_BaseDist(_distCnt, _doms, _domsLock, T, _ln, _fn);
+  /* 194176*/ return meme;
+}
+
+/* DefaultRectangular.chpl:43 */
+/*  431642 */ static void chpl__auto_destroy_DefaultDist(DefaultDist this7, int64_t _ln, c_string _fn) {
+  /* 1033313 */ BaseDist _parent_destructor_tmp_ = NULL;
+  /* 1116797 */ _ref_atomicflag _field_destructor_tmp_ = NULL;
+  /* 1116804 */ _ref_atomic_flag call_tmp = NULL;
+  /* 1116814 */ _ref_atomic_refcnt _field_destructor_tmp_2 = NULL;
+  /* 1116821 */ _ref_atomic_int64 _field_destructor_tmp_3 = NULL;
+  /* 1116828 */ _ref_atomic_int_least64_t call_tmp2 = NULL;
+  /* 431643*/ /* 1033318*/ _parent_destructor_tmp_ = ((BaseDist)(this7));
+  /* 1276178*/ chpl_check_nil(_parent_destructor_tmp_, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1116799*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_domsLock);
+  /* 1276180*/ chpl_check_nil(_field_destructor_tmp_, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1116806*/ call_tmp = &((_field_destructor_tmp_)->_v);
+  /* 1116812*/ atomic_destroy_flag(call_tmp);
+  /* 1276182*/ chpl_check_nil(_parent_destructor_tmp_, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1116816*/ _field_destructor_tmp_2 = &((_parent_destructor_tmp_)->_distCnt);
+  /* 1276184*/ chpl_check_nil(_field_destructor_tmp_2, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1116823*/ _field_destructor_tmp_3 = &((_field_destructor_tmp_2)->_cnt);
+  /* 1276186*/ chpl_check_nil(_field_destructor_tmp_3, INT64(43), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1116830*/ call_tmp2 = &((_field_destructor_tmp_3)->_v);
+  /* 1116836*/ atomic_destroy_int_least64_t(call_tmp2);
+  /* 431648*/ return;
+}
+
+/* DefaultRectangular.chpl:44 */
+/*  536725 */ static DefaultRectangularDom_1_int64_t_F dsiNewRectangularDom(DefaultDist this7, int64_t _ln, c_string _fn) {
+  /*  536768 */ DefaultRectangularDom_1_int64_t_F call_tmp = NULL;
+  /* 536765*/ /* 536770*/ call_tmp = DefaultRectangularDom(this7, _ln, _fn);
+  /* 536782*/ return call_tmp;
+}
+
+/* DefaultRectangular.chpl:47 */
+/*  744363 */ static DefaultAssociativeDom_chpl_taskID_t_F dsiNewAssociativeDom(DefaultDist this7, int64_t _ln, c_string _fn) {
+  /*  744419 */ DefaultAssociativeDom_chpl_taskID_t_F call_tmp = NULL;
+  /* 744416*/ /* 744421*/ call_tmp = DefaultAssociativeDom(this7, _ln, _fn);
+  /* 744432*/ return call_tmp;
+}
+
+/* DefaultRectangular.chpl:60 */
+/*   70366 */ static DefaultDist dsiClone(DefaultDist this7) {
+  /* 70367*/ /* 274413*/ return this7;
+}
+
+/* DefaultRectangular.chpl:62 */
+/*   70381 */ static void dsiAssign(DefaultDist this7, DefaultDist other) {
+  /* 70382*/ /* 274418*/ return;
+}
+
+/* DefaultRectangular.chpl:77 */
+/*  536893 */ static DefaultRectangularDom_1_int64_t_F _construct_DefaultRectangularDom(atomic_refcnt* const _domCnt, list_BaseArr* const _arrs, atomicflag* const _arrsLock, DefaultDist dist2, _tuple_1_star_range_int64_t_bounded_F* const ranges, DefaultRectangularDom_1_int64_t_F meme, int64_t _ln, c_string _fn) {
+  /*  536949 */ DefaultRectangularDom_1_int64_t_F this7 = NULL;
+  /*  543903 */ BaseRectangularDom T = NULL;
+  /* 543897*/ /* 543900*/ this7 = meme;
+  /* 1275264*/ chpl_check_nil(this7, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 543905*/ T = &((this7)->super);
+  /* 543911*/ _construct_BaseRectangularDom(_domCnt, _arrs, _arrsLock, T, _ln, _fn);
+  /* 1275266*/ chpl_check_nil(this7, INT64(81), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 543929*/ (this7)->dist = dist2;
+  /* 1275268*/ chpl_check_nil(this7, INT64(82), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 543933*/ *((this7)->ranges + INT64(0)) = *(*(ranges) + INT64(0));
+  /* 543937*/ return this7;
+}
+
+/* DefaultRectangular.chpl:77 */
+/*  544043 */ static void chpl__auto_destroy_DefaultRectangularDom(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1033573 */ BaseRectangularDom _parent_destructor_tmp_ = NULL;
+  /* 1117091 */ BaseDom _parent_destructor_tmp_2 = NULL;
+  /* 1117098 */ _ref_atomicflag _field_destructor_tmp_ = NULL;
+  /* 1117105 */ _ref_atomic_flag call_tmp = NULL;
+  /* 1117115 */ _ref_atomic_refcnt _field_destructor_tmp_2 = NULL;
+  /* 1117122 */ _ref_atomic_int64 _field_destructor_tmp_3 = NULL;
+  /* 1117129 */ _ref_atomic_int_least64_t call_tmp2 = NULL;
+  /* 544052*/ /* 1033578*/ _parent_destructor_tmp_ = ((BaseRectangularDom)(this7));
+  /* 1117093*/ _parent_destructor_tmp_2 = ((BaseDom)(_parent_destructor_tmp_));
+  /* 1276224*/ chpl_check_nil(_parent_destructor_tmp_2, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117100*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_2)->_arrsLock);
+  /* 1276226*/ chpl_check_nil(_field_destructor_tmp_, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117107*/ call_tmp = &((_field_destructor_tmp_)->_v);
+  /* 1117113*/ atomic_destroy_flag(call_tmp);
+  /* 1276228*/ chpl_check_nil(_parent_destructor_tmp_2, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117117*/ _field_destructor_tmp_2 = &((_parent_destructor_tmp_2)->_domCnt);
+  /* 1276230*/ chpl_check_nil(_field_destructor_tmp_2, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117124*/ _field_destructor_tmp_3 = &((_field_destructor_tmp_2)->_cnt);
+  /* 1276232*/ chpl_check_nil(_field_destructor_tmp_3, INT64(77), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117131*/ call_tmp2 = &((_field_destructor_tmp_3)->_v);
+  /* 1117137*/ atomic_destroy_int_least64_t(call_tmp2);
+  /* 544053*/ return;
+}
+
+/* DefaultRectangular.chpl:85 */
+/*  971125 */ static chpl_bool dsiLinksDistribution3(DefaultRectangularDom_1_int64_t_F this7) {
+  /* 971136*/ /* 971143*/ return false;
+}
+
+/* DefaultRectangular.chpl:87 */
+/*  536785 */ static DefaultRectangularDom_1_int64_t_F DefaultRectangularDom(DefaultDist dist2, int64_t _ln, c_string _fn) {
+  /*  536795 */ DefaultRectangularDom_1_int64_t_F this7 = NULL;
+  /* 1120917 */ DefaultRectangularDom_1_int64_t_F this8 = NULL;
+  /* 1120919 */ int64_t call_tmp;
+  /* 1120925 */ chpl_opaque cast_tmp;
+  /* 1120944 */ _tuple_1_star_range_int64_t_bounded_F _init_class_tmp_;
+  /* 1120946 */ range_int64_t_bounded_F _init_class_tmp_2;
+  /* 1120976 */ atomic_refcnt this9;
+  /* 1120978 */ atomic_int64 _init_class_tmp_3;
+  /* 1120984 */ atomic_int64 this10;
+  /* 1120986 */ atomic_int_least64_t ret;
+  /* 1120988 */ atomic_int_least64_t type_tmp;
+  /* 1120993 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1121007 */ atomic_int64 wrap_call_tmp;
+  /* 1121019 */ atomic_refcnt wrap_call_tmp2;
+  /* 1121027 */ list_BaseArr this11;
+  /* 1121041 */ listNode_BaseArr call_tmp2 = NULL;
+  /* 1121052 */ listNode_BaseArr call_tmp3 = NULL;
+  /* 1121067 */ list_BaseArr wrap_call_tmp3;
+  /* 1121077 */ atomicflag this12;
+  /* 1121079 */ atomic_flag ret2;
+  /* 1121081 */ atomic_flag type_tmp2;
+  /* 1121086 */ _ref_atomic_flag _ref_tmp_2 = NULL;
+  /* 1121100 */ atomicflag wrap_call_tmp4;
+  /* 1121108 */ DefaultDist call_tmp4 = NULL;
+  /* 1121119 */ range_int64_t_bounded_F this13;
+  /* 1121161 */ range_int64_t_bounded_F wrap_call_tmp5;
+  /* 1121173 */ _tuple_1_star_range_int64_t_bounded_F this14;
+  /* 1121183 */ DefaultRectangularDom_1_int64_t_F wrap_call_tmp6 = NULL;
+  /* 1121260 */ _ref_DefaultDist call_tmp5 = NULL;
+  /* 536806*/ /* 1120921*/ call_tmp = sizeof(chpl_DefaultRectangularDom_1_int64_t_F_object);
+  /* 1120927*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(5), _ln, _fn);
+  /* 1120933*/ this8 = ((DefaultRectangularDom_1_int64_t_F)(cast_tmp));
+  /* 1120938*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularDom_1_int64_t_F;
+  /* 1276378*/ chpl_check_nil(this8, INT64(87), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1120940*/ (this8)->dist = nil;
+  /* 1120948*/ (&_init_class_tmp_2)->_low = INT64(0);
+  /* 1120952*/ (&_init_class_tmp_2)->_high = INT64(0);
+  /* 1120956*/ (&_init_class_tmp_2)->_stride = INT64(0);
+  /* 1120960*/ (&_init_class_tmp_2)->_alignment = INT64(0);
+  /* 1120964*/ (&_init_class_tmp_2)->_aligned = false;
+  /* 1120968*/ *(_init_class_tmp_ + INT64(0)) = _init_class_tmp_2;
+  /* 1276380*/ chpl_check_nil(this8, INT64(87), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1120972*/ *((this8)->ranges + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1120980*/ (&this9)->_cnt = _init_class_tmp_3;
+  /* 1120990*/ ret = type_tmp;
+  /* 1120995*/ _ref_tmp_ = &ret;
+  /* 1121000*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1121003*/ (&this10)->_v = ret;
+  /* 1121009*/ wrap_call_tmp = _construct_atomic_int64(ret, &this10, _ln, _fn);
+  /* 1121015*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1121021*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1121029*/ (&this11)->first = nil;
+  /* 1121033*/ (&this11)->last = nil;
+  /* 1121037*/ (&this11)->length = INT64(0);
+  /* 1121043*/ call_tmp2 = ((listNode_BaseArr)(nil));
+  /* 1121048*/ (&this11)->first = call_tmp2;
+  /* 1121054*/ call_tmp3 = ((listNode_BaseArr)(nil));
+  /* 1121059*/ (&this11)->last = call_tmp3;
+  /* 1121063*/ (&this11)->length = INT64(0);
+  /* 1121069*/ wrap_call_tmp3 = _construct_list(call_tmp2, call_tmp3, INT64(0), &this11, _ln, _fn);
+  /* 1121083*/ ret2 = type_tmp2;
+  /* 1121088*/ _ref_tmp_2 = &ret2;
+  /* 1121093*/ atomic_init_flag(_ref_tmp_2, false);
+  /* 1121096*/ (&this12)->_v = ret2;
+  /* 1121102*/ wrap_call_tmp4 = _construct_atomicflag(ret2, &this12, _ln, _fn);
+  /* 1121110*/ call_tmp4 = ((DefaultDist)(nil));
+  /* 1276382*/ chpl_check_nil(this8, INT64(87), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1121115*/ (this8)->dist = call_tmp4;
+  /* 1121121*/ (&this13)->_low = INT64(0);
+  /* 1121125*/ (&this13)->_high = INT64(0);
+  /* 1121129*/ (&this13)->_stride = INT64(0);
+  /* 1121133*/ (&this13)->_alignment = INT64(0);
+  /* 1121137*/ (&this13)->_aligned = false;
+  /* 1121141*/ (&this13)->_low = INT64(1);
+  /* 1121145*/ (&this13)->_high = INT64(0);
+  /* 1121149*/ (&this13)->_stride = INT64(1);
+  /* 1121153*/ (&this13)->_alignment = INT64(0);
+  /* 1121157*/ (&this13)->_aligned = false;
+  /* 1121163*/ wrap_call_tmp5 = _construct_range(INT64(1), INT64(0), INT64(1), INT64(0), false, &this13, _ln, _fn);
+  /* 1121175*/ *(this14 + INT64(0)) = wrap_call_tmp5;
+  /* 1276384*/ chpl_check_nil(this8, INT64(87), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1121179*/ *((this8)->ranges + INT64(0)) = *(this14 + INT64(0));
+  /* 1121185*/ wrap_call_tmp6 = _construct_DefaultRectangularDom(&wrap_call_tmp2, &wrap_call_tmp3, &wrap_call_tmp4, call_tmp4, &this14, this8, _ln, _fn);
+  /* 536809*/ this7 = wrap_call_tmp6;
+  /* 1276396*/ chpl_check_nil(this7, INT64(88), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1121262*/ call_tmp5 = &((this7)->dist);
+  /* 1121293*/ *(call_tmp5) = dist2;
+  /* 536831*/ return this7;
+}
+
+/* DefaultRectangular.chpl:102 */
+/* 1039622 */ static void dsiGetIndices(DefaultRectangularDom_1_int64_t_F this7, _ref__tuple_1_star_range_int64_t_bounded_F _retArg, int64_t _ln, c_string _fn) {
+  /* 1259095 */ range_int64_t_bounded_F ret_x1;
+  /* 1259099 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /* 1039626*/ /* 1278244*/ chpl_check_nil(this7, INT64(102), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259103*/ ret_ = &((this7)->ranges);
+  /* 1259108*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1259257*/ *(*(_retArg) + INT64(0)) = ret_x1;
+  /* 1039650*/ return;
+}
+
+/* DefaultRectangular.chpl:104 */
+/*  571867 */ static void dsiSetIndices(DefaultRectangularDom_1_int64_t_F this7, _tuple_1_star_range_int64_t_bounded_F* const x, int64_t _ln, c_string _fn) {
+  /*  571980 */ _ref__tuple_1_star_range_int64_t_bounded_F call_tmp = NULL;
+  /* 571880*/ /* 1278224*/ chpl_check_nil(this7, INT64(109), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 571982*/ call_tmp = &((this7)->ranges);
+  /* 1123503*/ *(*(call_tmp) + INT64(0)) = *(*(x) + INT64(0));
+  /* 571992*/ return;
+}
+
+/* DefaultRectangular.chpl:346 */
+/*  674902 */ static chpl_bool dsiMember2(DefaultRectangularDom_1_int64_t_F this7, _tuple_1_star_int64_t* const ind, int64_t _ln, c_string _fn) {
+  /*  674931 */ chpl_bool ret;
+  /*  675054 */ _ref_range_int64_t_bounded_F call_tmp = NULL;
+  /*  675105 */ _ref__tuple_1_star_range_int64_t_bounded_F _this_tmp_ = NULL;
+  /*  675377 */ int64_t coerce_tmp;
+  /* 1137410 */ chpl_bool ret2;
+  /* 1137412 */ int64_t ret3;
+  /* 1137419 */ chpl_bool call_tmp2;
+  /* 1137434 */ int64_t ret4;
+  /* 1137441 */ chpl_bool call_tmp3;
+  /* 1095561 */ chpl_bool call_tmp4;
+  /* 674942*/ /* 1278230*/ chpl_check_nil(this7, INT64(348), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 675107*/ _this_tmp_ = &((this7)->ranges);
+  /* 675056*/ call_tmp = (*(_this_tmp_) + INT64(0));
+  /* 675380*/ coerce_tmp = *(*(ind) + INT64(0));
+  /* 1277004*/ chpl_check_nil(call_tmp, INT64(348), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1137414*/ ret3 = (call_tmp)->_high;
+  /* 1137421*/ call_tmp2 = (coerce_tmp > ret3);
+  /* 1137433*/ if (call_tmp2) /* 1137427*/ {
+    /* 1137428*/ ret2 = false;
+    /* 1137432*/ goto _end_member;
+  }
+  /* 1277006*/ chpl_check_nil(call_tmp, INT64(348), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1137436*/ ret4 = (call_tmp)->_low;
+  /* 1137443*/ call_tmp3 = (coerce_tmp < ret4);
+  /* 1137455*/ if (call_tmp3) /* 1137449*/ {
+    /* 1137450*/ ret2 = false;
+    /* 1137454*/ goto _end_member;
+  }
+  /* 1137456*/ ret2 = true;
+  _end_member:;
+  /* 1095563*/ call_tmp4 = (! ret2);
+  /* 675103*/ if (call_tmp4) /* 675096*/ {
+    /* 675097*/ ret = false;
+    /* 675102*/ goto _end_dsiMember;
+  }
+  /* 675029*/ ret = true;
+  _end_dsiMember:;
+  /* 675035*/ return ret;
+}
+
+/* DefaultRectangular.chpl:366 */
+/* 1043540 */ static void dsiDims(DefaultRectangularDom_1_int64_t_F this7, _ref__tuple_1_star_range_int64_t_bounded_F _retArg, int64_t _ln, c_string _fn) {
+  /* 1259125 */ range_int64_t_bounded_F ret_x1;
+  /* 1259129 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /* 1043544*/ /* 1278248*/ chpl_check_nil(this7, INT64(367), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259133*/ ret_ = &((this7)->ranges);
+  /* 1259138*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1260267*/ *(*(_retArg) + INT64(0)) = ret_x1;
+  /* 1043568*/ return;
+}
+
+/* DefaultRectangular.chpl:374 */
+/* 1039741 */ static void dsiDim(DefaultRectangularDom_1_int64_t_F this7, _ref_range_int64_t_bounded_F _retArg, int64_t _ln, c_string _fn) {
+  /* 1259110 */ range_int64_t_bounded_F ret_x1;
+  /* 1259114 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /* 1039745*/ /* 1278246*/ chpl_check_nil(this7, INT64(375), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259118*/ ret_ = &((this7)->ranges);
+  /* 1259123*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1039782*/ *(_retArg) = ret_x1;
+  /* 1039776*/ return;
+}
+
+/* DefaultRectangular.chpl:377 */
+/*  601457 */ static int64_t dsiNumIndices(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /*  601471 */ int64_t sum;
+  /*  601577 */ _ref_range_int64_t_bounded_F call_tmp = NULL;
+  /*  601600 */ _ref__tuple_1_star_range_int64_t_bounded_F _this_tmp_ = NULL;
+  /*  601587 */ int64_t call_tmp2;
+  /* 601468*/ /* 601489*/ sum = INT64(1);
+  /* 1278226*/ chpl_check_nil(this7, INT64(380), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 601602*/ _this_tmp_ = &((this7)->ranges);
+  /* 601579*/ call_tmp = (*(_this_tmp_) + INT64(0));
+  /* 601589*/ call_tmp2 = length(call_tmp, _ln, _fn);
+  /* 1115834*/ sum *= call_tmp2;
+  /* 601554*/ return sum;
+}
+
+/* DefaultRectangular.chpl:385 */
+/*  668812 */ static int64_t dsiLow(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /*  668851 */ _ref_range_int64_t_bounded_F call_tmp = NULL;
+  /*  669001 */ _ref__tuple_1_star_range_int64_t_bounded_F _this_tmp_ = NULL;
+  /* 1128526 */ int64_t ret;
+  /* 668823*/ /* 1278228*/ chpl_check_nil(this7, INT64(387), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 669003*/ _this_tmp_ = &((this7)->ranges);
+  /* 668853*/ call_tmp = (*(_this_tmp_) + INT64(0));
+  /* 1276646*/ chpl_check_nil(call_tmp, INT64(387), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1128528*/ ret = (call_tmp)->_low;
+  /* 668984*/ return ret;
+}
+
+/* DefaultRectangular.chpl:396 */
+/*  870319 */ static int64_t dsiHigh(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /*  870358 */ _ref_range_int64_t_bounded_F call_tmp = NULL;
+  /*  870502 */ _ref__tuple_1_star_range_int64_t_bounded_F _this_tmp_ = NULL;
+  /* 1128887 */ int64_t ret;
+  /* 870330*/ /* 1278232*/ chpl_check_nil(this7, INT64(398), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 870504*/ _this_tmp_ = &((this7)->ranges);
+  /* 870360*/ call_tmp = (*(_this_tmp_) + INT64(0));
+  /* 1276658*/ chpl_check_nil(call_tmp, INT64(398), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1128889*/ ret = (call_tmp)->_high;
+  /* 870491*/ return ret;
+}
+
+/* DefaultRectangular.chpl:473 */
+/*  577560 */ static DefaultRectangularArr_locale_1_int64_t_F dsiBuildArray2(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1125347 */ DefaultRectangularArr_locale_1_int64_t_F this8 = NULL;
+  /* 1125349 */ int64_t call_tmp;
+  /* 1125355 */ chpl_opaque cast_tmp;
+  /* 1125374 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1125384 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1125394 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1125424 */ atomic_refcnt this9;
+  /* 1125426 */ atomic_int64 _init_class_tmp_4;
+  /* 1125432 */ atomic_int64 this10;
+  /* 1125434 */ atomic_int_least64_t ret;
+  /* 1125436 */ atomic_int_least64_t type_tmp;
+  /* 1125441 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1125455 */ atomic_int64 wrap_call_tmp;
+  /* 1125467 */ atomic_refcnt wrap_call_tmp2;
+  /* 1125475 */ BaseArr call_tmp2 = NULL;
+  /* 1125486 */ _tuple_1_star_int64_t this11;
+  /* 1125496 */ _tuple_1_star_int64_t this12;
+  /* 1125506 */ _tuple_1_star_int64_t this13;
+  /* 1125524 */ _ddata_locale call_tmp3 = NULL;
+  /* 1125535 */ _ddata_locale call_tmp4 = NULL;
+  /* 1125550 */ DefaultRectangularArr_locale_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 577575*/ /* 1125351*/ call_tmp = sizeof(chpl_DefaultRectangularArr_locale_1_int64_t_F_object);
+  /* 1125357*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(8), _ln, _fn);
+  /* 1125363*/ this8 = ((DefaultRectangularArr_locale_1_int64_t_F)(cast_tmp));
+  /* 1125368*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_locale_1_int64_t_F;
+  /* 1276518*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125370*/ (this8)->dom = nil;
+  /* 1125376*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1276520*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125380*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1125386*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1276522*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125390*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1125396*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1276524*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125400*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1276526*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125404*/ (this8)->origin = INT64(0);
+  /* 1276528*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125408*/ (this8)->factoredOffs = INT64(0);
+  /* 1276530*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125412*/ (this8)->data = nil;
+  /* 1276532*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125416*/ (this8)->shiftedData = nil;
+  /* 1276534*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125420*/ (this8)->noinit_data = false;
+  /* 1125428*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1125438*/ ret = type_tmp;
+  /* 1125443*/ _ref_tmp_ = &ret;
+  /* 1125448*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1125451*/ (&this10)->_v = ret;
+  /* 1125457*/ wrap_call_tmp = _construct_atomic_int64(ret, &this10, _ln, _fn);
+  /* 1125463*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1125469*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1125477*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1276536*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125482*/ (this8)->dom = this7;
+  /* 1125488*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1276538*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125492*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1125498*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1276540*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125502*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1125508*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1276542*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125512*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1276544*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125516*/ (this8)->origin = INT64(0);
+  /* 1276546*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125520*/ (this8)->factoredOffs = INT64(0);
+  /* 1125526*/ call_tmp3 = ((_ddata_locale)(nil));
+  /* 1276548*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125531*/ (this8)->data = call_tmp3;
+  /* 1125537*/ call_tmp4 = ((_ddata_locale)(nil));
+  /* 1276550*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125542*/ (this8)->shiftedData = call_tmp4;
+  /* 1276552*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125546*/ (this8)->noinit_data = false;
+  /* 1125552*/ wrap_call_tmp3 = _construct_DefaultRectangularArr(&wrap_call_tmp2, call_tmp2, this7, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 577622*/ return wrap_call_tmp3;
+}
+
+/* DefaultRectangular.chpl:473 */
+/*  636490 */ static DefaultRectangularArr_localesSignal_1_int64_t_F dsiBuildArray3(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1134107 */ DefaultRectangularArr_localesSignal_1_int64_t_F this8 = NULL;
+  /* 1134109 */ int64_t call_tmp;
+  /* 1134115 */ chpl_opaque cast_tmp;
+  /* 1134134 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1134144 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1134154 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1134184 */ atomic_refcnt this9;
+  /* 1134186 */ atomic_int64 _init_class_tmp_4;
+  /* 1134192 */ atomic_int64 this10;
+  /* 1134194 */ atomic_int_least64_t ret;
+  /* 1134196 */ atomic_int_least64_t type_tmp;
+  /* 1134201 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1134215 */ atomic_int64 wrap_call_tmp;
+  /* 1134227 */ atomic_refcnt wrap_call_tmp2;
+  /* 1134235 */ BaseArr call_tmp2 = NULL;
+  /* 1134246 */ _tuple_1_star_int64_t this11;
+  /* 1134256 */ _tuple_1_star_int64_t this12;
+  /* 1134266 */ _tuple_1_star_int64_t this13;
+  /* 1134284 */ _ddata_localesSignal call_tmp3 = NULL;
+  /* 1134295 */ _ddata_localesSignal call_tmp4 = NULL;
+  /* 1134310 */ DefaultRectangularArr_localesSignal_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 636505*/ /* 1134111*/ call_tmp = sizeof(chpl_DefaultRectangularArr_localesSignal_1_int64_t_F_object);
+  /* 1134117*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(14), _ln, _fn);
+  /* 1134123*/ this8 = ((DefaultRectangularArr_localesSignal_1_int64_t_F)(cast_tmp));
+  /* 1134128*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_localesSignal_1_int64_t_F;
+  /* 1276830*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134130*/ (this8)->dom = nil;
+  /* 1134136*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1276832*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134140*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1134146*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1276834*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134150*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1134156*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1276836*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134160*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1276838*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134164*/ (this8)->origin = INT64(0);
+  /* 1276840*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134168*/ (this8)->factoredOffs = INT64(0);
+  /* 1276842*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134172*/ (this8)->data = nil;
+  /* 1276844*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134176*/ (this8)->shiftedData = nil;
+  /* 1276846*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134180*/ (this8)->noinit_data = false;
+  /* 1134188*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1134198*/ ret = type_tmp;
+  /* 1134203*/ _ref_tmp_ = &ret;
+  /* 1134208*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1134211*/ (&this10)->_v = ret;
+  /* 1134217*/ wrap_call_tmp = _construct_atomic_int64(ret, &this10, _ln, _fn);
+  /* 1134223*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1134229*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1134237*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1276848*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134242*/ (this8)->dom = this7;
+  /* 1134248*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1276850*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134252*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1134258*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1276852*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134262*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1134268*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1276854*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134272*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1276856*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134276*/ (this8)->origin = INT64(0);
+  /* 1276858*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134280*/ (this8)->factoredOffs = INT64(0);
+  /* 1134286*/ call_tmp3 = ((_ddata_localesSignal)(nil));
+  /* 1276860*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134291*/ (this8)->data = call_tmp3;
+  /* 1134297*/ call_tmp4 = ((_ddata_localesSignal)(nil));
+  /* 1276862*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134302*/ (this8)->shiftedData = call_tmp4;
+  /* 1276864*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134306*/ (this8)->noinit_data = false;
+  /* 1134312*/ wrap_call_tmp3 = _construct_DefaultRectangularArr2(&wrap_call_tmp2, call_tmp2, this7, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 636552*/ return wrap_call_tmp3;
+}
+
+/* DefaultRectangular.chpl:473 */
+/*  748958 */ static DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F dsiBuildArray4(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1144340 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this8 = NULL;
+  /* 1144342 */ int64_t call_tmp;
+  /* 1144348 */ chpl_opaque cast_tmp;
+  /* 1144367 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1144377 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1144387 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1144417 */ atomic_refcnt this9;
+  /* 1144419 */ atomic_int64 _init_class_tmp_4;
+  /* 1144425 */ atomic_int64 this10;
+  /* 1144427 */ atomic_int_least64_t ret;
+  /* 1144429 */ atomic_int_least64_t type_tmp;
+  /* 1144434 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1144448 */ atomic_int64 wrap_call_tmp;
+  /* 1144460 */ atomic_refcnt wrap_call_tmp2;
+  /* 1144468 */ BaseArr call_tmp2 = NULL;
+  /* 1144479 */ _tuple_1_star_int64_t this11;
+  /* 1144489 */ _tuple_1_star_int64_t this12;
+  /* 1144499 */ _tuple_1_star_int64_t this13;
+  /* 1144517 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp3 = NULL;
+  /* 1144528 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp4 = NULL;
+  /* 1144543 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 748973*/ /* 1144344*/ call_tmp = sizeof(chpl_DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F_object);
+  /* 1144350*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(21), _ln, _fn);
+  /* 1144356*/ this8 = ((DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F)(cast_tmp));
+  /* 1144361*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F;
+  /* 1277188*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144363*/ (this8)->dom = nil;
+  /* 1144369*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1277190*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144373*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1144379*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1277192*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144383*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1144389*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1277194*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144393*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1277196*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144397*/ (this8)->origin = INT64(0);
+  /* 1277198*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144401*/ (this8)->factoredOffs = INT64(0);
+  /* 1277200*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144405*/ (this8)->data = nil;
+  /* 1277202*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144409*/ (this8)->shiftedData = nil;
+  /* 1277204*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144413*/ (this8)->noinit_data = false;
+  /* 1144421*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1144431*/ ret = type_tmp;
+  /* 1144436*/ _ref_tmp_ = &ret;
+  /* 1144441*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1144444*/ (&this10)->_v = ret;
+  /* 1144450*/ wrap_call_tmp = _construct_atomic_int64(ret, &this10, _ln, _fn);
+  /* 1144456*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1144462*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1144470*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1277206*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144475*/ (this8)->dom = this7;
+  /* 1144481*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1277208*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144485*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1144491*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1277210*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144495*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1144501*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1277212*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144505*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1277214*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144509*/ (this8)->origin = INT64(0);
+  /* 1277216*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144513*/ (this8)->factoredOffs = INT64(0);
+  /* 1144519*/ call_tmp3 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+  /* 1277218*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144524*/ (this8)->data = call_tmp3;
+  /* 1144530*/ call_tmp4 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+  /* 1277220*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144535*/ (this8)->shiftedData = call_tmp4;
+  /* 1277222*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144539*/ (this8)->noinit_data = false;
+  /* 1144545*/ wrap_call_tmp3 = _construct_DefaultRectangularArr3(&wrap_call_tmp2, call_tmp2, this7, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 749020*/ return wrap_call_tmp3;
+}
+
+/* DefaultRectangular.chpl:473 */
+/*  773403 */ static DefaultRectangularArr_chpldev_Task_1_int64_t_F dsiBuildArray5(DefaultRectangularDom_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1147069 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F this8 = NULL;
+  /* 1147071 */ int64_t call_tmp;
+  /* 1147077 */ chpl_opaque cast_tmp;
+  /* 1147096 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1147106 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1147116 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1147146 */ atomic_refcnt this9;
+  /* 1147148 */ atomic_int64 _init_class_tmp_4;
+  /* 1147154 */ atomic_int64 this10;
+  /* 1147156 */ atomic_int_least64_t ret;
+  /* 1147158 */ atomic_int_least64_t type_tmp;
+  /* 1147163 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1147177 */ atomic_int64 wrap_call_tmp;
+  /* 1147189 */ atomic_refcnt wrap_call_tmp2;
+  /* 1147197 */ BaseArr call_tmp2 = NULL;
+  /* 1147208 */ _tuple_1_star_int64_t this11;
+  /* 1147218 */ _tuple_1_star_int64_t this12;
+  /* 1147228 */ _tuple_1_star_int64_t this13;
+  /* 1147246 */ _ddata_chpldev_Task call_tmp3 = NULL;
+  /* 1147257 */ _ddata_chpldev_Task call_tmp4 = NULL;
+  /* 1147272 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 773418*/ /* 1147073*/ call_tmp = sizeof(chpl_DefaultRectangularArr_chpldev_Task_1_int64_t_F_object);
+  /* 1147079*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(24), _ln, _fn);
+  /* 1147085*/ this8 = ((DefaultRectangularArr_chpldev_Task_1_int64_t_F)(cast_tmp));
+  /* 1147090*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_chpldev_Task_1_int64_t_F;
+  /* 1277424*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147092*/ (this8)->dom = nil;
+  /* 1147098*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1277426*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147102*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1147108*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1277428*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147112*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1147118*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1277430*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147122*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1277432*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147126*/ (this8)->origin = INT64(0);
+  /* 1277434*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147130*/ (this8)->factoredOffs = INT64(0);
+  /* 1277436*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147134*/ (this8)->data = nil;
+  /* 1277438*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147138*/ (this8)->shiftedData = nil;
+  /* 1277440*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147142*/ (this8)->noinit_data = false;
+  /* 1147150*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1147160*/ ret = type_tmp;
+  /* 1147165*/ _ref_tmp_ = &ret;
+  /* 1147170*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1147173*/ (&this10)->_v = ret;
+  /* 1147179*/ wrap_call_tmp = _construct_atomic_int64(ret, &this10, _ln, _fn);
+  /* 1147185*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1147191*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1147199*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1277442*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147204*/ (this8)->dom = this7;
+  /* 1147210*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1277444*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147214*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1147220*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1277446*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147224*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1147230*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1277448*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147234*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1277450*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147238*/ (this8)->origin = INT64(0);
+  /* 1277452*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147242*/ (this8)->factoredOffs = INT64(0);
+  /* 1147248*/ call_tmp3 = ((_ddata_chpldev_Task)(nil));
+  /* 1277454*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147253*/ (this8)->data = call_tmp3;
+  /* 1147259*/ call_tmp4 = ((_ddata_chpldev_Task)(nil));
+  /* 1277456*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147264*/ (this8)->shiftedData = call_tmp4;
+  /* 1277458*/ chpl_check_nil(this8, INT64(474), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147268*/ (this8)->noinit_data = false;
+  /* 1147274*/ wrap_call_tmp3 = _construct_DefaultRectangularArr4(&wrap_call_tmp2, call_tmp2, this7, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 773465*/ return wrap_call_tmp3;
+}
+
+/* DefaultRectangular.chpl:478 */
+/*  993948 */ static DefaultRectangularDom_1_int64_t_F dsiBuildRectangularDom(DefaultRectangularDom_1_int64_t_F this7, _tuple_1_star_range_int64_t_bounded_F* const ranges, int64_t _ln, c_string _fn) {
+  /*  993994 */ DefaultRectangularDom_1_int64_t_F dom = NULL;
+  /* 1121273 */ DefaultDist ret = NULL;
+  /*  994014 */ range_int64_t_bounded_F call_tmp;
+  /* 1050187 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1263427 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1068635 */ _ref_range_int64_t_bounded_F this8 = NULL;
+  /* 1068495 */ int64_t i;
+  /* 1128646 */ int64_t ret2;
+  /* 1068528 */ int64_t end;
+  /* 1128987 */ int64_t ret3;
+  /* 1068577 */ _ref_range_int64_t_bounded_F call_tmp2 = NULL;
+  /* 1068579 */ _ref__tuple_1_star_range_int64_t_bounded_F _this_tmp_ = NULL;
+  /* 1068594 */ range_int64_t_bounded_F T;
+  /* 1068598 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_2 = NULL;
+  /* 1068604 */ _ref__tuple_1_star_range_int64_t_bounded_F _ref_tmp_ = NULL;
+  /* 993991*/ /* 1276398*/ chpl_check_nil(this7, INT64(482), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1121275*/ ret = (this7)->dist;
+  /* 994004*/ dom = DefaultRectangularDom(ret, _ln, _fn);
+  /* 1050190*/ ret_to_arg_ref_tmp_ = &call_tmp;
+  /* 994019*/ _build_range(INT64(1), INT64(1), ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1127268*/ _ic__F0_this = call_tmp;
+  /* 1068640*/ this8 = &_ic__F0_this;
+  /* 1128333*/ checkIfIterWillOverflow(this8, true, _ln, _fn);
+  /* 1128648*/ ret2 = (&_ic__F0_this)->_low;
+  /* 1128989*/ ret3 = (&_ic__F0_this)->_high;
+  /* 1068542*/ end = ret3;
+  /* 1068545*/ for (i = ret2; ((i <= end)); i += INT64(1)) {
+    /* 1278234*/ chpl_check_nil(dom, INT64(484), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1068581*/ _this_tmp_ = &((dom)->ranges);
+    /* 1068586*/ call_tmp2 = this5(_this_tmp_, i, _ln, _fn);
+    /* 1068600*/ ret_to_arg_ref_tmp_2 = &T;
+    /* 1068606*/ _ref_tmp_ = ranges;
+    /* 1068611*/ this6(_ref_tmp_, i, ret_to_arg_ref_tmp_2, _ln, _fn);
+    /* 1123551*/ *(call_tmp2) = T;
+  }
+  /* 994076*/ return dom;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  577746 */ static DefaultRectangularArr_locale_1_int64_t_F _construct_DefaultRectangularArr(atomic_refcnt* const _arrCnt, BaseArr _arrAlias, DefaultRectangularDom_1_int64_t_F dom, _tuple_1_star_int64_t* const off, _tuple_1_star_int64_t* const blk, _tuple_1_star_int64_t* const str, int64_t origin, int64_t factoredOffs, _ddata_locale data, _ddata_locale shiftedData, chpl_bool noinit_data, DefaultRectangularArr_locale_1_int64_t_F meme, int64_t _ln, c_string _fn) {
+  /*  577858 */ DefaultRectangularArr_locale_1_int64_t_F this7 = NULL;
+  /*  581050 */ BaseArr T = NULL;
+  /* 581044*/ /* 581047*/ this7 = meme;
+  /* 1275280*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581052*/ T = &((this7)->super);
+  /* 581058*/ _construct_BaseArr(_arrCnt, _arrAlias, T, _ln, _fn);
+  /* 1275282*/ chpl_check_nil(this7, INT64(529), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581079*/ (this7)->dom = dom;
+  /* 1275284*/ chpl_check_nil(this7, INT64(531), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581083*/ *((this7)->off + INT64(0)) = *(*(off) + INT64(0));
+  /* 1275286*/ chpl_check_nil(this7, INT64(532), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581087*/ *((this7)->blk + INT64(0)) = *(*(blk) + INT64(0));
+  /* 1275288*/ chpl_check_nil(this7, INT64(533), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581091*/ *((this7)->str + INT64(0)) = *(*(str) + INT64(0));
+  /* 1275290*/ chpl_check_nil(this7, INT64(534), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581095*/ (this7)->origin = origin;
+  /* 1275292*/ chpl_check_nil(this7, INT64(535), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581099*/ (this7)->factoredOffs = factoredOffs;
+  /* 1275294*/ chpl_check_nil(this7, INT64(536), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581103*/ (this7)->data = data;
+  /* 1275296*/ chpl_check_nil(this7, INT64(537), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581107*/ (this7)->shiftedData = shiftedData;
+  /* 1275298*/ chpl_check_nil(this7, INT64(538), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581111*/ (this7)->noinit_data = noinit_data;
+  /* 1275300*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 581116*/ initialize6(this7, _ln, _fn);
+  /* 581119*/ return this7;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  636676 */ static DefaultRectangularArr_localesSignal_1_int64_t_F _construct_DefaultRectangularArr2(atomic_refcnt* const _arrCnt, BaseArr _arrAlias, DefaultRectangularDom_1_int64_t_F dom, _tuple_1_star_int64_t* const off, _tuple_1_star_int64_t* const blk, _tuple_1_star_int64_t* const str, int64_t origin, int64_t factoredOffs, _ddata_localesSignal data, _ddata_localesSignal shiftedData, chpl_bool noinit_data, DefaultRectangularArr_localesSignal_1_int64_t_F meme, int64_t _ln, c_string _fn) {
+  /*  636788 */ DefaultRectangularArr_localesSignal_1_int64_t_F this7 = NULL;
+  /*  637571 */ BaseArr T = NULL;
+  /* 637565*/ /* 637568*/ this7 = meme;
+  /* 1275314*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637573*/ T = &((this7)->super);
+  /* 637579*/ _construct_BaseArr(_arrCnt, _arrAlias, T, _ln, _fn);
+  /* 1275316*/ chpl_check_nil(this7, INT64(529), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637600*/ (this7)->dom = dom;
+  /* 1275318*/ chpl_check_nil(this7, INT64(531), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637604*/ *((this7)->off + INT64(0)) = *(*(off) + INT64(0));
+  /* 1275320*/ chpl_check_nil(this7, INT64(532), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637608*/ *((this7)->blk + INT64(0)) = *(*(blk) + INT64(0));
+  /* 1275322*/ chpl_check_nil(this7, INT64(533), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637612*/ *((this7)->str + INT64(0)) = *(*(str) + INT64(0));
+  /* 1275324*/ chpl_check_nil(this7, INT64(534), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637616*/ (this7)->origin = origin;
+  /* 1275326*/ chpl_check_nil(this7, INT64(535), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637620*/ (this7)->factoredOffs = factoredOffs;
+  /* 1275328*/ chpl_check_nil(this7, INT64(536), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637624*/ (this7)->data = data;
+  /* 1275330*/ chpl_check_nil(this7, INT64(537), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637628*/ (this7)->shiftedData = shiftedData;
+  /* 1275332*/ chpl_check_nil(this7, INT64(538), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637632*/ (this7)->noinit_data = noinit_data;
+  /* 1275334*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 637637*/ initialize7(this7, _ln, _fn);
+  /* 637640*/ return this7;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  749144 */ static DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F _construct_DefaultRectangularArr3(atomic_refcnt* const _arrCnt, BaseArr _arrAlias, DefaultRectangularDom_1_int64_t_F dom, _tuple_1_star_int64_t* const off, _tuple_1_star_int64_t* const blk, _tuple_1_star_int64_t* const str, int64_t origin, int64_t factoredOffs, _ddata_chpl_TableEntry_chpl_taskID_t data, _ddata_chpl_TableEntry_chpl_taskID_t shiftedData, chpl_bool noinit_data, DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F meme, int64_t _ln, c_string _fn) {
+  /*  749256 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7 = NULL;
+  /*  750039 */ BaseArr T = NULL;
+  /* 750033*/ /* 750036*/ this7 = meme;
+  /* 1275388*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750041*/ T = &((this7)->super);
+  /* 750047*/ _construct_BaseArr(_arrCnt, _arrAlias, T, _ln, _fn);
+  /* 1275390*/ chpl_check_nil(this7, INT64(529), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750068*/ (this7)->dom = dom;
+  /* 1275392*/ chpl_check_nil(this7, INT64(531), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750072*/ *((this7)->off + INT64(0)) = *(*(off) + INT64(0));
+  /* 1275394*/ chpl_check_nil(this7, INT64(532), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750076*/ *((this7)->blk + INT64(0)) = *(*(blk) + INT64(0));
+  /* 1275396*/ chpl_check_nil(this7, INT64(533), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750080*/ *((this7)->str + INT64(0)) = *(*(str) + INT64(0));
+  /* 1275398*/ chpl_check_nil(this7, INT64(534), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750084*/ (this7)->origin = origin;
+  /* 1275400*/ chpl_check_nil(this7, INT64(535), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750088*/ (this7)->factoredOffs = factoredOffs;
+  /* 1275402*/ chpl_check_nil(this7, INT64(536), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750092*/ (this7)->data = data;
+  /* 1275404*/ chpl_check_nil(this7, INT64(537), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750096*/ (this7)->shiftedData = shiftedData;
+  /* 1275406*/ chpl_check_nil(this7, INT64(538), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750100*/ (this7)->noinit_data = noinit_data;
+  /* 1275408*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 750105*/ initialize8(this7, _ln, _fn);
+  /* 750108*/ return this7;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  773589 */ static DefaultRectangularArr_chpldev_Task_1_int64_t_F _construct_DefaultRectangularArr4(atomic_refcnt* const _arrCnt, BaseArr _arrAlias, DefaultRectangularDom_1_int64_t_F dom, _tuple_1_star_int64_t* const off, _tuple_1_star_int64_t* const blk, _tuple_1_star_int64_t* const str, int64_t origin, int64_t factoredOffs, _ddata_chpldev_Task data, _ddata_chpldev_Task shiftedData, chpl_bool noinit_data, DefaultRectangularArr_chpldev_Task_1_int64_t_F meme, int64_t _ln, c_string _fn) {
+  /*  773701 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F this7 = NULL;
+  /*  774484 */ BaseArr T = NULL;
+  /* 774478*/ /* 774481*/ this7 = meme;
+  /* 1275442*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774486*/ T = &((this7)->super);
+  /* 774492*/ _construct_BaseArr(_arrCnt, _arrAlias, T, _ln, _fn);
+  /* 1275444*/ chpl_check_nil(this7, INT64(529), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774513*/ (this7)->dom = dom;
+  /* 1275446*/ chpl_check_nil(this7, INT64(531), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774517*/ *((this7)->off + INT64(0)) = *(*(off) + INT64(0));
+  /* 1275448*/ chpl_check_nil(this7, INT64(532), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774521*/ *((this7)->blk + INT64(0)) = *(*(blk) + INT64(0));
+  /* 1275450*/ chpl_check_nil(this7, INT64(533), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774525*/ *((this7)->str + INT64(0)) = *(*(str) + INT64(0));
+  /* 1275452*/ chpl_check_nil(this7, INT64(534), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774529*/ (this7)->origin = origin;
+  /* 1275454*/ chpl_check_nil(this7, INT64(535), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774533*/ (this7)->factoredOffs = factoredOffs;
+  /* 1275456*/ chpl_check_nil(this7, INT64(536), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774537*/ (this7)->data = data;
+  /* 1275458*/ chpl_check_nil(this7, INT64(537), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774541*/ (this7)->shiftedData = shiftedData;
+  /* 1275460*/ chpl_check_nil(this7, INT64(538), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774545*/ (this7)->noinit_data = noinit_data;
+  /* 1275462*/ chpl_check_nil(this7, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 774550*/ initialize9(this7, _ln, _fn);
+  /* 774553*/ return this7;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  581309 */ static void chpl__auto_destroy_DefaultRectangularArr(DefaultRectangularArr_locale_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1033613 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1117207 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1117214 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1117221 */ _ref_atomic_int_least64_t call_tmp = NULL;
+  /* 581318*/ /* 1033618*/ _parent_destructor_tmp_ = ((BaseArr)(this7));
+  /* 1276244*/ chpl_check_nil(_parent_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117209*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276246*/ chpl_check_nil(_field_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117216*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276248*/ chpl_check_nil(_field_destructor_tmp_2, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117223*/ call_tmp = &((_field_destructor_tmp_2)->_v);
+  /* 1117229*/ atomic_destroy_int_least64_t(call_tmp);
+  /* 581319*/ return;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  637830 */ static void chpl__auto_destroy_DefaultRectangularArr2(DefaultRectangularArr_localesSignal_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1033653 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1117234 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1117241 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1117248 */ _ref_atomic_int_least64_t call_tmp = NULL;
+  /* 637839*/ /* 1033658*/ _parent_destructor_tmp_ = ((BaseArr)(this7));
+  /* 1276250*/ chpl_check_nil(_parent_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117236*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276252*/ chpl_check_nil(_field_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117243*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276254*/ chpl_check_nil(_field_destructor_tmp_2, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117250*/ call_tmp = &((_field_destructor_tmp_2)->_v);
+  /* 1117256*/ atomic_destroy_int_least64_t(call_tmp);
+  /* 637840*/ return;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  750298 */ static void chpl__auto_destroy_DefaultRectangularArr3(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1033713 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1117261 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1117268 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1117275 */ _ref_atomic_int_least64_t call_tmp = NULL;
+  /* 750307*/ /* 1033718*/ _parent_destructor_tmp_ = ((BaseArr)(this7));
+  /* 1276256*/ chpl_check_nil(_parent_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117263*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276258*/ chpl_check_nil(_field_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117270*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276260*/ chpl_check_nil(_field_destructor_tmp_2, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117277*/ call_tmp = &((_field_destructor_tmp_2)->_v);
+  /* 1117283*/ atomic_destroy_int_least64_t(call_tmp);
+  /* 750308*/ return;
+}
+
+/* DefaultRectangular.chpl:523 */
+/*  774743 */ static void chpl__auto_destroy_DefaultRectangularArr4(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1033803 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1117288 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1117295 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1117302 */ _ref_atomic_int_least64_t call_tmp = NULL;
+  /* 774752*/ /* 1033808*/ _parent_destructor_tmp_ = ((BaseArr)(this7));
+  /* 1276262*/ chpl_check_nil(_parent_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117290*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276264*/ chpl_check_nil(_field_destructor_tmp_, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117297*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276266*/ chpl_check_nil(_field_destructor_tmp_2, INT64(523), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1117304*/ call_tmp = &((_field_destructor_tmp_2)->_v);
+  /* 1117310*/ atomic_destroy_int_least64_t(call_tmp);
+  /* 774753*/ return;
+}
+
+/* DefaultRectangular.chpl:553 */
+/*  971165 */ static DefaultRectangularDom_1_int64_t_F dsiGetBaseDom3(DefaultRectangularArr_locale_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1125918 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 971176*/ /* 1276598*/ chpl_check_nil(this7, INT64(553), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125920*/ ret = (this7)->dom;
+  /* 971191*/ return ret;
+}
+
+/* DefaultRectangular.chpl:553 */
+/*  971194 */ static DefaultRectangularDom_1_int64_t_F dsiGetBaseDom4(DefaultRectangularArr_localesSignal_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1134678 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 971205*/ /* 1276910*/ chpl_check_nil(this7, INT64(553), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134680*/ ret = (this7)->dom;
+  /* 971220*/ return ret;
+}
+
+/* DefaultRectangular.chpl:553 */
+/*  971223 */ static DefaultRectangularDom_1_int64_t_F dsiGetBaseDom5(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1144921 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 971234*/ /* 1277272*/ chpl_check_nil(this7, INT64(553), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144923*/ ret = (this7)->dom;
+  /* 971249*/ return ret;
+}
+
+/* DefaultRectangular.chpl:553 */
+/*  971252 */ static DefaultRectangularDom_1_int64_t_F dsiGetBaseDom6(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1147630 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 971263*/ /* 1277504*/ chpl_check_nil(this7, INT64(553), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147632*/ ret = (this7)->dom;
+  /* 971278*/ return ret;
+}
+
+/* DefaultRectangular.chpl:555 */
+/*  971310 */ static void dsiDestroyData2(DefaultRectangularArr_locale_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1125928 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /*  971328 */ int64_t call_tmp;
+  /* 1115225 */ chpl_bool call_tmp2;
+  /* 1126707 */ _ddata_locale ret2 = NULL;
+  /*  971361 */ _ddata_locale dv = NULL;
+  /* 1126717 */ _ddata_locale ret3 = NULL;
+  /* 971319*/ /* 1276600*/ chpl_check_nil(this7, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125930*/ ret = (this7)->dom;
+  /* 1275578*/ chpl_check_nil(ret, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 971330*/ call_tmp = dsiNumIndices(ret, _ln, _fn);
+  /* 1115227*/ call_tmp2 = (call_tmp > INT64(0));
+  /* 971491*/ if (call_tmp2) /* 971352*/ {
+    /* 1276630*/ chpl_check_nil(this7, INT64(557), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1126709*/ ret2 = (this7)->data;
+    /* 971363*/ dv = ret2;
+    /* 971371*/ }
+  /* 1276632*/ chpl_check_nil(this7, INT64(571), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126719*/ ret3 = (this7)->data;
+  /* 1208988*/ chpl_array_free(ret3, _ln, _fn);
+  /* 971503*/ return;
+}
+
+/* DefaultRectangular.chpl:555 */
+/*  971551 */ static void dsiDestroyData3(DefaultRectangularArr_localesSignal_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1134688 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /*  971569 */ int64_t call_tmp;
+  /* 1115235 */ chpl_bool call_tmp2;
+  /* 1135006 */ _ddata_localesSignal ret2 = NULL;
+  /*  971602 */ _ddata_localesSignal dv = NULL;
+  /* 1135016 */ _ddata_localesSignal ret3 = NULL;
+  /* 971560*/ /* 1276912*/ chpl_check_nil(this7, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134690*/ ret = (this7)->dom;
+  /* 1275580*/ chpl_check_nil(ret, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 971571*/ call_tmp = dsiNumIndices(ret, _ln, _fn);
+  /* 1115237*/ call_tmp2 = (call_tmp > INT64(0));
+  /* 971732*/ if (call_tmp2) /* 971593*/ {
+    /* 1276942*/ chpl_check_nil(this7, INT64(557), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135008*/ ret2 = (this7)->data;
+    /* 971604*/ dv = ret2;
+    /* 971612*/ }
+  /* 1276944*/ chpl_check_nil(this7, INT64(571), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135018*/ ret3 = (this7)->data;
+  /* 1208993*/ chpl_array_free(ret3, _ln, _fn);
+  /* 971744*/ return;
+}
+
+/* DefaultRectangular.chpl:555 */
+/*  971791 */ static void dsiDestroyData4(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1144931 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /*  971809 */ int64_t call_tmp;
+  /* 1115245 */ chpl_bool call_tmp2;
+  /* 1145219 */ _ddata_chpl_TableEntry_chpl_taskID_t ret2 = NULL;
+  /*  971842 */ _ddata_chpl_TableEntry_chpl_taskID_t dv = NULL;
+  /* 1144941 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  971887 */ int64_t call_tmp3;
+  /* 1104194 */ int64_t call_tmp4;
+  /*  971903 */ range_int64_t_bounded_F call_tmp5;
+  /* 1048244 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1263387 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1067720 */ _ref_range_int64_t_bounded_F this8 = NULL;
+  /* 1067599 */ int64_t i;
+  /* 1128616 */ int64_t ret4;
+  /* 1067632 */ int64_t end;
+  /* 1128957 */ int64_t ret5;
+  /* 1145249 */ _ddata_chpl_TableEntry_chpl_taskID_t ret6 = NULL;
+  /* 1067695 */ _ddata_chpl_TableEntry_chpl_taskID_t dv2 = NULL;
+  /* 1145229 */ _ddata_chpl_TableEntry_chpl_taskID_t ret7 = NULL;
+  /* 971800*/ /* 1277274*/ chpl_check_nil(this7, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144933*/ ret = (this7)->dom;
+  /* 1275582*/ chpl_check_nil(ret, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 971811*/ call_tmp = dsiNumIndices(ret, _ln, _fn);
+  /* 1115247*/ call_tmp2 = (call_tmp > INT64(0));
+  /* 971972*/ if (call_tmp2) /* 971833*/ {
+    /* 1277296*/ chpl_check_nil(this7, INT64(557), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145221*/ ret2 = (this7)->data;
+    /* 971844*/ dv = ret2;
+    /* 971852*/ /* 1277276*/ chpl_check_nil(this7, INT64(562), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1144943*/ ret3 = (this7)->dom;
+    /* 1275584*/ chpl_check_nil(ret3, INT64(562), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 971889*/ call_tmp3 = dsiNumIndices(ret3, _ln, _fn);
+    /* 1104196*/ call_tmp4 = (call_tmp3 - INT64(1));
+    /* 1048247*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+    /* 971908*/ _build_range(INT64(0), call_tmp4, ret_to_arg_ref_tmp_, _ln, _fn);
+    /* 1127154*/ _ic__F0_this = call_tmp5;
+    /* 1067725*/ this8 = &_ic__F0_this;
+    /* 1128300*/ checkIfIterWillOverflow(this8, true, _ln, _fn);
+    /* 1128618*/ ret4 = (&_ic__F0_this)->_low;
+    /* 1128959*/ ret5 = (&_ic__F0_this)->_high;
+    /* 1067646*/ end = ret5;
+    /* 1277302*/ chpl_check_nil(this7, INT64(563), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145251*/ ret6 = (this7)->data;
+    /* 1067697*/ dv2 = ret6;
+    /* 1067649*/ for (i = ret4; ((i <= end)); i += INT64(1)) {
+      /* 1067705*/ }
+  }
+  /* 1277298*/ chpl_check_nil(this7, INT64(571), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145231*/ ret7 = (this7)->data;
+  /* 1209010*/ chpl_array_free(ret7, _ln, _fn);
+  /* 971984*/ return;
+}
+
+/* DefaultRectangular.chpl:555 */
+/*  972068 */ static void dsiDestroyData5(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1147640 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /*  972086 */ int64_t call_tmp;
+  /* 1115255 */ chpl_bool call_tmp2;
+  /* 1147938 */ _ddata_chpldev_Task ret2 = NULL;
+  /*  972119 */ _ddata_chpldev_Task dv = NULL;
+  /* 1147650 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  972164 */ int64_t call_tmp3;
+  /* 1104204 */ int64_t call_tmp4;
+  /*  972180 */ range_int64_t_bounded_F call_tmp5;
+  /* 1048251 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1263407 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1067872 */ _ref_range_int64_t_bounded_F this8 = NULL;
+  /* 1067751 */ int64_t i;
+  /* 1128626 */ int64_t ret4;
+  /* 1067784 */ int64_t end;
+  /* 1128967 */ int64_t ret5;
+  /* 1147968 */ _ddata_chpldev_Task ret6 = NULL;
+  /* 1067847 */ _ddata_chpldev_Task dv2 = NULL;
+  /* 1147948 */ _ddata_chpldev_Task ret7 = NULL;
+  /* 972077*/ /* 1277506*/ chpl_check_nil(this7, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147642*/ ret = (this7)->dom;
+  /* 1275586*/ chpl_check_nil(ret, INT64(556), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 972088*/ call_tmp = dsiNumIndices(ret, _ln, _fn);
+  /* 1115257*/ call_tmp2 = (call_tmp > INT64(0));
+  /* 972249*/ if (call_tmp2) /* 972110*/ {
+    /* 1277530*/ chpl_check_nil(this7, INT64(557), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1147940*/ ret2 = (this7)->data;
+    /* 972121*/ dv = ret2;
+    /* 972129*/ /* 1277508*/ chpl_check_nil(this7, INT64(562), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1147652*/ ret3 = (this7)->dom;
+    /* 1275588*/ chpl_check_nil(ret3, INT64(562), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 972166*/ call_tmp3 = dsiNumIndices(ret3, _ln, _fn);
+    /* 1104206*/ call_tmp4 = (call_tmp3 - INT64(1));
+    /* 1048254*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+    /* 972185*/ _build_range(INT64(0), call_tmp4, ret_to_arg_ref_tmp_, _ln, _fn);
+    /* 1127211*/ _ic__F0_this = call_tmp5;
+    /* 1067877*/ this8 = &_ic__F0_this;
+    /* 1128311*/ checkIfIterWillOverflow(this8, true, _ln, _fn);
+    /* 1128628*/ ret4 = (&_ic__F0_this)->_low;
+    /* 1128969*/ ret5 = (&_ic__F0_this)->_high;
+    /* 1067798*/ end = ret5;
+    /* 1277536*/ chpl_check_nil(this7, INT64(563), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1147970*/ ret6 = (this7)->data;
+    /* 1067849*/ dv2 = ret6;
+    /* 1067801*/ for (i = ret4; ((i <= end)); i += INT64(1)) {
+      /* 1067857*/ }
+  }
+  /* 1277532*/ chpl_check_nil(this7, INT64(571), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147950*/ ret7 = (this7)->data;
+  /* 1209042*/ chpl_array_free(ret7, _ln, _fn);
+  /* 972261*/ return;
+}
+
+/* DefaultRectangular.chpl:655 */
+/*  595537 */ static void computeFactoredOffs(DefaultRectangularArr_locale_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1126536 */ _ref_int64_t call_tmp = NULL;
+  /* 1126546 */ _ref_int64_t call_tmp2 = NULL;
+  /* 1126569 */ int64_t ret;
+  /* 1265234 */ int64_t ret_x1;
+  /* 1265238 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1265174 */ int64_t ret_x12;
+  /* 1265178 */ _ref__tuple_1_star_int64_t ret_2 = NULL;
+  /* 1110999 */ int64_t call_tmp3;
+  /* 1115404 */ int64_t call_tmp4;
+  /* 595546*/ /* 1276614*/ chpl_check_nil(this7, INT64(656), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126538*/ call_tmp = &((this7)->factoredOffs);
+  /* 1103019*/ *(call_tmp) = INT64(0);
+  /* 1276616*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126548*/ call_tmp2 = &((this7)->factoredOffs);
+  /* 1276620*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126571*/ ret = (this7)->factoredOffs;
+  /* 1278320*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265242*/ ret_ = &((this7)->blk);
+  /* 1265247*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1278312*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265182*/ ret_2 = &((this7)->off);
+  /* 1265187*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1111001*/ call_tmp3 = (ret_x1 * ret_x12);
+  /* 1115406*/ call_tmp4 = (ret + call_tmp3);
+  /* 1103025*/ *(call_tmp2) = call_tmp4;
+  /* 595666*/ return;
+}
+
+/* DefaultRectangular.chpl:655 */
+/*  644812 */ static void computeFactoredOffs2(DefaultRectangularArr_localesSignal_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1134906 */ _ref_int64_t call_tmp = NULL;
+  /* 1134916 */ _ref_int64_t call_tmp2 = NULL;
+  /* 1134939 */ int64_t ret;
+  /* 1265401 */ int64_t ret_x1;
+  /* 1265405 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1265341 */ int64_t ret_x12;
+  /* 1265345 */ _ref__tuple_1_star_int64_t ret_2 = NULL;
+  /* 1111019 */ int64_t call_tmp3;
+  /* 1115444 */ int64_t call_tmp4;
+  /* 644821*/ /* 1276928*/ chpl_check_nil(this7, INT64(656), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134908*/ call_tmp = &((this7)->factoredOffs);
+  /* 1103091*/ *(call_tmp) = INT64(0);
+  /* 1276930*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134918*/ call_tmp2 = &((this7)->factoredOffs);
+  /* 1276934*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134941*/ ret = (this7)->factoredOffs;
+  /* 1278332*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265409*/ ret_ = &((this7)->blk);
+  /* 1265414*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1278324*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265349*/ ret_2 = &((this7)->off);
+  /* 1265354*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1111021*/ call_tmp3 = (ret_x1 * ret_x12);
+  /* 1115446*/ call_tmp4 = (ret + call_tmp3);
+  /* 1103097*/ *(call_tmp2) = call_tmp4;
+  /* 644941*/ return;
+}
+
+/* DefaultRectangular.chpl:655 */
+/*  757280 */ static void computeFactoredOffs3(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1145119 */ _ref_int64_t call_tmp = NULL;
+  /* 1145129 */ _ref_int64_t call_tmp2 = NULL;
+  /* 1145152 */ int64_t ret;
+  /* 1265839 */ int64_t ret_x1;
+  /* 1265843 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1265779 */ int64_t ret_x12;
+  /* 1265783 */ _ref__tuple_1_star_int64_t ret_2 = NULL;
+  /* 1111059 */ int64_t call_tmp3;
+  /* 1115454 */ int64_t call_tmp4;
+  /* 757289*/ /* 1277282*/ chpl_check_nil(this7, INT64(656), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145121*/ call_tmp = &((this7)->factoredOffs);
+  /* 1103121*/ *(call_tmp) = INT64(0);
+  /* 1277284*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145131*/ call_tmp2 = &((this7)->factoredOffs);
+  /* 1277288*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145154*/ ret = (this7)->factoredOffs;
+  /* 1278368*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265847*/ ret_ = &((this7)->blk);
+  /* 1265852*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1278360*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265787*/ ret_2 = &((this7)->off);
+  /* 1265792*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1111061*/ call_tmp3 = (ret_x1 * ret_x12);
+  /* 1115456*/ call_tmp4 = (ret + call_tmp3);
+  /* 1103127*/ *(call_tmp2) = call_tmp4;
+  /* 757409*/ return;
+}
+
+/* DefaultRectangular.chpl:655 */
+/*  781725 */ static void computeFactoredOffs4(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1147838 */ _ref_int64_t call_tmp = NULL;
+  /* 1147848 */ _ref_int64_t call_tmp2 = NULL;
+  /* 1147871 */ int64_t ret;
+  /* 1265929 */ int64_t ret_x1;
+  /* 1265933 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1265869 */ int64_t ret_x12;
+  /* 1265873 */ _ref__tuple_1_star_int64_t ret_2 = NULL;
+  /* 1111079 */ int64_t call_tmp3;
+  /* 1115464 */ int64_t call_tmp4;
+  /* 781734*/ /* 1277516*/ chpl_check_nil(this7, INT64(656), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147840*/ call_tmp = &((this7)->factoredOffs);
+  /* 1103151*/ *(call_tmp) = INT64(0);
+  /* 1277518*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147850*/ call_tmp2 = &((this7)->factoredOffs);
+  /* 1277522*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147873*/ ret = (this7)->factoredOffs;
+  /* 1278380*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265937*/ ret_ = &((this7)->blk);
+  /* 1265942*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1278372*/ chpl_check_nil(this7, INT64(658), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265877*/ ret_2 = &((this7)->off);
+  /* 1265882*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1111081*/ call_tmp3 = (ret_x1 * ret_x12);
+  /* 1115466*/ call_tmp4 = (ret + call_tmp3);
+  /* 1103157*/ *(call_tmp2) = call_tmp4;
+  /* 781854*/ return;
+}
+
+/* DefaultRectangular.chpl:678 */
+/*  593241 */ static void initialize6(DefaultRectangularArr_locale_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1125798 */ chpl_bool ret;
+  /* 1094855 */ chpl_bool call_tmp;
+  /*  593904 */ _ref_int64_t call_tmp2 = NULL;
+  /*  594041 */ _ref__tuple_1_star_int64_t _this_tmp_ = NULL;
+  /* 1125868 */ DefaultRectangularDom_1_int64_t_F ret2 = NULL;
+  /*  593922 */ range_int64_t_bounded_F call_tmp3;
+  /* 1039792 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1126013 */ int64_t ret3;
+  /* 1126015 */ int64_t ret4;
+  /*  593944 */ _ref_int64_t call_tmp4 = NULL;
+  /*  595002 */ _ref__tuple_1_star_int64_t _this_tmp_2 = NULL;
+  /* 1125878 */ DefaultRectangularDom_1_int64_t_F ret5 = NULL;
+  /*  593962 */ range_int64_t_bounded_F call_tmp5;
+  /* 1039799 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_2 = NULL;
+  /*  593402 */ _ref_int64_t call_tmp6 = NULL;
+  /*  595156 */ _ref__tuple_1_star_int64_t _this_tmp_3 = NULL;
+  /* 1265219 */ int64_t ret_x1;
+  /* 1265223 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1125858 */ DefaultRectangularDom_1_int64_t_F ret6 = NULL;
+  /*  593575 */ range_int64_t_bounded_F call_tmp7;
+  /* 1039785 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_3 = NULL;
+  /*  593585 */ int64_t call_tmp8;
+  /* 1053908 */ _ref_range_int64_t_bounded_F _ref_tmp_ = NULL;
+  /* 1110989 */ int64_t call_tmp9;
+  /* 1126674 */ _ref__ddata_locale call_tmp10 = NULL;
+  /* 1126737 */ locale _formal_type_tmp_ = NULL;
+  /* 1126739 */ _ddata_locale call_tmp11 = NULL;
+  /* 1129654 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1129661 */ int64_t call_tmp12;
+  /* 1129668 */ chpl_bool call_tmp13;
+  /* 1129677 */ _ref__ddata_locale call_tmp14 = NULL;
+  /* 1129684 */ _ddata_locale ret8 = NULL;
+  /* 1129691 */ int64_t ret9;
+  /* 1129698 */ int64_t ret10;
+  /* 1129705 */ int64_t call_tmp15;
+  /* 1129712 */ _ddata_locale call_tmp16 = NULL;
+  /* 593250*/ /* 1276590*/ chpl_check_nil(this7, INT64(679), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125800*/ ret = (this7)->noinit_data;
+  /* 1094857*/ call_tmp = (ret == true);
+  /* 593278*/ if (call_tmp) /* 593275*/ {
+    /* 593277*/ goto _end_initialize;
+  }
+  /* 1278264*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 594043*/ _this_tmp_ = &((this7)->off);
+  /* 593906*/ call_tmp2 = (*(_this_tmp_) + INT64(0));
+  /* 1276594*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125870*/ ret2 = (this7)->dom;
+  /* 1039795*/ ret_to_arg_ref_tmp_ = &call_tmp3;
+  /* 1275306*/ chpl_check_nil(ret2, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 593930*/ dsiDim(ret2, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1126017*/ ret4 = (&call_tmp3)->_low;
+  /* 1126022*/ ret3 = ret4;
+  /* 1126026*/ goto _end_alignedLow;
+  _end_alignedLow:;
+  /* 1102977*/ *(call_tmp2) = ret3;
+  /* 1278268*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 595004*/ _this_tmp_2 = &((this7)->str);
+  /* 593946*/ call_tmp4 = (*(_this_tmp_2) + INT64(0));
+  /* 1276596*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125880*/ ret5 = (this7)->dom;
+  /* 1039802*/ ret_to_arg_ref_tmp_2 = &call_tmp5;
+  /* 1275308*/ chpl_check_nil(ret5, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 593970*/ dsiDim(ret5, ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1102983*/ *(call_tmp4) = INT64(1);
+  /* 1278272*/ chpl_check_nil(this7, INT64(684), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 595158*/ _this_tmp_3 = &((this7)->blk);
+  /* 593404*/ call_tmp6 = (*(_this_tmp_3) + INT64(0));
+  /* 1102971*/ *(call_tmp6) = INT64(1);
+  /* 1275302*/ chpl_check_nil(this7, INT64(687), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 593554*/ computeFactoredOffs(this7, _ln, _fn);
+  /* 1278318*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265227*/ ret_ = &((this7)->blk);
+  /* 1265232*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1276592*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125860*/ ret6 = (this7)->dom;
+  /* 1039788*/ ret_to_arg_ref_tmp_3 = &call_tmp7;
+  /* 1275304*/ chpl_check_nil(ret6, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 593583*/ dsiDim(ret6, ret_to_arg_ref_tmp_3, _ln, _fn);
+  /* 1053912*/ _ref_tmp_ = &call_tmp7;
+  /* 593587*/ call_tmp8 = length(_ref_tmp_, _ln, _fn);
+  /* 1110991*/ call_tmp9 = (ret_x1 * call_tmp8);
+  /* 1276626*/ chpl_check_nil(this7, INT64(689), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126676*/ call_tmp10 = &((this7)->data);
+  /* 1126741*/ call_tmp11 = ((_ddata_locale)(nil));
+  /* 1126746*/ call_tmp11 = chpl_array_alloc(call_tmp9, sizeof(locale), _ln, _fn);
+  /* 1126751*/ init_elts(call_tmp11, call_tmp9, _ln, _fn);
+  /* 1129561*/ *(call_tmp10) = call_tmp11;
+  /* 1276668*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1129656*/ ret7 = (this7)->dom;
+  /* 1276670*/ chpl_check_nil(ret7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1129663*/ call_tmp12 = dsiNumIndices(ret7, _ln, _fn);
+  /* 1129670*/ call_tmp13 = (call_tmp12 > INT64(0));
+  /* 1129726*/ if (call_tmp13) /* 1129676*/ {
+    /* 1276672*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129679*/ call_tmp14 = &((this7)->shiftedData);
+    /* 1276674*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129686*/ ret8 = (this7)->data;
+    /* 1276676*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129693*/ ret9 = (this7)->origin;
+    /* 1276678*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129700*/ ret10 = (this7)->factoredOffs;
+    /* 1129707*/ call_tmp15 = (ret9 - ret10);
+    /* 1129714*/ call_tmp16 = ((_ddata_locale)(nil));
+    /* 1129719*/ call_tmp16 = (ret8 + call_tmp15);
+    /* 1129723*/ *(call_tmp14) = call_tmp16;
+  }
+  _end_initialize:;
+  /* 593641*/ return;
+}
+
+/* DefaultRectangular.chpl:678 */
+/*  643956 */ static void initialize7(DefaultRectangularArr_localesSignal_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1134558 */ chpl_bool ret;
+  /* 1094865 */ chpl_bool call_tmp;
+  /*  644435 */ _ref_int64_t call_tmp2 = NULL;
+  /*  644572 */ _ref__tuple_1_star_int64_t _this_tmp_ = NULL;
+  /* 1134628 */ DefaultRectangularDom_1_int64_t_F ret2 = NULL;
+  /*  644453 */ range_int64_t_bounded_F call_tmp3;
+  /* 1040593 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1126145 */ int64_t ret3;
+  /* 1126147 */ int64_t ret4;
+  /*  644475 */ _ref_int64_t call_tmp4 = NULL;
+  /*  644705 */ _ref__tuple_1_star_int64_t _this_tmp_2 = NULL;
+  /* 1134638 */ DefaultRectangularDom_1_int64_t_F ret5 = NULL;
+  /*  644493 */ range_int64_t_bounded_F call_tmp5;
+  /* 1040600 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_2 = NULL;
+  /*  644117 */ _ref_int64_t call_tmp6 = NULL;
+  /*  644785 */ _ref__tuple_1_star_int64_t _this_tmp_3 = NULL;
+  /* 1265386 */ int64_t ret_x1;
+  /* 1265390 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1134618 */ DefaultRectangularDom_1_int64_t_F ret6 = NULL;
+  /*  644290 */ range_int64_t_bounded_F call_tmp7;
+  /* 1040586 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_3 = NULL;
+  /*  644300 */ int64_t call_tmp8;
+  /* 1054076 */ _ref_range_int64_t_bounded_F _ref_tmp_ = NULL;
+  /* 1111009 */ int64_t call_tmp9;
+  /* 1134973 */ _ref__ddata_localesSignal call_tmp10 = NULL;
+  /* 1135036 */ localesSignal _formal_type_tmp_ = NULL;
+  /* 1135038 */ _ddata_localesSignal call_tmp11 = NULL;
+  /* 1135169 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1135176 */ int64_t call_tmp12;
+  /* 1135183 */ chpl_bool call_tmp13;
+  /* 1135192 */ _ref__ddata_localesSignal call_tmp14 = NULL;
+  /* 1135199 */ _ddata_localesSignal ret8 = NULL;
+  /* 1135206 */ int64_t ret9;
+  /* 1135213 */ int64_t ret10;
+  /* 1135220 */ int64_t call_tmp15;
+  /* 1135227 */ _ddata_localesSignal call_tmp16 = NULL;
+  /* 643965*/ /* 1276902*/ chpl_check_nil(this7, INT64(679), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134560*/ ret = (this7)->noinit_data;
+  /* 1094867*/ call_tmp = (ret == true);
+  /* 643993*/ if (call_tmp) /* 643990*/ {
+    /* 643992*/ goto _end_initialize;
+  }
+  /* 1278276*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644574*/ _this_tmp_ = &((this7)->off);
+  /* 644437*/ call_tmp2 = (*(_this_tmp_) + INT64(0));
+  /* 1276906*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134630*/ ret2 = (this7)->dom;
+  /* 1040596*/ ret_to_arg_ref_tmp_ = &call_tmp3;
+  /* 1275340*/ chpl_check_nil(ret2, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644461*/ dsiDim(ret2, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1126149*/ ret4 = (&call_tmp3)->_low;
+  /* 1126154*/ ret3 = ret4;
+  /* 1126158*/ goto _end_alignedLow;
+  _end_alignedLow:;
+  /* 1103079*/ *(call_tmp2) = ret3;
+  /* 1278280*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644707*/ _this_tmp_2 = &((this7)->str);
+  /* 644477*/ call_tmp4 = (*(_this_tmp_2) + INT64(0));
+  /* 1276908*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134640*/ ret5 = (this7)->dom;
+  /* 1040603*/ ret_to_arg_ref_tmp_2 = &call_tmp5;
+  /* 1275342*/ chpl_check_nil(ret5, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644501*/ dsiDim(ret5, ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1103085*/ *(call_tmp4) = INT64(1);
+  /* 1278284*/ chpl_check_nil(this7, INT64(684), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644787*/ _this_tmp_3 = &((this7)->blk);
+  /* 644119*/ call_tmp6 = (*(_this_tmp_3) + INT64(0));
+  /* 1103073*/ *(call_tmp6) = INT64(1);
+  /* 1275336*/ chpl_check_nil(this7, INT64(687), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644269*/ computeFactoredOffs2(this7, _ln, _fn);
+  /* 1278330*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265394*/ ret_ = &((this7)->blk);
+  /* 1265399*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1276904*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134620*/ ret6 = (this7)->dom;
+  /* 1040589*/ ret_to_arg_ref_tmp_3 = &call_tmp7;
+  /* 1275338*/ chpl_check_nil(ret6, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 644298*/ dsiDim(ret6, ret_to_arg_ref_tmp_3, _ln, _fn);
+  /* 1054080*/ _ref_tmp_ = &call_tmp7;
+  /* 644302*/ call_tmp8 = length(_ref_tmp_, _ln, _fn);
+  /* 1111011*/ call_tmp9 = (ret_x1 * call_tmp8);
+  /* 1276938*/ chpl_check_nil(this7, INT64(689), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134975*/ call_tmp10 = &((this7)->data);
+  /* 1135040*/ call_tmp11 = ((_ddata_localesSignal)(nil));
+  /* 1135045*/ call_tmp11 = chpl_array_alloc(call_tmp9, sizeof(localesSignal), _ln, _fn);
+  /* 1135050*/ init_elts2(call_tmp11, call_tmp9, _ln, _fn);
+  /* 1135076*/ *(call_tmp10) = call_tmp11;
+  /* 1276952*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135171*/ ret7 = (this7)->dom;
+  /* 1276954*/ chpl_check_nil(ret7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135178*/ call_tmp12 = dsiNumIndices(ret7, _ln, _fn);
+  /* 1135185*/ call_tmp13 = (call_tmp12 > INT64(0));
+  /* 1135241*/ if (call_tmp13) /* 1135191*/ {
+    /* 1276956*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135194*/ call_tmp14 = &((this7)->shiftedData);
+    /* 1276958*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135201*/ ret8 = (this7)->data;
+    /* 1276960*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135208*/ ret9 = (this7)->origin;
+    /* 1276962*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135215*/ ret10 = (this7)->factoredOffs;
+    /* 1135222*/ call_tmp15 = (ret9 - ret10);
+    /* 1135229*/ call_tmp16 = ((_ddata_localesSignal)(nil));
+    /* 1135234*/ call_tmp16 = (ret8 + call_tmp15);
+    /* 1135238*/ *(call_tmp14) = call_tmp16;
+  }
+  _end_initialize:;
+  /* 644356*/ return;
+}
+
+/* DefaultRectangular.chpl:678 */
+/*  756424 */ static void initialize8(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1144791 */ chpl_bool ret;
+  /* 1094875 */ chpl_bool call_tmp;
+  /*  756903 */ _ref_int64_t call_tmp2 = NULL;
+  /*  757040 */ _ref__tuple_1_star_int64_t _this_tmp_ = NULL;
+  /* 1144861 */ DefaultRectangularDom_1_int64_t_F ret2 = NULL;
+  /*  756921 */ range_int64_t_bounded_F call_tmp3;
+  /* 1042209 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1126211 */ int64_t ret3;
+  /* 1126213 */ int64_t ret4;
+  /*  756943 */ _ref_int64_t call_tmp4 = NULL;
+  /*  757173 */ _ref__tuple_1_star_int64_t _this_tmp_2 = NULL;
+  /* 1144871 */ DefaultRectangularDom_1_int64_t_F ret5 = NULL;
+  /*  756961 */ range_int64_t_bounded_F call_tmp5;
+  /* 1042216 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_2 = NULL;
+  /*  756585 */ _ref_int64_t call_tmp6 = NULL;
+  /*  757253 */ _ref__tuple_1_star_int64_t _this_tmp_3 = NULL;
+  /* 1265824 */ int64_t ret_x1;
+  /* 1265828 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1144851 */ DefaultRectangularDom_1_int64_t_F ret6 = NULL;
+  /*  756758 */ range_int64_t_bounded_F call_tmp7;
+  /* 1042202 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_3 = NULL;
+  /*  756768 */ int64_t call_tmp8;
+  /* 1054478 */ _ref_range_int64_t_bounded_F _ref_tmp_ = NULL;
+  /* 1111049 */ int64_t call_tmp9;
+  /* 1145186 */ _ref__ddata_chpl_TableEntry_chpl_taskID_t call_tmp10 = NULL;
+  /* 1145259 */ chpl_TableEntry_chpl_taskID_t _formal_type_tmp_;
+  /* 1145261 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp11 = NULL;
+  /* 1145420 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1145427 */ int64_t call_tmp12;
+  /* 1145434 */ chpl_bool call_tmp13;
+  /* 1145443 */ _ref__ddata_chpl_TableEntry_chpl_taskID_t call_tmp14 = NULL;
+  /* 1145450 */ _ddata_chpl_TableEntry_chpl_taskID_t ret8 = NULL;
+  /* 1145457 */ int64_t ret9;
+  /* 1145464 */ int64_t ret10;
+  /* 1145471 */ int64_t call_tmp15;
+  /* 1145478 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp16 = NULL;
+  /* 756433*/ /* 1277260*/ chpl_check_nil(this7, INT64(679), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144793*/ ret = (this7)->noinit_data;
+  /* 1094877*/ call_tmp = (ret == true);
+  /* 756461*/ if (call_tmp) /* 756458*/ {
+    /* 756460*/ goto _end_initialize;
+  }
+  /* 1278288*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 757042*/ _this_tmp_ = &((this7)->off);
+  /* 756905*/ call_tmp2 = (*(_this_tmp_) + INT64(0));
+  /* 1277264*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144863*/ ret2 = (this7)->dom;
+  /* 1042212*/ ret_to_arg_ref_tmp_ = &call_tmp3;
+  /* 1275414*/ chpl_check_nil(ret2, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 756929*/ dsiDim(ret2, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1126215*/ ret4 = (&call_tmp3)->_low;
+  /* 1126220*/ ret3 = ret4;
+  /* 1126224*/ goto _end_alignedLow;
+  _end_alignedLow:;
+  /* 1103109*/ *(call_tmp2) = ret3;
+  /* 1278292*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 757175*/ _this_tmp_2 = &((this7)->str);
+  /* 756945*/ call_tmp4 = (*(_this_tmp_2) + INT64(0));
+  /* 1277266*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144873*/ ret5 = (this7)->dom;
+  /* 1042219*/ ret_to_arg_ref_tmp_2 = &call_tmp5;
+  /* 1275416*/ chpl_check_nil(ret5, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 756969*/ dsiDim(ret5, ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1103115*/ *(call_tmp4) = INT64(1);
+  /* 1278296*/ chpl_check_nil(this7, INT64(684), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 757255*/ _this_tmp_3 = &((this7)->blk);
+  /* 756587*/ call_tmp6 = (*(_this_tmp_3) + INT64(0));
+  /* 1103103*/ *(call_tmp6) = INT64(1);
+  /* 1275410*/ chpl_check_nil(this7, INT64(687), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 756737*/ computeFactoredOffs3(this7, _ln, _fn);
+  /* 1278366*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265832*/ ret_ = &((this7)->blk);
+  /* 1265837*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1277262*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144853*/ ret6 = (this7)->dom;
+  /* 1042205*/ ret_to_arg_ref_tmp_3 = &call_tmp7;
+  /* 1275412*/ chpl_check_nil(ret6, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 756766*/ dsiDim(ret6, ret_to_arg_ref_tmp_3, _ln, _fn);
+  /* 1054482*/ _ref_tmp_ = &call_tmp7;
+  /* 756770*/ call_tmp8 = length(_ref_tmp_, _ln, _fn);
+  /* 1111051*/ call_tmp9 = (ret_x1 * call_tmp8);
+  /* 1277292*/ chpl_check_nil(this7, INT64(689), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145188*/ call_tmp10 = &((this7)->data);
+  /* 1145263*/ call_tmp11 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+  /* 1145268*/ call_tmp11 = chpl_array_alloc(call_tmp9, sizeof(chpl_TableEntry_chpl_taskID_t), _ln, _fn);
+  /* 1145273*/ init_elts3(call_tmp11, call_tmp9, _ln, _fn);
+  /* 1145327*/ *(call_tmp10) = call_tmp11;
+  /* 1277308*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145422*/ ret7 = (this7)->dom;
+  /* 1277310*/ chpl_check_nil(ret7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145429*/ call_tmp12 = dsiNumIndices(ret7, _ln, _fn);
+  /* 1145436*/ call_tmp13 = (call_tmp12 > INT64(0));
+  /* 1145492*/ if (call_tmp13) /* 1145442*/ {
+    /* 1277312*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145445*/ call_tmp14 = &((this7)->shiftedData);
+    /* 1277314*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145452*/ ret8 = (this7)->data;
+    /* 1277316*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145459*/ ret9 = (this7)->origin;
+    /* 1277318*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145466*/ ret10 = (this7)->factoredOffs;
+    /* 1145473*/ call_tmp15 = (ret9 - ret10);
+    /* 1145480*/ call_tmp16 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+    /* 1145485*/ call_tmp16 = (ret8 + call_tmp15);
+    /* 1145489*/ *(call_tmp14) = call_tmp16;
+  }
+  _end_initialize:;
+  /* 756824*/ return;
+}
+
+/* DefaultRectangular.chpl:678 */
+/*  780869 */ static void initialize9(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, int64_t _ln, c_string _fn) {
+  /* 1147520 */ chpl_bool ret;
+  /* 1094885 */ chpl_bool call_tmp;
+  /*  781348 */ _ref_int64_t call_tmp2 = NULL;
+  /*  781485 */ _ref__tuple_1_star_int64_t _this_tmp_ = NULL;
+  /* 1147590 */ DefaultRectangularDom_1_int64_t_F ret2 = NULL;
+  /*  781366 */ range_int64_t_bounded_F call_tmp3;
+  /* 1042377 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1126277 */ int64_t ret3;
+  /* 1126279 */ int64_t ret4;
+  /*  781388 */ _ref_int64_t call_tmp4 = NULL;
+  /*  781618 */ _ref__tuple_1_star_int64_t _this_tmp_2 = NULL;
+  /* 1147600 */ DefaultRectangularDom_1_int64_t_F ret5 = NULL;
+  /*  781406 */ range_int64_t_bounded_F call_tmp5;
+  /* 1042384 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_2 = NULL;
+  /*  781030 */ _ref_int64_t call_tmp6 = NULL;
+  /*  781698 */ _ref__tuple_1_star_int64_t _this_tmp_3 = NULL;
+  /* 1265914 */ int64_t ret_x1;
+  /* 1265918 */ _ref__tuple_1_star_int64_t ret_ = NULL;
+  /* 1147580 */ DefaultRectangularDom_1_int64_t_F ret6 = NULL;
+  /*  781203 */ range_int64_t_bounded_F call_tmp7;
+  /* 1042370 */ _ref_range_int64_t_bounded_F ret_to_arg_ref_tmp_3 = NULL;
+  /*  781213 */ int64_t call_tmp8;
+  /* 1054496 */ _ref_range_int64_t_bounded_F _ref_tmp_ = NULL;
+  /* 1111069 */ int64_t call_tmp9;
+  /* 1147905 */ _ref__ddata_chpldev_Task call_tmp10 = NULL;
+  /* 1147978 */ chpldev_Task _formal_type_tmp_;
+  /* 1147980 */ _ddata_chpldev_Task call_tmp11 = NULL;
+  /* 1148091 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1148098 */ int64_t call_tmp12;
+  /* 1148105 */ chpl_bool call_tmp13;
+  /* 1148114 */ _ref__ddata_chpldev_Task call_tmp14 = NULL;
+  /* 1148121 */ _ddata_chpldev_Task ret8 = NULL;
+  /* 1148128 */ int64_t ret9;
+  /* 1148135 */ int64_t ret10;
+  /* 1148142 */ int64_t call_tmp15;
+  /* 1148149 */ _ddata_chpldev_Task call_tmp16 = NULL;
+  /* 780878*/ /* 1277496*/ chpl_check_nil(this7, INT64(679), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147522*/ ret = (this7)->noinit_data;
+  /* 1094887*/ call_tmp = (ret == true);
+  /* 780906*/ if (call_tmp) /* 780903*/ {
+    /* 780905*/ goto _end_initialize;
+  }
+  /* 1278300*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781487*/ _this_tmp_ = &((this7)->off);
+  /* 781350*/ call_tmp2 = (*(_this_tmp_) + INT64(0));
+  /* 1277500*/ chpl_check_nil(this7, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147592*/ ret2 = (this7)->dom;
+  /* 1042380*/ ret_to_arg_ref_tmp_ = &call_tmp3;
+  /* 1275468*/ chpl_check_nil(ret2, INT64(681), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781374*/ dsiDim(ret2, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1126281*/ ret4 = (&call_tmp3)->_low;
+  /* 1126286*/ ret3 = ret4;
+  /* 1126290*/ goto _end_alignedLow;
+  _end_alignedLow:;
+  /* 1103139*/ *(call_tmp2) = ret3;
+  /* 1278304*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781620*/ _this_tmp_2 = &((this7)->str);
+  /* 781390*/ call_tmp4 = (*(_this_tmp_2) + INT64(0));
+  /* 1277502*/ chpl_check_nil(this7, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147602*/ ret5 = (this7)->dom;
+  /* 1042387*/ ret_to_arg_ref_tmp_2 = &call_tmp5;
+  /* 1275470*/ chpl_check_nil(ret5, INT64(682), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781414*/ dsiDim(ret5, ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1103145*/ *(call_tmp4) = INT64(1);
+  /* 1278308*/ chpl_check_nil(this7, INT64(684), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781700*/ _this_tmp_3 = &((this7)->blk);
+  /* 781032*/ call_tmp6 = (*(_this_tmp_3) + INT64(0));
+  /* 1103133*/ *(call_tmp6) = INT64(1);
+  /* 1275464*/ chpl_check_nil(this7, INT64(687), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781182*/ computeFactoredOffs4(this7, _ln, _fn);
+  /* 1278378*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265922*/ ret_ = &((this7)->blk);
+  /* 1265927*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1277498*/ chpl_check_nil(this7, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147582*/ ret6 = (this7)->dom;
+  /* 1042373*/ ret_to_arg_ref_tmp_3 = &call_tmp7;
+  /* 1275466*/ chpl_check_nil(ret6, INT64(688), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 781211*/ dsiDim(ret6, ret_to_arg_ref_tmp_3, _ln, _fn);
+  /* 1054500*/ _ref_tmp_ = &call_tmp7;
+  /* 781215*/ call_tmp8 = length(_ref_tmp_, _ln, _fn);
+  /* 1111071*/ call_tmp9 = (ret_x1 * call_tmp8);
+  /* 1277526*/ chpl_check_nil(this7, INT64(689), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147907*/ call_tmp10 = &((this7)->data);
+  /* 1147982*/ call_tmp11 = ((_ddata_chpldev_Task)(nil));
+  /* 1147987*/ call_tmp11 = chpl_array_alloc(call_tmp9, sizeof(chpldev_Task), _ln, _fn);
+  /* 1147992*/ init_elts4(call_tmp11, call_tmp9, _ln, _fn);
+  /* 1147998*/ *(call_tmp10) = call_tmp11;
+  /* 1277542*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1148093*/ ret7 = (this7)->dom;
+  /* 1277544*/ chpl_check_nil(ret7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1148100*/ call_tmp12 = dsiNumIndices(ret7, _ln, _fn);
+  /* 1148107*/ call_tmp13 = (call_tmp12 > INT64(0));
+  /* 1148163*/ if (call_tmp13) /* 1148113*/ {
+    /* 1277546*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148116*/ call_tmp14 = &((this7)->shiftedData);
+    /* 1277548*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148123*/ ret8 = (this7)->data;
+    /* 1277550*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148130*/ ret9 = (this7)->origin;
+    /* 1277552*/ chpl_check_nil(this7, INT64(690), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148137*/ ret10 = (this7)->factoredOffs;
+    /* 1148144*/ call_tmp15 = (ret9 - ret10);
+    /* 1148151*/ call_tmp16 = ((_ddata_chpldev_Task)(nil));
+    /* 1148156*/ call_tmp16 = (ret8 + call_tmp15);
+    /* 1148160*/ *(call_tmp14) = call_tmp16;
+  }
+  _end_initialize:;
+  /* 781269*/ return;
+}
+
+/* DefaultRectangular.chpl:838 */
+/*  985438 */ static void dsiReallocate2(DefaultRectangularArr_locale_1_int64_t_F this7, DefaultRectangularDom_1_int64_t_F d, int64_t _ln, c_string _fn) {
+  /*  985497 */ DefaultRectangularArr_locale_1_int64_t_F copy = NULL;
+  /* 1121698 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 1125571 */ DefaultRectangularArr_locale_1_int64_t_F this8 = NULL;
+  /* 1125573 */ int64_t call_tmp;
+  /* 1125579 */ chpl_opaque cast_tmp;
+  /* 1125598 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1125608 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1125618 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1125648 */ atomic_refcnt this9;
+  /* 1125650 */ atomic_int64 _init_class_tmp_4;
+  /* 1125656 */ atomic_int64 this10;
+  /* 1125658 */ atomic_int_least64_t ret2;
+  /* 1125660 */ atomic_int_least64_t type_tmp;
+  /* 1125665 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1125679 */ atomic_int64 wrap_call_tmp;
+  /* 1125691 */ atomic_refcnt wrap_call_tmp2;
+  /* 1125699 */ BaseArr call_tmp2 = NULL;
+  /* 1125710 */ _tuple_1_star_int64_t this11;
+  /* 1125720 */ _tuple_1_star_int64_t this12;
+  /* 1125730 */ _tuple_1_star_int64_t this13;
+  /* 1125748 */ _ddata_locale call_tmp3 = NULL;
+  /* 1125759 */ _ddata_locale call_tmp4 = NULL;
+  /* 1125774 */ DefaultRectangularArr_locale_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 1125948 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  985977 */ DefaultRectangularDom_1_int64_t_F coerce_tmp = NULL;
+  /* 1259035 */ range_int64_t_bounded_F ret_x1;
+  /* 1259039 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /*  985579 */ DefaultRectangularDom_1_int64_t_F call_tmp5 = NULL;
+  /* 1049699 */ _ref_DefaultRectangularDom_1_int64_t_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1132282 */ DefaultRectangularDom_1_int64_t_F ret4 = NULL;
+  /* 1132304 */ _tuple_1_star_int64_t default_argoffset;
+  /* 1132306 */ _ref__tuple_1_star_int64_t ret_to_arg_ref_tmp_2 = NULL;
+  /* 1068478 */ DefaultRectangularDom_1_int64_t_F this14 = NULL;
+  /* 1259155 */ range_int64_t_bounded_F ret_x12;
+  /* 1259159 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_2 = NULL;
+  /* 1263507 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1068319 */ _ref_range_int64_t_bounded_F this15 = NULL;
+  /* 1068331 */ int64_t i;
+  /* 1128636 */ int64_t ret5;
+  /* 1068371 */ int64_t end;
+  /* 1128977 */ int64_t ret6;
+  /* 1140064 */ _tuple_1_star_int64_t ind;
+  /* 1140066 */ _tuple_1_star_int64_t this16;
+  /* 1140075 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1140082 */ chpl_bool call_tmp6;
+  /* 1140090 */ chpl_bool call_tmp7;
+  /* 1140098 */ chpl_string call_tmp8;
+  /* 1140111 */ int64_t sum;
+  /* 1265694 */ int64_t ret_x13;
+  /* 1265698 */ _ref__tuple_1_star_int64_t ret_3 = NULL;
+  /* 1140128 */ int64_t coerce_tmp2;
+  /* 1140142 */ int64_t call_tmp9;
+  /* 1140152 */ _ddata_locale ret8 = NULL;
+  /* 1140159 */ _ddata_locale coerce_tmp3 = NULL;
+  /* 1140164 */ _ref_locale call_tmp10 = NULL;
+  /* 1240487 */ _tuple_1_star_int64_t ind2;
+  /* 1240489 */ _tuple_1_star_int64_t this17;
+  /* 1240498 */ DefaultRectangularDom_1_int64_t_F ret9 = NULL;
+  /* 1240505 */ chpl_bool call_tmp11;
+  /* 1240513 */ chpl_bool call_tmp12;
+  /* 1240521 */ chpl_string call_tmp13;
+  /* 1240534 */ int64_t sum2;
+  /* 1266887 */ int64_t ret_x14;
+  /* 1266891 */ _ref__tuple_1_star_int64_t ret_4 = NULL;
+  /* 1240551 */ int64_t coerce_tmp4;
+  /* 1240565 */ int64_t call_tmp14;
+  /* 1240575 */ _ddata_locale ret10 = NULL;
+  /* 1240582 */ _ddata_locale coerce_tmp5 = NULL;
+  /* 1240587 */ locale ret11 = NULL;
+  /* 1240589 */ _ref_locale call_tmp15 = NULL;
+  /*  985640 */ _ref__tuple_1_star_int64_t call_tmp16 = NULL;
+  /* 1265189 */ int64_t ret_x15;
+  /* 1265193 */ _ref__tuple_1_star_int64_t ret_5 = NULL;
+  /*  994349 */ _tuple_1_star_int64_t coerce_tmp6;
+  /*  985660 */ _ref__tuple_1_star_int64_t call_tmp17 = NULL;
+  /* 1265249 */ int64_t ret_x16;
+  /* 1265253 */ _ref__tuple_1_star_int64_t ret_6 = NULL;
+  /*  994403 */ _tuple_1_star_int64_t coerce_tmp7;
+  /*  985680 */ _ref__tuple_1_star_int64_t call_tmp18 = NULL;
+  /* 1265204 */ int64_t ret_x17;
+  /* 1265208 */ _ref__tuple_1_star_int64_t ret_7 = NULL;
+  /*  994412 */ _tuple_1_star_int64_t coerce_tmp8;
+  /* 1129757 */ _ref_int64_t call_tmp19 = NULL;
+  /* 1129622 */ int64_t ret12;
+  /* 1126556 */ _ref_int64_t call_tmp20 = NULL;
+  /* 1126589 */ int64_t ret13;
+  /* 1126684 */ _ref__ddata_locale call_tmp21 = NULL;
+  /* 1126727 */ _ddata_locale ret14 = NULL;
+  /*  985876 */ int64_t call_tmp22;
+  /* 1115265 */ chpl_bool call_tmp23;
+  /* 1129599 */ _ref__ddata_locale call_tmp24 = NULL;
+  /* 1129743 */ _ddata_locale ret15 = NULL;
+  /* 1125203 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1125210 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1125217 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1125224 */ _ref_atomic_int_least64_t call_tmp25 = NULL;
+  /*  985932 */ chpl_opaque call_tmp26;
+  /* 985451*/ /* 1121707*/ ret = d;
+  /* 1125575*/ call_tmp = sizeof(chpl_DefaultRectangularArr_locale_1_int64_t_F_object);
+  /* 1125581*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(8), _ln, _fn);
+  /* 1125587*/ this8 = ((DefaultRectangularArr_locale_1_int64_t_F)(cast_tmp));
+  /* 1125592*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_locale_1_int64_t_F;
+  /* 1276554*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125594*/ (this8)->dom = nil;
+  /* 1125600*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1276556*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125604*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1125610*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1276558*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125614*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1125620*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1276560*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125624*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1276562*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125628*/ (this8)->origin = INT64(0);
+  /* 1276564*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125632*/ (this8)->factoredOffs = INT64(0);
+  /* 1276566*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125636*/ (this8)->data = nil;
+  /* 1276568*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125640*/ (this8)->shiftedData = nil;
+  /* 1276570*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125644*/ (this8)->noinit_data = false;
+  /* 1125652*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1125662*/ ret2 = type_tmp;
+  /* 1125667*/ _ref_tmp_ = &ret2;
+  /* 1125672*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1125675*/ (&this10)->_v = ret2;
+  /* 1125681*/ wrap_call_tmp = _construct_atomic_int64(ret2, &this10, _ln, _fn);
+  /* 1125687*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1125693*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1125701*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1276572*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125706*/ (this8)->dom = ret;
+  /* 1125712*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1276574*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125716*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1125722*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1276576*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125726*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1125732*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1276578*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125736*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1276580*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125740*/ (this8)->origin = INT64(0);
+  /* 1276582*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125744*/ (this8)->factoredOffs = INT64(0);
+  /* 1125750*/ call_tmp3 = ((_ddata_locale)(nil));
+  /* 1276584*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125755*/ (this8)->data = call_tmp3;
+  /* 1125761*/ call_tmp4 = ((_ddata_locale)(nil));
+  /* 1276586*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125766*/ (this8)->shiftedData = call_tmp4;
+  /* 1276588*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125770*/ (this8)->noinit_data = false;
+  /* 1125776*/ wrap_call_tmp3 = _construct_DefaultRectangularArr(&wrap_call_tmp2, call_tmp2, ret, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 985547*/ copy = wrap_call_tmp3;
+  /* 1276602*/ chpl_check_nil(this7, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125950*/ ret3 = (this7)->dom;
+  /* 985980*/ coerce_tmp = ret3;
+  /* 1278236*/ chpl_check_nil(coerce_tmp, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259043*/ ret_ = &((coerce_tmp)->ranges);
+  /* 1259048*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1049702*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+  /* 1275594*/ chpl_check_nil(d, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985584*/ this2(d, &ret_x1, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1132284*/ ret4 = call_tmp5;
+  /* 1132308*/ ret_to_arg_ref_tmp_2 = &default_argoffset;
+  /* 1132313*/ createTuple(INT64(0), ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1068483*/ this14 = ret4;
+  /* 1278252*/ chpl_check_nil(this14, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259163*/ ret_2 = &((this14)->ranges);
+  /* 1259168*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1127610*/ _ic__F0_this = ret_x12;
+  /* 1068321*/ this15 = &_ic__F0_this;
+  /* 1128322*/ checkIfIterWillOverflow(this15, true, _ln, _fn);
+  /* 1128638*/ ret5 = (&_ic__F0_this)->_low;
+  /* 1128979*/ ret6 = (&_ic__F0_this)->_high;
+  /* 1068392*/ end = ret6;
+  /* 1278444*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266895*/ ret_4 = &((this7)->blk);
+  /* 1278186*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1240577*/ ret10 = (this7)->shiftedData;
+  /* 1240584*/ coerce_tmp5 = ret10;
+  /* 1278354*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265702*/ ret_3 = &((copy)->blk);
+  /* 1277088*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1140154*/ ret8 = (copy)->shiftedData;
+  /* 1140161*/ coerce_tmp3 = ret8;
+  /* 1068395*/ for (i = ret5; ((i <= end)); i += INT64(1)) {
+    /* 1140068*/ *(this16 + INT64(0)) = i;
+    /* 1140072*/ *(ind + INT64(0)) = *(this16 + INT64(0));
+    /* 1277084*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1140077*/ ret7 = (copy)->dom;
+    /* 1277086*/ chpl_check_nil(ret7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1140084*/ call_tmp6 = dsiMember2(ret7, &this16, _ln, _fn);
+    /* 1140092*/ call_tmp7 = (! call_tmp6);
+    /* 1140110*/ if (call_tmp7) /* 1140097*/ {
+      /* 1140100*/ string_from_c_string(&call_tmp8, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1140107*/ halt2(call_tmp8, &this16, _ln, _fn);
+    }
+    /* 1140113*/ sum = INT64(0);
+    /* 1265707*/ ret_x13 = *(*(ret_3) + INT64(0));
+    /* 1140130*/ coerce_tmp2 = *(ind + INT64(0));
+    /* 1140144*/ call_tmp9 = (coerce_tmp2 * ret_x13);
+    /* 1140149*/ sum += call_tmp9;
+    /* 1140166*/ call_tmp10 = (coerce_tmp3 + sum);
+    /* 1240491*/ *(this17 + INT64(0)) = i;
+    /* 1240495*/ *(ind2 + INT64(0)) = *(this17 + INT64(0));
+    /* 1278182*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1240500*/ ret9 = (this7)->dom;
+    /* 1278184*/ chpl_check_nil(ret9, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1240507*/ call_tmp11 = dsiMember2(ret9, &this17, _ln, _fn);
+    /* 1240515*/ call_tmp12 = (! call_tmp11);
+    /* 1240533*/ if (call_tmp12) /* 1240520*/ {
+      /* 1240523*/ string_from_c_string(&call_tmp13, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1240530*/ halt2(call_tmp13, &this17, _ln, _fn);
+    }
+    /* 1240536*/ sum2 = INT64(0);
+    /* 1266900*/ ret_x14 = *(*(ret_4) + INT64(0));
+    /* 1240553*/ coerce_tmp4 = *(ind2 + INT64(0));
+    /* 1240567*/ call_tmp14 = (coerce_tmp4 * ret_x14);
+    /* 1240572*/ sum2 += call_tmp14;
+    /* 1240591*/ call_tmp15 = (coerce_tmp5 + sum2);
+    /* 1240596*/ ret11 = *(call_tmp15);
+    /* 1118556*/ *(call_tmp10) = ret11;
+  }
+  /* 1278266*/ chpl_check_nil(this7, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985642*/ call_tmp16 = &((this7)->off);
+  /* 1278314*/ chpl_check_nil(copy, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265197*/ ret_5 = &((copy)->off);
+  /* 1265202*/ ret_x15 = *(*(ret_5) + INT64(0));
+  /* 1265016*/ *(coerce_tmp6 + INT64(0)) = ret_x15;
+  /* 1240603*/ *(*(call_tmp16) + INT64(0)) = *(coerce_tmp6 + INT64(0));
+  /* 1278274*/ chpl_check_nil(this7, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985662*/ call_tmp17 = &((this7)->blk);
+  /* 1278322*/ chpl_check_nil(copy, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265257*/ ret_6 = &((copy)->blk);
+  /* 1265262*/ ret_x16 = *(*(ret_6) + INT64(0));
+  /* 1265027*/ *(coerce_tmp7 + INT64(0)) = ret_x16;
+  /* 1240609*/ *(*(call_tmp17) + INT64(0)) = *(coerce_tmp7 + INT64(0));
+  /* 1278270*/ chpl_check_nil(this7, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985682*/ call_tmp18 = &((this7)->str);
+  /* 1278316*/ chpl_check_nil(copy, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265212*/ ret_7 = &((copy)->str);
+  /* 1265217*/ ret_x17 = *(*(ret_7) + INT64(0));
+  /* 1265038*/ *(coerce_tmp8 + INT64(0)) = ret_x17;
+  /* 1240615*/ *(*(call_tmp18) + INT64(0)) = *(coerce_tmp8 + INT64(0));
+  /* 1276682*/ chpl_check_nil(this7, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1129759*/ call_tmp19 = &((this7)->origin);
+  /* 1276666*/ chpl_check_nil(copy, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1129624*/ ret12 = (copy)->origin;
+  /* 1103247*/ *(call_tmp19) = ret12;
+  /* 1276618*/ chpl_check_nil(this7, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126558*/ call_tmp20 = &((this7)->factoredOffs);
+  /* 1276622*/ chpl_check_nil(copy, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126591*/ ret13 = (copy)->factoredOffs;
+  /* 1103253*/ *(call_tmp20) = ret13;
+  /* 1275596*/ chpl_check_nil(this7, INT64(851), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985744*/ dsiDestroyData2(this7, _ln, _fn);
+  /* 1276628*/ chpl_check_nil(this7, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126686*/ call_tmp21 = &((this7)->data);
+  /* 1276634*/ chpl_check_nil(copy, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1126729*/ ret14 = (copy)->data;
+  /* 1129573*/ *(call_tmp21) = ret14;
+  /* 1275598*/ chpl_check_nil(d, INT64(857), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 985878*/ call_tmp22 = numIndices(d, _ln, _fn);
+  /* 1115267*/ call_tmp23 = (call_tmp22 > INT64(0));
+  /* 985921*/ if (call_tmp23) /* 985900*/ {
+    /* 1276664*/ chpl_check_nil(this7, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129601*/ call_tmp24 = &((this7)->shiftedData);
+    /* 1276680*/ chpl_check_nil(copy, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1129745*/ ret15 = (copy)->shiftedData;
+    /* 1129579*/ *(call_tmp24) = ret15;
+  }
+  /* 1125205*/ _parent_destructor_tmp_ = ((BaseArr)(copy));
+  /* 1276512*/ chpl_check_nil(_parent_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125212*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276514*/ chpl_check_nil(_field_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125219*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276516*/ chpl_check_nil(_field_destructor_tmp_2, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1125226*/ call_tmp25 = &((_field_destructor_tmp_2)->_v);
+  /* 1125232*/ atomic_destroy_int_least64_t(call_tmp25);
+  /* 985934*/ call_tmp26 = ((void*)(copy));
+  /* 985939*/ chpl_here_free(call_tmp26, _ln, _fn);
+  /* 1037594*/ chpl__autoDestroy2(call_tmp5, _ln, _fn);
+  /* 985946*/ return;
+}
+
+/* DefaultRectangular.chpl:838 */
+/*  994481 */ static void dsiReallocate3(DefaultRectangularArr_localesSignal_1_int64_t_F this7, DefaultRectangularDom_1_int64_t_F d, int64_t _ln, c_string _fn) {
+  /*  994540 */ DefaultRectangularArr_localesSignal_1_int64_t_F copy = NULL;
+  /* 1121749 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 1134331 */ DefaultRectangularArr_localesSignal_1_int64_t_F this8 = NULL;
+  /* 1134333 */ int64_t call_tmp;
+  /* 1134339 */ chpl_opaque cast_tmp;
+  /* 1134358 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1134368 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1134378 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1134408 */ atomic_refcnt this9;
+  /* 1134410 */ atomic_int64 _init_class_tmp_4;
+  /* 1134416 */ atomic_int64 this10;
+  /* 1134418 */ atomic_int_least64_t ret2;
+  /* 1134420 */ atomic_int_least64_t type_tmp;
+  /* 1134425 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1134439 */ atomic_int64 wrap_call_tmp;
+  /* 1134451 */ atomic_refcnt wrap_call_tmp2;
+  /* 1134459 */ BaseArr call_tmp2 = NULL;
+  /* 1134470 */ _tuple_1_star_int64_t this11;
+  /* 1134480 */ _tuple_1_star_int64_t this12;
+  /* 1134490 */ _tuple_1_star_int64_t this13;
+  /* 1134508 */ _ddata_localesSignal call_tmp3 = NULL;
+  /* 1134519 */ _ddata_localesSignal call_tmp4 = NULL;
+  /* 1134534 */ DefaultRectangularArr_localesSignal_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 1134708 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  995020 */ DefaultRectangularDom_1_int64_t_F coerce_tmp = NULL;
+  /* 1259050 */ range_int64_t_bounded_F ret_x1;
+  /* 1259054 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /*  994622 */ DefaultRectangularDom_1_int64_t_F call_tmp5 = NULL;
+  /* 1050264 */ _ref_DefaultRectangularDom_1_int64_t_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1132433 */ DefaultRectangularDom_1_int64_t_F ret4 = NULL;
+  /* 1132455 */ _tuple_1_star_int64_t default_argoffset;
+  /* 1132457 */ _ref__tuple_1_star_int64_t ret_to_arg_ref_tmp_2 = NULL;
+  /* 1068858 */ DefaultRectangularDom_1_int64_t_F this14 = NULL;
+  /* 1259170 */ range_int64_t_bounded_F ret_x12;
+  /* 1259174 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_2 = NULL;
+  /* 1263527 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1068699 */ _ref_range_int64_t_bounded_F this15 = NULL;
+  /* 1068711 */ int64_t i;
+  /* 1128656 */ int64_t ret5;
+  /* 1068751 */ int64_t end;
+  /* 1128997 */ int64_t ret6;
+  /* 1137190 */ _tuple_1_star_int64_t ind;
+  /* 1137192 */ _tuple_1_star_int64_t this16;
+  /* 1137201 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1137208 */ chpl_bool call_tmp6;
+  /* 1137216 */ chpl_bool call_tmp7;
+  /* 1137224 */ chpl_string call_tmp8;
+  /* 1137237 */ int64_t sum;
+  /* 1265602 */ int64_t ret_x13;
+  /* 1265606 */ _ref__tuple_1_star_int64_t ret_3 = NULL;
+  /* 1137254 */ int64_t coerce_tmp2;
+  /* 1137268 */ int64_t call_tmp9;
+  /* 1137278 */ _ddata_localesSignal ret8 = NULL;
+  /* 1137285 */ _ddata_localesSignal coerce_tmp3 = NULL;
+  /* 1137290 */ _ref_localesSignal call_tmp10 = NULL;
+  /* 1240676 */ _tuple_1_star_int64_t ind2;
+  /* 1240678 */ _tuple_1_star_int64_t this17;
+  /* 1240687 */ DefaultRectangularDom_1_int64_t_F ret9 = NULL;
+  /* 1240694 */ chpl_bool call_tmp11;
+  /* 1240702 */ chpl_bool call_tmp12;
+  /* 1240710 */ chpl_string call_tmp13;
+  /* 1240723 */ int64_t sum2;
+  /* 1266910 */ int64_t ret_x14;
+  /* 1266914 */ _ref__tuple_1_star_int64_t ret_4 = NULL;
+  /* 1240740 */ int64_t coerce_tmp4;
+  /* 1240754 */ int64_t call_tmp14;
+  /* 1240764 */ _ddata_localesSignal ret10 = NULL;
+  /* 1240771 */ _ddata_localesSignal coerce_tmp5 = NULL;
+  /* 1240776 */ localesSignal ret11 = NULL;
+  /* 1240778 */ _ref_localesSignal call_tmp15 = NULL;
+  /*  994683 */ _ref__tuple_1_star_int64_t call_tmp16 = NULL;
+  /* 1265356 */ int64_t ret_x15;
+  /* 1265360 */ _ref__tuple_1_star_int64_t ret_5 = NULL;
+  /*  995160 */ _tuple_1_star_int64_t coerce_tmp6;
+  /*  994703 */ _ref__tuple_1_star_int64_t call_tmp17 = NULL;
+  /* 1265416 */ int64_t ret_x16;
+  /* 1265420 */ _ref__tuple_1_star_int64_t ret_6 = NULL;
+  /*  995169 */ _tuple_1_star_int64_t coerce_tmp7;
+  /*  994723 */ _ref__tuple_1_star_int64_t call_tmp18 = NULL;
+  /* 1265371 */ int64_t ret_x17;
+  /* 1265375 */ _ref__tuple_1_star_int64_t ret_7 = NULL;
+  /*  995178 */ _tuple_1_star_int64_t coerce_tmp8;
+  /* 1135272 */ _ref_int64_t call_tmp19 = NULL;
+  /* 1135137 */ int64_t ret12;
+  /* 1134926 */ _ref_int64_t call_tmp20 = NULL;
+  /* 1134959 */ int64_t ret13;
+  /* 1134983 */ _ref__ddata_localesSignal call_tmp21 = NULL;
+  /* 1135026 */ _ddata_localesSignal ret14 = NULL;
+  /*  994919 */ int64_t call_tmp22;
+  /* 1115285 */ chpl_bool call_tmp23;
+  /* 1135114 */ _ref__ddata_localesSignal call_tmp24 = NULL;
+  /* 1135258 */ _ddata_localesSignal ret15 = NULL;
+  /* 1134023 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1134030 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1134037 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1134044 */ _ref_atomic_int_least64_t call_tmp25 = NULL;
+  /*  994975 */ chpl_opaque call_tmp26;
+  /* 994494*/ /* 1121758*/ ret = d;
+  /* 1134335*/ call_tmp = sizeof(chpl_DefaultRectangularArr_localesSignal_1_int64_t_F_object);
+  /* 1134341*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(14), _ln, _fn);
+  /* 1134347*/ this8 = ((DefaultRectangularArr_localesSignal_1_int64_t_F)(cast_tmp));
+  /* 1134352*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_localesSignal_1_int64_t_F;
+  /* 1276866*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134354*/ (this8)->dom = nil;
+  /* 1134360*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1276868*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134364*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1134370*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1276870*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134374*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1134380*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1276872*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134384*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1276874*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134388*/ (this8)->origin = INT64(0);
+  /* 1276876*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134392*/ (this8)->factoredOffs = INT64(0);
+  /* 1276878*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134396*/ (this8)->data = nil;
+  /* 1276880*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134400*/ (this8)->shiftedData = nil;
+  /* 1276882*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134404*/ (this8)->noinit_data = false;
+  /* 1134412*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1134422*/ ret2 = type_tmp;
+  /* 1134427*/ _ref_tmp_ = &ret2;
+  /* 1134432*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1134435*/ (&this10)->_v = ret2;
+  /* 1134441*/ wrap_call_tmp = _construct_atomic_int64(ret2, &this10, _ln, _fn);
+  /* 1134447*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1134453*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1134461*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1276884*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134466*/ (this8)->dom = ret;
+  /* 1134472*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1276886*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134476*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1134482*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1276888*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134486*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1134492*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1276890*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134496*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1276892*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134500*/ (this8)->origin = INT64(0);
+  /* 1276894*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134504*/ (this8)->factoredOffs = INT64(0);
+  /* 1134510*/ call_tmp3 = ((_ddata_localesSignal)(nil));
+  /* 1276896*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134515*/ (this8)->data = call_tmp3;
+  /* 1134521*/ call_tmp4 = ((_ddata_localesSignal)(nil));
+  /* 1276898*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134526*/ (this8)->shiftedData = call_tmp4;
+  /* 1276900*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134530*/ (this8)->noinit_data = false;
+  /* 1134536*/ wrap_call_tmp3 = _construct_DefaultRectangularArr2(&wrap_call_tmp2, call_tmp2, ret, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 994590*/ copy = wrap_call_tmp3;
+  /* 1276914*/ chpl_check_nil(this7, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134710*/ ret3 = (this7)->dom;
+  /* 995023*/ coerce_tmp = ret3;
+  /* 1278238*/ chpl_check_nil(coerce_tmp, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259058*/ ret_ = &((coerce_tmp)->ranges);
+  /* 1259063*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1050267*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+  /* 1275600*/ chpl_check_nil(d, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994627*/ this2(d, &ret_x1, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1132435*/ ret4 = call_tmp5;
+  /* 1132459*/ ret_to_arg_ref_tmp_2 = &default_argoffset;
+  /* 1132464*/ createTuple(INT64(0), ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1068863*/ this14 = ret4;
+  /* 1278254*/ chpl_check_nil(this14, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259178*/ ret_2 = &((this14)->ranges);
+  /* 1259183*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1127667*/ _ic__F0_this = ret_x12;
+  /* 1068701*/ this15 = &_ic__F0_this;
+  /* 1128344*/ checkIfIterWillOverflow(this15, true, _ln, _fn);
+  /* 1128658*/ ret5 = (&_ic__F0_this)->_low;
+  /* 1128999*/ ret6 = (&_ic__F0_this)->_high;
+  /* 1068772*/ end = ret6;
+  /* 1278446*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266918*/ ret_4 = &((this7)->blk);
+  /* 1278192*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1240766*/ ret10 = (this7)->shiftedData;
+  /* 1240773*/ coerce_tmp5 = ret10;
+  /* 1278346*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265610*/ ret_3 = &((copy)->blk);
+  /* 1277002*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1137280*/ ret8 = (copy)->shiftedData;
+  /* 1137287*/ coerce_tmp3 = ret8;
+  /* 1068775*/ for (i = ret5; ((i <= end)); i += INT64(1)) {
+    /* 1137194*/ *(this16 + INT64(0)) = i;
+    /* 1137198*/ *(ind + INT64(0)) = *(this16 + INT64(0));
+    /* 1276998*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1137203*/ ret7 = (copy)->dom;
+    /* 1277000*/ chpl_check_nil(ret7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1137210*/ call_tmp6 = dsiMember2(ret7, &this16, _ln, _fn);
+    /* 1137218*/ call_tmp7 = (! call_tmp6);
+    /* 1137236*/ if (call_tmp7) /* 1137223*/ {
+      /* 1137226*/ string_from_c_string(&call_tmp8, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1137233*/ halt2(call_tmp8, &this16, _ln, _fn);
+    }
+    /* 1137239*/ sum = INT64(0);
+    /* 1265615*/ ret_x13 = *(*(ret_3) + INT64(0));
+    /* 1137256*/ coerce_tmp2 = *(ind + INT64(0));
+    /* 1137270*/ call_tmp9 = (coerce_tmp2 * ret_x13);
+    /* 1137275*/ sum += call_tmp9;
+    /* 1137292*/ call_tmp10 = (coerce_tmp3 + sum);
+    /* 1240680*/ *(this17 + INT64(0)) = i;
+    /* 1240684*/ *(ind2 + INT64(0)) = *(this17 + INT64(0));
+    /* 1278188*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1240689*/ ret9 = (this7)->dom;
+    /* 1278190*/ chpl_check_nil(ret9, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1240696*/ call_tmp11 = dsiMember2(ret9, &this17, _ln, _fn);
+    /* 1240704*/ call_tmp12 = (! call_tmp11);
+    /* 1240722*/ if (call_tmp12) /* 1240709*/ {
+      /* 1240712*/ string_from_c_string(&call_tmp13, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1240719*/ halt2(call_tmp13, &this17, _ln, _fn);
+    }
+    /* 1240725*/ sum2 = INT64(0);
+    /* 1266923*/ ret_x14 = *(*(ret_4) + INT64(0));
+    /* 1240742*/ coerce_tmp4 = *(ind2 + INT64(0));
+    /* 1240756*/ call_tmp14 = (coerce_tmp4 * ret_x14);
+    /* 1240761*/ sum2 += call_tmp14;
+    /* 1240780*/ call_tmp15 = (coerce_tmp5 + sum2);
+    /* 1240785*/ ret11 = *(call_tmp15);
+    /* 1138087*/ *(call_tmp10) = ret11;
+  }
+  /* 1278278*/ chpl_check_nil(this7, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994685*/ call_tmp16 = &((this7)->off);
+  /* 1278326*/ chpl_check_nil(copy, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265364*/ ret_5 = &((copy)->off);
+  /* 1265369*/ ret_x15 = *(*(ret_5) + INT64(0));
+  /* 1265049*/ *(coerce_tmp6 + INT64(0)) = ret_x15;
+  /* 1240621*/ *(*(call_tmp16) + INT64(0)) = *(coerce_tmp6 + INT64(0));
+  /* 1278286*/ chpl_check_nil(this7, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994705*/ call_tmp17 = &((this7)->blk);
+  /* 1278334*/ chpl_check_nil(copy, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265424*/ ret_6 = &((copy)->blk);
+  /* 1265429*/ ret_x16 = *(*(ret_6) + INT64(0));
+  /* 1265060*/ *(coerce_tmp7 + INT64(0)) = ret_x16;
+  /* 1240627*/ *(*(call_tmp17) + INT64(0)) = *(coerce_tmp7 + INT64(0));
+  /* 1278282*/ chpl_check_nil(this7, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994725*/ call_tmp18 = &((this7)->str);
+  /* 1278328*/ chpl_check_nil(copy, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265379*/ ret_7 = &((copy)->str);
+  /* 1265384*/ ret_x17 = *(*(ret_7) + INT64(0));
+  /* 1265071*/ *(coerce_tmp8 + INT64(0)) = ret_x17;
+  /* 1240633*/ *(*(call_tmp18) + INT64(0)) = *(coerce_tmp8 + INT64(0));
+  /* 1276966*/ chpl_check_nil(this7, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135274*/ call_tmp19 = &((this7)->origin);
+  /* 1276950*/ chpl_check_nil(copy, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135139*/ ret12 = (copy)->origin;
+  /* 1103259*/ *(call_tmp19) = ret12;
+  /* 1276932*/ chpl_check_nil(this7, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134928*/ call_tmp20 = &((this7)->factoredOffs);
+  /* 1276936*/ chpl_check_nil(copy, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134961*/ ret13 = (copy)->factoredOffs;
+  /* 1103265*/ *(call_tmp20) = ret13;
+  /* 1275602*/ chpl_check_nil(this7, INT64(851), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994787*/ dsiDestroyData3(this7, _ln, _fn);
+  /* 1276940*/ chpl_check_nil(this7, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134985*/ call_tmp21 = &((this7)->data);
+  /* 1276946*/ chpl_check_nil(copy, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1135028*/ ret14 = (copy)->data;
+  /* 1135088*/ *(call_tmp21) = ret14;
+  /* 1275604*/ chpl_check_nil(d, INT64(857), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 994921*/ call_tmp22 = numIndices(d, _ln, _fn);
+  /* 1115287*/ call_tmp23 = (call_tmp22 > INT64(0));
+  /* 994964*/ if (call_tmp23) /* 994943*/ {
+    /* 1276948*/ chpl_check_nil(this7, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135116*/ call_tmp24 = &((this7)->shiftedData);
+    /* 1276964*/ chpl_check_nil(copy, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1135260*/ ret15 = (copy)->shiftedData;
+    /* 1135094*/ *(call_tmp24) = ret15;
+  }
+  /* 1134025*/ _parent_destructor_tmp_ = ((BaseArr)(copy));
+  /* 1276824*/ chpl_check_nil(_parent_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134032*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1276826*/ chpl_check_nil(_field_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134039*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1276828*/ chpl_check_nil(_field_destructor_tmp_2, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1134046*/ call_tmp25 = &((_field_destructor_tmp_2)->_v);
+  /* 1134052*/ atomic_destroy_int_least64_t(call_tmp25);
+  /* 994977*/ call_tmp26 = ((void*)(copy));
+  /* 994982*/ chpl_here_free(call_tmp26, _ln, _fn);
+  /* 1037636*/ chpl__autoDestroy2(call_tmp5, _ln, _fn);
+  /* 994989*/ return;
+}
+
+/* DefaultRectangular.chpl:838 */
+/*  995247 */ static void dsiReallocate4(DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this7, DefaultRectangularDom_1_int64_t_F d, int64_t _ln, c_string _fn) {
+  /*  995306 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F copy = NULL;
+  /* 1121800 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 1144564 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F this8 = NULL;
+  /* 1144566 */ int64_t call_tmp;
+  /* 1144572 */ chpl_opaque cast_tmp;
+  /* 1144591 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1144601 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1144611 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1144641 */ atomic_refcnt this9;
+  /* 1144643 */ atomic_int64 _init_class_tmp_4;
+  /* 1144649 */ atomic_int64 this10;
+  /* 1144651 */ atomic_int_least64_t ret2;
+  /* 1144653 */ atomic_int_least64_t type_tmp;
+  /* 1144658 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1144672 */ atomic_int64 wrap_call_tmp;
+  /* 1144684 */ atomic_refcnt wrap_call_tmp2;
+  /* 1144692 */ BaseArr call_tmp2 = NULL;
+  /* 1144703 */ _tuple_1_star_int64_t this11;
+  /* 1144713 */ _tuple_1_star_int64_t this12;
+  /* 1144723 */ _tuple_1_star_int64_t this13;
+  /* 1144741 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp3 = NULL;
+  /* 1144752 */ _ddata_chpl_TableEntry_chpl_taskID_t call_tmp4 = NULL;
+  /* 1144767 */ DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 1144961 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  995786 */ DefaultRectangularDom_1_int64_t_F coerce_tmp = NULL;
+  /* 1259065 */ range_int64_t_bounded_F ret_x1;
+  /* 1259069 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /*  995388 */ DefaultRectangularDom_1_int64_t_F call_tmp5 = NULL;
+  /* 1050271 */ _ref_DefaultRectangularDom_1_int64_t_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1132584 */ DefaultRectangularDom_1_int64_t_F ret4 = NULL;
+  /* 1132606 */ _tuple_1_star_int64_t default_argoffset;
+  /* 1132608 */ _ref__tuple_1_star_int64_t ret_to_arg_ref_tmp_2 = NULL;
+  /* 1069077 */ DefaultRectangularDom_1_int64_t_F this14 = NULL;
+  /* 1259185 */ range_int64_t_bounded_F ret_x12;
+  /* 1259189 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_2 = NULL;
+  /* 1263547 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1068908 */ _ref_range_int64_t_bounded_F this15 = NULL;
+  /* 1068920 */ int64_t i;
+  /* 1128666 */ int64_t ret5;
+  /* 1068960 */ int64_t end;
+  /* 1129007 */ int64_t ret6;
+  /* 1161921 */ _tuple_1_star_int64_t ind;
+  /* 1161923 */ _tuple_1_star_int64_t this16;
+  /* 1161932 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1161939 */ chpl_bool call_tmp6;
+  /* 1161947 */ chpl_bool call_tmp7;
+  /* 1161955 */ chpl_string call_tmp8;
+  /* 1161968 */ int64_t sum;
+  /* 1266312 */ int64_t ret_x13;
+  /* 1266316 */ _ref__tuple_1_star_int64_t ret_3 = NULL;
+  /* 1161985 */ int64_t coerce_tmp2;
+  /* 1161999 */ int64_t call_tmp9;
+  /* 1162009 */ _ddata_chpl_TableEntry_chpl_taskID_t ret8 = NULL;
+  /* 1162016 */ _ddata_chpl_TableEntry_chpl_taskID_t coerce_tmp3 = NULL;
+  /* 1162021 */ _ref_chpl_TableEntry_chpl_taskID_t call_tmp10 = NULL;
+  /* 1244668 */ _tuple_1_star_int64_t ind2;
+  /* 1244670 */ _tuple_1_star_int64_t this17;
+  /* 1244679 */ DefaultRectangularDom_1_int64_t_F ret9 = NULL;
+  /* 1244686 */ chpl_bool call_tmp11;
+  /* 1244694 */ chpl_bool call_tmp12;
+  /* 1244702 */ chpl_string call_tmp13;
+  /* 1244715 */ int64_t sum2;
+  /* 1266956 */ int64_t ret_x14;
+  /* 1266960 */ _ref__tuple_1_star_int64_t ret_4 = NULL;
+  /* 1244732 */ int64_t coerce_tmp4;
+  /* 1244746 */ int64_t call_tmp14;
+  /* 1244756 */ _ddata_chpl_TableEntry_chpl_taskID_t ret10 = NULL;
+  /* 1244763 */ _ddata_chpl_TableEntry_chpl_taskID_t coerce_tmp5 = NULL;
+  /* 1244768 */ chpl_TableEntry_chpl_taskID_t ret11;
+  /* 1244770 */ _ref_chpl_TableEntry_chpl_taskID_t call_tmp15 = NULL;
+  /* 1244781 */ chpl_TableEntry_chpl_taskID_t call_tmp16;
+  /* 1244788 */ chpl_TableEntry_chpl_taskID_t call_tmp17;
+  /* 1244795 */ chpl_TableEntry_chpl_taskID_t call_tmp18;
+  /*  995449 */ _ref__tuple_1_star_int64_t call_tmp19 = NULL;
+  /* 1265794 */ int64_t ret_x15;
+  /* 1265798 */ _ref__tuple_1_star_int64_t ret_5 = NULL;
+  /*  995830 */ _tuple_1_star_int64_t coerce_tmp6;
+  /*  995469 */ _ref__tuple_1_star_int64_t call_tmp20 = NULL;
+  /* 1265854 */ int64_t ret_x16;
+  /* 1265858 */ _ref__tuple_1_star_int64_t ret_6 = NULL;
+  /*  995839 */ _tuple_1_star_int64_t coerce_tmp7;
+  /*  995489 */ _ref__tuple_1_star_int64_t call_tmp21 = NULL;
+  /* 1265809 */ int64_t ret_x17;
+  /* 1265813 */ _ref__tuple_1_star_int64_t ret_7 = NULL;
+  /*  995848 */ _tuple_1_star_int64_t coerce_tmp8;
+  /* 1145523 */ _ref_int64_t call_tmp22 = NULL;
+  /* 1145388 */ int64_t ret12;
+  /* 1145139 */ _ref_int64_t call_tmp23 = NULL;
+  /* 1145172 */ int64_t ret13;
+  /* 1145196 */ _ref__ddata_chpl_TableEntry_chpl_taskID_t call_tmp24 = NULL;
+  /* 1145239 */ _ddata_chpl_TableEntry_chpl_taskID_t ret14 = NULL;
+  /*  995685 */ int64_t call_tmp25;
+  /* 1115295 */ chpl_bool call_tmp26;
+  /* 1145365 */ _ref__ddata_chpl_TableEntry_chpl_taskID_t call_tmp27 = NULL;
+  /* 1145509 */ _ddata_chpl_TableEntry_chpl_taskID_t ret15 = NULL;
+  /* 1144256 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1144263 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1144270 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1144277 */ _ref_atomic_int_least64_t call_tmp28 = NULL;
+  /*  995741 */ chpl_opaque call_tmp29;
+  /* 995260*/ /* 1121809*/ ret = d;
+  /* 1144568*/ call_tmp = sizeof(chpl_DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F_object);
+  /* 1144574*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(21), _ln, _fn);
+  /* 1144580*/ this8 = ((DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F)(cast_tmp));
+  /* 1144585*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_chpl_TableEntry_chpl_taskID_t_1_int64_t_F;
+  /* 1277224*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144587*/ (this8)->dom = nil;
+  /* 1144593*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1277226*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144597*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1144603*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1277228*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144607*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1144613*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1277230*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144617*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1277232*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144621*/ (this8)->origin = INT64(0);
+  /* 1277234*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144625*/ (this8)->factoredOffs = INT64(0);
+  /* 1277236*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144629*/ (this8)->data = nil;
+  /* 1277238*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144633*/ (this8)->shiftedData = nil;
+  /* 1277240*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144637*/ (this8)->noinit_data = false;
+  /* 1144645*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1144655*/ ret2 = type_tmp;
+  /* 1144660*/ _ref_tmp_ = &ret2;
+  /* 1144665*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1144668*/ (&this10)->_v = ret2;
+  /* 1144674*/ wrap_call_tmp = _construct_atomic_int64(ret2, &this10, _ln, _fn);
+  /* 1144680*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1144686*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1144694*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1277242*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144699*/ (this8)->dom = ret;
+  /* 1144705*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1277244*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144709*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1144715*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1277246*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144719*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1144725*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1277248*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144729*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1277250*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144733*/ (this8)->origin = INT64(0);
+  /* 1277252*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144737*/ (this8)->factoredOffs = INT64(0);
+  /* 1144743*/ call_tmp3 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+  /* 1277254*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144748*/ (this8)->data = call_tmp3;
+  /* 1144754*/ call_tmp4 = ((_ddata_chpl_TableEntry_chpl_taskID_t)(nil));
+  /* 1277256*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144759*/ (this8)->shiftedData = call_tmp4;
+  /* 1277258*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144763*/ (this8)->noinit_data = false;
+  /* 1144769*/ wrap_call_tmp3 = _construct_DefaultRectangularArr3(&wrap_call_tmp2, call_tmp2, ret, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 995356*/ copy = wrap_call_tmp3;
+  /* 1277278*/ chpl_check_nil(this7, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144963*/ ret3 = (this7)->dom;
+  /* 995789*/ coerce_tmp = ret3;
+  /* 1278240*/ chpl_check_nil(coerce_tmp, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259073*/ ret_ = &((coerce_tmp)->ranges);
+  /* 1259078*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1050274*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+  /* 1275606*/ chpl_check_nil(d, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995393*/ this2(d, &ret_x1, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1132586*/ ret4 = call_tmp5;
+  /* 1132610*/ ret_to_arg_ref_tmp_2 = &default_argoffset;
+  /* 1132615*/ createTuple(INT64(0), ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1069082*/ this14 = ret4;
+  /* 1278256*/ chpl_check_nil(this14, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259193*/ ret_2 = &((this14)->ranges);
+  /* 1259198*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1127724*/ _ic__F0_this = ret_x12;
+  /* 1068910*/ this15 = &_ic__F0_this;
+  /* 1128355*/ checkIfIterWillOverflow(this15, true, _ln, _fn);
+  /* 1128668*/ ret5 = (&_ic__F0_this)->_low;
+  /* 1129009*/ ret6 = (&_ic__F0_this)->_high;
+  /* 1068981*/ end = ret6;
+  /* 1278450*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266964*/ ret_4 = &((this7)->blk);
+  /* 1278216*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1244758*/ ret10 = (this7)->shiftedData;
+  /* 1244765*/ coerce_tmp5 = ret10;
+  /* 1278414*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266320*/ ret_3 = &((copy)->blk);
+  /* 1277788*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1162011*/ ret8 = (copy)->shiftedData;
+  /* 1162018*/ coerce_tmp3 = ret8;
+  /* 1068984*/ for (i = ret5; ((i <= end)); i += INT64(1)) {
+    /* 1161925*/ *(this16 + INT64(0)) = i;
+    /* 1161929*/ *(ind + INT64(0)) = *(this16 + INT64(0));
+    /* 1277784*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1161934*/ ret7 = (copy)->dom;
+    /* 1277786*/ chpl_check_nil(ret7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1161941*/ call_tmp6 = dsiMember2(ret7, &this16, _ln, _fn);
+    /* 1161949*/ call_tmp7 = (! call_tmp6);
+    /* 1161967*/ if (call_tmp7) /* 1161954*/ {
+      /* 1161957*/ string_from_c_string(&call_tmp8, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1161964*/ halt2(call_tmp8, &this16, _ln, _fn);
+    }
+    /* 1161970*/ sum = INT64(0);
+    /* 1266325*/ ret_x13 = *(*(ret_3) + INT64(0));
+    /* 1161987*/ coerce_tmp2 = *(ind + INT64(0));
+    /* 1162001*/ call_tmp9 = (coerce_tmp2 * ret_x13);
+    /* 1162006*/ sum += call_tmp9;
+    /* 1162023*/ call_tmp10 = (coerce_tmp3 + sum);
+    /* 1244672*/ *(this17 + INT64(0)) = i;
+    /* 1244676*/ *(ind2 + INT64(0)) = *(this17 + INT64(0));
+    /* 1278212*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1244681*/ ret9 = (this7)->dom;
+    /* 1278214*/ chpl_check_nil(ret9, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1244688*/ call_tmp11 = dsiMember2(ret9, &this17, _ln, _fn);
+    /* 1244696*/ call_tmp12 = (! call_tmp11);
+    /* 1244714*/ if (call_tmp12) /* 1244701*/ {
+      /* 1244704*/ string_from_c_string(&call_tmp13, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1244711*/ halt2(call_tmp13, &this17, _ln, _fn);
+    }
+    /* 1244717*/ sum2 = INT64(0);
+    /* 1266969*/ ret_x14 = *(*(ret_4) + INT64(0));
+    /* 1244734*/ coerce_tmp4 = *(ind2 + INT64(0));
+    /* 1244748*/ call_tmp14 = (coerce_tmp4 * ret_x14);
+    /* 1244753*/ sum2 += call_tmp14;
+    /* 1244772*/ call_tmp15 = (coerce_tmp5 + sum2);
+    /* 1244777*/ ret11 = *(call_tmp15);
+    /* 1244783*/ call_tmp16 = chpl__initCopy4(&ret11, _ln, _fn);
+    /* 1244790*/ call_tmp17 = chpl__initCopy4(&call_tmp16, _ln, _fn);
+    /* 1244797*/ call_tmp18 = chpl__initCopy4(&call_tmp17, _ln, _fn);
+    /* 1069068*/ chpl___ASSIGN_4(call_tmp10, &call_tmp18, _ln, _fn);
+  }
+  /* 1278290*/ chpl_check_nil(this7, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995451*/ call_tmp19 = &((this7)->off);
+  /* 1278362*/ chpl_check_nil(copy, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265802*/ ret_5 = &((copy)->off);
+  /* 1265807*/ ret_x15 = *(*(ret_5) + INT64(0));
+  /* 1265082*/ *(coerce_tmp6 + INT64(0)) = ret_x15;
+  /* 1240639*/ *(*(call_tmp19) + INT64(0)) = *(coerce_tmp6 + INT64(0));
+  /* 1278298*/ chpl_check_nil(this7, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995471*/ call_tmp20 = &((this7)->blk);
+  /* 1278370*/ chpl_check_nil(copy, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265862*/ ret_6 = &((copy)->blk);
+  /* 1265867*/ ret_x16 = *(*(ret_6) + INT64(0));
+  /* 1265093*/ *(coerce_tmp7 + INT64(0)) = ret_x16;
+  /* 1240645*/ *(*(call_tmp20) + INT64(0)) = *(coerce_tmp7 + INT64(0));
+  /* 1278294*/ chpl_check_nil(this7, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995491*/ call_tmp21 = &((this7)->str);
+  /* 1278364*/ chpl_check_nil(copy, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265817*/ ret_7 = &((copy)->str);
+  /* 1265822*/ ret_x17 = *(*(ret_7) + INT64(0));
+  /* 1265104*/ *(coerce_tmp8 + INT64(0)) = ret_x17;
+  /* 1240651*/ *(*(call_tmp21) + INT64(0)) = *(coerce_tmp8 + INT64(0));
+  /* 1277322*/ chpl_check_nil(this7, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145525*/ call_tmp22 = &((this7)->origin);
+  /* 1277306*/ chpl_check_nil(copy, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145390*/ ret12 = (copy)->origin;
+  /* 1103271*/ *(call_tmp22) = ret12;
+  /* 1277286*/ chpl_check_nil(this7, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145141*/ call_tmp23 = &((this7)->factoredOffs);
+  /* 1277290*/ chpl_check_nil(copy, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145174*/ ret13 = (copy)->factoredOffs;
+  /* 1103277*/ *(call_tmp23) = ret13;
+  /* 1275608*/ chpl_check_nil(this7, INT64(851), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995553*/ dsiDestroyData4(this7, _ln, _fn);
+  /* 1277294*/ chpl_check_nil(this7, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145198*/ call_tmp24 = &((this7)->data);
+  /* 1277300*/ chpl_check_nil(copy, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1145241*/ ret14 = (copy)->data;
+  /* 1145339*/ *(call_tmp24) = ret14;
+  /* 1275610*/ chpl_check_nil(d, INT64(857), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 995687*/ call_tmp25 = numIndices(d, _ln, _fn);
+  /* 1115297*/ call_tmp26 = (call_tmp25 > INT64(0));
+  /* 995730*/ if (call_tmp26) /* 995709*/ {
+    /* 1277304*/ chpl_check_nil(this7, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145367*/ call_tmp27 = &((this7)->shiftedData);
+    /* 1277320*/ chpl_check_nil(copy, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1145511*/ ret15 = (copy)->shiftedData;
+    /* 1145345*/ *(call_tmp27) = ret15;
+  }
+  /* 1144258*/ _parent_destructor_tmp_ = ((BaseArr)(copy));
+  /* 1277182*/ chpl_check_nil(_parent_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144265*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1277184*/ chpl_check_nil(_field_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144272*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1277186*/ chpl_check_nil(_field_destructor_tmp_2, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1144279*/ call_tmp28 = &((_field_destructor_tmp_2)->_v);
+  /* 1144285*/ atomic_destroy_int_least64_t(call_tmp28);
+  /* 995743*/ call_tmp29 = ((void*)(copy));
+  /* 995748*/ chpl_here_free(call_tmp29, _ln, _fn);
+  /* 1037639*/ chpl__autoDestroy2(call_tmp5, _ln, _fn);
+  /* 995755*/ return;
+}
+
+/* DefaultRectangular.chpl:838 */
+/*  995917 */ static void dsiReallocate5(DefaultRectangularArr_chpldev_Task_1_int64_t_F this7, DefaultRectangularDom_1_int64_t_F d, int64_t _ln, c_string _fn) {
+  /*  995976 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F copy = NULL;
+  /* 1121851 */ DefaultRectangularDom_1_int64_t_F ret = NULL;
+  /* 1147293 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F this8 = NULL;
+  /* 1147295 */ int64_t call_tmp;
+  /* 1147301 */ chpl_opaque cast_tmp;
+  /* 1147320 */ _tuple_1_star_int64_t _init_class_tmp_;
+  /* 1147330 */ _tuple_1_star_int64_t _init_class_tmp_2;
+  /* 1147340 */ _tuple_1_star_int64_t _init_class_tmp_3;
+  /* 1147370 */ atomic_refcnt this9;
+  /* 1147372 */ atomic_int64 _init_class_tmp_4;
+  /* 1147378 */ atomic_int64 this10;
+  /* 1147380 */ atomic_int_least64_t ret2;
+  /* 1147382 */ atomic_int_least64_t type_tmp;
+  /* 1147387 */ _ref_atomic_int_least64_t _ref_tmp_ = NULL;
+  /* 1147401 */ atomic_int64 wrap_call_tmp;
+  /* 1147413 */ atomic_refcnt wrap_call_tmp2;
+  /* 1147421 */ BaseArr call_tmp2 = NULL;
+  /* 1147432 */ _tuple_1_star_int64_t this11;
+  /* 1147442 */ _tuple_1_star_int64_t this12;
+  /* 1147452 */ _tuple_1_star_int64_t this13;
+  /* 1147470 */ _ddata_chpldev_Task call_tmp3 = NULL;
+  /* 1147481 */ _ddata_chpldev_Task call_tmp4 = NULL;
+  /* 1147496 */ DefaultRectangularArr_chpldev_Task_1_int64_t_F wrap_call_tmp3 = NULL;
+  /* 1147690 */ DefaultRectangularDom_1_int64_t_F ret3 = NULL;
+  /*  996456 */ DefaultRectangularDom_1_int64_t_F coerce_tmp = NULL;
+  /* 1259080 */ range_int64_t_bounded_F ret_x1;
+  /* 1259084 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_ = NULL;
+  /*  996058 */ DefaultRectangularDom_1_int64_t_F call_tmp5 = NULL;
+  /* 1050343 */ _ref_DefaultRectangularDom_1_int64_t_F ret_to_arg_ref_tmp_ = NULL;
+  /* 1132735 */ DefaultRectangularDom_1_int64_t_F ret4 = NULL;
+  /* 1132757 */ _tuple_1_star_int64_t default_argoffset;
+  /* 1132759 */ _ref__tuple_1_star_int64_t ret_to_arg_ref_tmp_2 = NULL;
+  /* 1069296 */ DefaultRectangularDom_1_int64_t_F this14 = NULL;
+  /* 1259200 */ range_int64_t_bounded_F ret_x12;
+  /* 1259204 */ _ref__tuple_1_star_range_int64_t_bounded_F ret_2 = NULL;
+  /* 1263567 */ range_int64_t_bounded_F _ic__F0_this;
+  /* 1069127 */ _ref_range_int64_t_bounded_F this15 = NULL;
+  /* 1069139 */ int64_t i;
+  /* 1128676 */ int64_t ret5;
+  /* 1069179 */ int64_t end;
+  /* 1129017 */ int64_t ret6;
+  /* 1200775 */ _tuple_1_star_int64_t ind;
+  /* 1200777 */ _tuple_1_star_int64_t this16;
+  /* 1200786 */ DefaultRectangularDom_1_int64_t_F ret7 = NULL;
+  /* 1200793 */ chpl_bool call_tmp6;
+  /* 1200801 */ chpl_bool call_tmp7;
+  /* 1200809 */ chpl_string call_tmp8;
+  /* 1200822 */ int64_t sum;
+  /* 1266657 */ int64_t ret_x13;
+  /* 1266661 */ _ref__tuple_1_star_int64_t ret_3 = NULL;
+  /* 1200839 */ int64_t coerce_tmp2;
+  /* 1200853 */ int64_t call_tmp9;
+  /* 1200863 */ _ddata_chpldev_Task ret8 = NULL;
+  /* 1200870 */ _ddata_chpldev_Task coerce_tmp3 = NULL;
+  /* 1200875 */ _ref_chpldev_Task call_tmp10 = NULL;
+  /* 1244810 */ _tuple_1_star_int64_t ind2;
+  /* 1244812 */ _tuple_1_star_int64_t this17;
+  /* 1244821 */ DefaultRectangularDom_1_int64_t_F ret9 = NULL;
+  /* 1244828 */ chpl_bool call_tmp11;
+  /* 1244836 */ chpl_bool call_tmp12;
+  /* 1244844 */ chpl_string call_tmp13;
+  /* 1244857 */ int64_t sum2;
+  /* 1266979 */ int64_t ret_x14;
+  /* 1266983 */ _ref__tuple_1_star_int64_t ret_4 = NULL;
+  /* 1244874 */ int64_t coerce_tmp4;
+  /* 1244888 */ int64_t call_tmp14;
+  /* 1244898 */ _ddata_chpldev_Task ret10 = NULL;
+  /* 1244905 */ _ddata_chpldev_Task coerce_tmp5 = NULL;
+  /* 1244910 */ chpldev_Task ret11;
+  /* 1244912 */ _ref_chpldev_Task call_tmp15 = NULL;
+  /* 1244923 */ chpldev_Task call_tmp16;
+  /* 1244930 */ chpldev_Task call_tmp17;
+  /* 1244937 */ chpldev_Task call_tmp18;
+  /*  996119 */ _ref__tuple_1_star_int64_t call_tmp19 = NULL;
+  /* 1265884 */ int64_t ret_x15;
+  /* 1265888 */ _ref__tuple_1_star_int64_t ret_5 = NULL;
+  /*  996500 */ _tuple_1_star_int64_t coerce_tmp6;
+  /*  996139 */ _ref__tuple_1_star_int64_t call_tmp20 = NULL;
+  /* 1265944 */ int64_t ret_x16;
+  /* 1265948 */ _ref__tuple_1_star_int64_t ret_6 = NULL;
+  /*  996509 */ _tuple_1_star_int64_t coerce_tmp7;
+  /*  996159 */ _ref__tuple_1_star_int64_t call_tmp21 = NULL;
+  /* 1265899 */ int64_t ret_x17;
+  /* 1265903 */ _ref__tuple_1_star_int64_t ret_7 = NULL;
+  /*  996518 */ _tuple_1_star_int64_t coerce_tmp8;
+  /* 1148194 */ _ref_int64_t call_tmp22 = NULL;
+  /* 1148059 */ int64_t ret12;
+  /* 1147858 */ _ref_int64_t call_tmp23 = NULL;
+  /* 1147891 */ int64_t ret13;
+  /* 1147915 */ _ref__ddata_chpldev_Task call_tmp24 = NULL;
+  /* 1147958 */ _ddata_chpldev_Task ret14 = NULL;
+  /*  996355 */ int64_t call_tmp25;
+  /* 1115305 */ chpl_bool call_tmp26;
+  /* 1148036 */ _ref__ddata_chpldev_Task call_tmp27 = NULL;
+  /* 1148180 */ _ddata_chpldev_Task ret15 = NULL;
+  /* 1146985 */ BaseArr _parent_destructor_tmp_ = NULL;
+  /* 1146992 */ _ref_atomic_refcnt _field_destructor_tmp_ = NULL;
+  /* 1146999 */ _ref_atomic_int64 _field_destructor_tmp_2 = NULL;
+  /* 1147006 */ _ref_atomic_int_least64_t call_tmp28 = NULL;
+  /*  996411 */ chpl_opaque call_tmp29;
+  /* 995930*/ /* 1121860*/ ret = d;
+  /* 1147297*/ call_tmp = sizeof(chpl_DefaultRectangularArr_chpldev_Task_1_int64_t_F_object);
+  /* 1147303*/ cast_tmp = chpl_here_alloc(call_tmp, INT16(24), _ln, _fn);
+  /* 1147309*/ this8 = ((DefaultRectangularArr_chpldev_Task_1_int64_t_F)(cast_tmp));
+  /* 1147314*/ ((object)(this8))->chpl__cid = chpl__cid_DefaultRectangularArr_chpldev_Task_1_int64_t_F;
+  /* 1277460*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147316*/ (this8)->dom = nil;
+  /* 1147322*/ *(_init_class_tmp_ + INT64(0)) = INT64(0);
+  /* 1277462*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147326*/ *((this8)->off + INT64(0)) = *(_init_class_tmp_ + INT64(0));
+  /* 1147332*/ *(_init_class_tmp_2 + INT64(0)) = INT64(0);
+  /* 1277464*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147336*/ *((this8)->blk + INT64(0)) = *(_init_class_tmp_2 + INT64(0));
+  /* 1147342*/ *(_init_class_tmp_3 + INT64(0)) = INT64(0);
+  /* 1277466*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147346*/ *((this8)->str + INT64(0)) = *(_init_class_tmp_3 + INT64(0));
+  /* 1277468*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147350*/ (this8)->origin = INT64(0);
+  /* 1277470*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147354*/ (this8)->factoredOffs = INT64(0);
+  /* 1277472*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147358*/ (this8)->data = nil;
+  /* 1277474*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147362*/ (this8)->shiftedData = nil;
+  /* 1277476*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147366*/ (this8)->noinit_data = false;
+  /* 1147374*/ (&this9)->_cnt = _init_class_tmp_4;
+  /* 1147384*/ ret2 = type_tmp;
+  /* 1147389*/ _ref_tmp_ = &ret2;
+  /* 1147394*/ atomic_init_int_least64_t(_ref_tmp_, INT64(0));
+  /* 1147397*/ (&this10)->_v = ret2;
+  /* 1147403*/ wrap_call_tmp = _construct_atomic_int64(ret2, &this10, _ln, _fn);
+  /* 1147409*/ (&this9)->_cnt = wrap_call_tmp;
+  /* 1147415*/ wrap_call_tmp2 = _construct_atomic_refcnt(&wrap_call_tmp, &this9, _ln, _fn);
+  /* 1147423*/ call_tmp2 = ((BaseArr)(nil));
+  /* 1277478*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147428*/ (this8)->dom = ret;
+  /* 1147434*/ *(this11 + INT64(0)) = INT64(0);
+  /* 1277480*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147438*/ *((this8)->off + INT64(0)) = *(this11 + INT64(0));
+  /* 1147444*/ *(this12 + INT64(0)) = INT64(0);
+  /* 1277482*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147448*/ *((this8)->blk + INT64(0)) = *(this12 + INT64(0));
+  /* 1147454*/ *(this13 + INT64(0)) = INT64(0);
+  /* 1277484*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147458*/ *((this8)->str + INT64(0)) = *(this13 + INT64(0));
+  /* 1277486*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147462*/ (this8)->origin = INT64(0);
+  /* 1277488*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147466*/ (this8)->factoredOffs = INT64(0);
+  /* 1147472*/ call_tmp3 = ((_ddata_chpldev_Task)(nil));
+  /* 1277490*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147477*/ (this8)->data = call_tmp3;
+  /* 1147483*/ call_tmp4 = ((_ddata_chpldev_Task)(nil));
+  /* 1277492*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147488*/ (this8)->shiftedData = call_tmp4;
+  /* 1277494*/ chpl_check_nil(this8, INT64(840), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147492*/ (this8)->noinit_data = false;
+  /* 1147498*/ wrap_call_tmp3 = _construct_DefaultRectangularArr4(&wrap_call_tmp2, call_tmp2, ret, &this11, &this12, &this13, INT64(0), INT64(0), call_tmp3, call_tmp4, false, this8, _ln, _fn);
+  /* 996026*/ copy = wrap_call_tmp3;
+  /* 1277514*/ chpl_check_nil(this7, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147692*/ ret3 = (this7)->dom;
+  /* 996459*/ coerce_tmp = ret3;
+  /* 1278242*/ chpl_check_nil(coerce_tmp, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259088*/ ret_ = &((coerce_tmp)->ranges);
+  /* 1259093*/ ret_x1 = *(*(ret_) + INT64(0));
+  /* 1050346*/ ret_to_arg_ref_tmp_ = &call_tmp5;
+  /* 1275612*/ chpl_check_nil(d, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996063*/ this2(d, &ret_x1, ret_to_arg_ref_tmp_, _ln, _fn);
+  /* 1132737*/ ret4 = call_tmp5;
+  /* 1132761*/ ret_to_arg_ref_tmp_2 = &default_argoffset;
+  /* 1132766*/ createTuple(INT64(0), ret_to_arg_ref_tmp_2, _ln, _fn);
+  /* 1069301*/ this14 = ret4;
+  /* 1278258*/ chpl_check_nil(this14, INT64(844), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1259208*/ ret_2 = &((this14)->ranges);
+  /* 1259213*/ ret_x12 = *(*(ret_2) + INT64(0));
+  /* 1127781*/ _ic__F0_this = ret_x12;
+  /* 1069129*/ this15 = &_ic__F0_this;
+  /* 1128366*/ checkIfIterWillOverflow(this15, true, _ln, _fn);
+  /* 1128678*/ ret5 = (&_ic__F0_this)->_low;
+  /* 1129019*/ ret6 = (&_ic__F0_this)->_high;
+  /* 1069200*/ end = ret6;
+  /* 1278452*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266987*/ ret_4 = &((this7)->blk);
+  /* 1278222*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1244900*/ ret10 = (this7)->shiftedData;
+  /* 1244907*/ coerce_tmp5 = ret10;
+  /* 1278434*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1266665*/ ret_3 = &((copy)->blk);
+  /* 1278030*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1200865*/ ret8 = (copy)->shiftedData;
+  /* 1200872*/ coerce_tmp3 = ret8;
+  /* 1069203*/ for (i = ret5; ((i <= end)); i += INT64(1)) {
+    /* 1200779*/ *(this16 + INT64(0)) = i;
+    /* 1200783*/ *(ind + INT64(0)) = *(this16 + INT64(0));
+    /* 1278026*/ chpl_check_nil(copy, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1200788*/ ret7 = (copy)->dom;
+    /* 1278028*/ chpl_check_nil(ret7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1200795*/ call_tmp6 = dsiMember2(ret7, &this16, _ln, _fn);
+    /* 1200803*/ call_tmp7 = (! call_tmp6);
+    /* 1200821*/ if (call_tmp7) /* 1200808*/ {
+      /* 1200811*/ string_from_c_string(&call_tmp8, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1200818*/ halt2(call_tmp8, &this16, _ln, _fn);
+    }
+    /* 1200824*/ sum = INT64(0);
+    /* 1266670*/ ret_x13 = *(*(ret_3) + INT64(0));
+    /* 1200841*/ coerce_tmp2 = *(ind + INT64(0));
+    /* 1200855*/ call_tmp9 = (coerce_tmp2 * ret_x13);
+    /* 1200860*/ sum += call_tmp9;
+    /* 1200877*/ call_tmp10 = (coerce_tmp3 + sum);
+    /* 1244814*/ *(this17 + INT64(0)) = i;
+    /* 1244818*/ *(ind2 + INT64(0)) = *(this17 + INT64(0));
+    /* 1278218*/ chpl_check_nil(this7, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1244823*/ ret9 = (this7)->dom;
+    /* 1278220*/ chpl_check_nil(ret9, INT64(845), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1244830*/ call_tmp11 = dsiMember2(ret9, &this17, _ln, _fn);
+    /* 1244838*/ call_tmp12 = (! call_tmp11);
+    /* 1244856*/ if (call_tmp12) /* 1244843*/ {
+      /* 1244846*/ string_from_c_string(&call_tmp13, "array index out of bounds: ", INT64(0), INT64(0), _ln, _fn);
+      /* 1244853*/ halt2(call_tmp13, &this17, _ln, _fn);
+    }
+    /* 1244859*/ sum2 = INT64(0);
+    /* 1266992*/ ret_x14 = *(*(ret_4) + INT64(0));
+    /* 1244876*/ coerce_tmp4 = *(ind2 + INT64(0));
+    /* 1244890*/ call_tmp14 = (coerce_tmp4 * ret_x14);
+    /* 1244895*/ sum2 += call_tmp14;
+    /* 1244914*/ call_tmp15 = (coerce_tmp5 + sum2);
+    /* 1244919*/ ret11 = *(call_tmp15);
+    /* 1244925*/ call_tmp16 = chpl__initCopy3(&ret11, _ln, _fn);
+    /* 1244932*/ call_tmp17 = chpl__initCopy3(&call_tmp16, _ln, _fn);
+    /* 1244939*/ call_tmp18 = chpl__initCopy3(&call_tmp17, _ln, _fn);
+    /* 1069287*/ chpl___ASSIGN_3(call_tmp10, &call_tmp18, _ln, _fn);
+  }
+  /* 1278302*/ chpl_check_nil(this7, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996121*/ call_tmp19 = &((this7)->off);
+  /* 1278374*/ chpl_check_nil(copy, INT64(846), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265892*/ ret_5 = &((copy)->off);
+  /* 1265897*/ ret_x15 = *(*(ret_5) + INT64(0));
+  /* 1265115*/ *(coerce_tmp6 + INT64(0)) = ret_x15;
+  /* 1240657*/ *(*(call_tmp19) + INT64(0)) = *(coerce_tmp6 + INT64(0));
+  /* 1278310*/ chpl_check_nil(this7, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996141*/ call_tmp20 = &((this7)->blk);
+  /* 1278382*/ chpl_check_nil(copy, INT64(847), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265952*/ ret_6 = &((copy)->blk);
+  /* 1265957*/ ret_x16 = *(*(ret_6) + INT64(0));
+  /* 1265126*/ *(coerce_tmp7 + INT64(0)) = ret_x16;
+  /* 1240663*/ *(*(call_tmp20) + INT64(0)) = *(coerce_tmp7 + INT64(0));
+  /* 1278306*/ chpl_check_nil(this7, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996161*/ call_tmp21 = &((this7)->str);
+  /* 1278376*/ chpl_check_nil(copy, INT64(848), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1265907*/ ret_7 = &((copy)->str);
+  /* 1265912*/ ret_x17 = *(*(ret_7) + INT64(0));
+  /* 1265137*/ *(coerce_tmp8 + INT64(0)) = ret_x17;
+  /* 1240669*/ *(*(call_tmp21) + INT64(0)) = *(coerce_tmp8 + INT64(0));
+  /* 1277556*/ chpl_check_nil(this7, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1148196*/ call_tmp22 = &((this7)->origin);
+  /* 1277540*/ chpl_check_nil(copy, INT64(849), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1148061*/ ret12 = (copy)->origin;
+  /* 1103283*/ *(call_tmp22) = ret12;
+  /* 1277520*/ chpl_check_nil(this7, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147860*/ call_tmp23 = &((this7)->factoredOffs);
+  /* 1277524*/ chpl_check_nil(copy, INT64(850), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147893*/ ret13 = (copy)->factoredOffs;
+  /* 1103289*/ *(call_tmp23) = ret13;
+  /* 1275614*/ chpl_check_nil(this7, INT64(851), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996223*/ dsiDestroyData5(this7, _ln, _fn);
+  /* 1277528*/ chpl_check_nil(this7, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147917*/ call_tmp24 = &((this7)->data);
+  /* 1277534*/ chpl_check_nil(copy, INT64(852), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147960*/ ret14 = (copy)->data;
+  /* 1148010*/ *(call_tmp24) = ret14;
+  /* 1275616*/ chpl_check_nil(d, INT64(857), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 996357*/ call_tmp25 = numIndices(d, _ln, _fn);
+  /* 1115307*/ call_tmp26 = (call_tmp25 > INT64(0));
+  /* 996400*/ if (call_tmp26) /* 996379*/ {
+    /* 1277538*/ chpl_check_nil(this7, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148038*/ call_tmp27 = &((this7)->shiftedData);
+    /* 1277554*/ chpl_check_nil(copy, INT64(858), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+    /* 1148182*/ ret15 = (copy)->shiftedData;
+    /* 1148016*/ *(call_tmp27) = ret15;
+  }
+  /* 1146987*/ _parent_destructor_tmp_ = ((BaseArr)(copy));
+  /* 1277418*/ chpl_check_nil(_parent_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1146994*/ _field_destructor_tmp_ = &((_parent_destructor_tmp_)->_arrCnt);
+  /* 1277420*/ chpl_check_nil(_field_destructor_tmp_, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147001*/ _field_destructor_tmp_2 = &((_field_destructor_tmp_)->_cnt);
+  /* 1277422*/ chpl_check_nil(_field_destructor_tmp_2, INT64(860), "/export/home/hzhang86/chapel/chapel/modules/internal/DefaultRectangular.chpl");
+  /* 1147008*/ call_tmp28 = &((_field_destructor_tmp_2)->_v);
+  /* 1147014*/ atomic_destroy_int_least64_t(call_tmp28);
+  /* 996413*/ call_tmp29 = ((void*)(copy));
+  /* 996418*/ chpl_here_free(call_tmp29, _ln, _fn);
+  /* 1037645*/ chpl__autoDestroy2(call_tmp5, _ln, _fn);
+  /* 996425*/ return;
+}
+

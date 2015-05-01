@@ -1,0 +1,109 @@
+cp -p ./llvm-bcs//hello2-module.tmp hello2-module
+rm ./llvm-bcs//hello2-module.tmp
+<internal clang> -I/tmp/chpl-hzhang86-20985.deleteme  -pthread -DCHPL_GEN_CODE -DCHPL_TASKS_MODEL_H="tasks-fifo.h" -DCHPL_THREADS_MODEL_H="threads-pthreads.h" -DCHPL_WIDE_POINTER_STRUCT -I. -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/localeModels/flat -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/localeModels -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/comm/none -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/comm -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/tasks/fifo -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/threads/pthreads -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/comp-gnu -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/linux64 -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/qio -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/atomics/intrinsics -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/mem/default -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/third-party/utf8-decoder -I/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/runtime//include/hwloc/none -include sys_basic.h 
+mkdir -p ./llvm-bcs/
+
+# beautifying _config.c
+
+mv ./llvm-bcs//beautify.tmp ./llvm-bcs//_config.c
+
+# codegen-ing modulechpl__Program
+
+# codegen-ing moduleChapelBase
+
+# codegen-ing moduleChapelStandard
+
+# codegen-ing modulePrintModuleInitOrder
+
+# codegen-ing moduleAtomics
+
+# codegen-ing moduleNetworkAtomics
+
+# codegen-ing moduleNetworkAtomicTypes
+
+# codegen-ing moduleChapelNumLocales
+
+# codegen-ing moduleChapelThreads
+
+# codegen-ing moduleChapelThreadsInternal
+
+# codegen-ing moduleChapelTasksInternal
+
+# codegen-ing moduleChapelTuple
+
+# codegen-ing moduleChapelRange
+
+# codegen-ing moduleChapelReduce
+
+# codegen-ing moduleChapelSyncvar
+
+# codegen-ing moduleChapelLocale
+
+# codegen-ing moduleDefaultRectangular
+
+# codegen-ing moduleLocaleModel
+
+# codegen-ing moduleLocalesArray
+
+# codegen-ing moduleChapelArray
+
+# codegen-ing moduleChapelDistribution
+
+# codegen-ing moduleChapelIO
+
+# codegen-ing moduleLocaleTree
+
+# codegen-ing moduleDefaultAssociative
+
+# codegen-ing moduleDefaultSparse
+
+# codegen-ing moduleDefaultOpaque
+
+# codegen-ing moduleChapelTaskTable
+
+# codegen-ing moduleMemTracking
+
+# codegen-ing moduleChapelUtil
+
+# codegen-ing moduleChapelDynDispHack
+
+# codegen-ing moduleChapelRangeBase
+
+# codegen-ing moduleHello
+
+# codegen-ing modulestartInitCommDiags
+
+# codegen-ing moduleTypes
+
+# codegen-ing moduleMath
+
+# codegen-ing modulestopInitCommDiags
+
+# codegen-ing moduleDSIUtil
+
+# codegen-ing moduleSys
+
+# codegen-ing moduleList
+
+# codegen-ing moduleSysBasic
+
+# codegen-ing moduleIO
+
+# codegen-ing moduleSort
+
+# codegen-ing moduleSearch
+
+# codegen-ing moduleCommDiagnostics
+
+# codegen-ing moduleSysCTypes
+
+# codegen-ing moduleError
+
+# codegen-ing moduleRegexp
+
+/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/third-party/llvm/install/linux64-gnu/bin/clang++   -pthread ./llvm-bcs//chpl__module.bc /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/lib/linux64.gnu.loc-flat.tasks-fifo.tmr-generic.mem-default.atomics-intrinsics.gmp-none.hwloc-none.re-none.wide-struct.fs-none/main.o -o ./llvm-bcs//hello2-module.tmp -L/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/lib/linux64.gnu.loc-flat.tasks-fifo.tmr-generic.mem-default.atomics-intrinsics.gmp-none.hwloc-none.re-none.wide-struct.fs-none -lchpl -lm -lpthread
+
+make -f ./llvm-bcs//Makefile
+
+rm -r /tmp/chpl-hzhang86-20985.deleteme
+

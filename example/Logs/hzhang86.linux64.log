@@ -1,0 +1,90 @@
+[Starting Chapel regression tests - 140819.172600]
+[starting directory: "/fs/mashie/hzhang86/.chpl/chapel-test-efZ6C"]
+[Logs directory: "/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/examples/Logs"]
+[logfile: "/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/examples/Logs/hzhang86.linux64.log"]
+[CHPL_HOME: /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0]
+[host platform: linux64]
+[target platform: linux64]
+[valgrind: OFF]
+[performance tests: OFF]
+[compiler performance tests: OFF]
+[number of trials: 1]
+[performance graph generation: OFF]
+[compiler: "/fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/bin/linux64/chpl"]
+[compopts: "--cc-warnings"]
+[execopts: ""]
+[launchcmd: ""]
+[comm: "none"]
+[numlocales: "(default)"]
+[tests: " hello2-module.chpl hello3-datapar.chpl hello4-datapar-dist.chpl hello5-taskpar.chpl hello6-taskpar-dist.chpl hello.chpl"]
+[directories: ""]
+
+### Chapel Environment ###
+uname -a: Linux pygmy 3.2.0-60-generic #91-Ubuntu SMP Wed Feb 19 03:54:44 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+CHPL_HOME: /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0
+script location: /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util
+CHPL_HOST_PLATFORM: linux64
+CHPL_HOST_COMPILER: gnu
+CHPL_TARGET_PLATFORM: linux64
+CHPL_TARGET_COMPILER: gnu
+CHPL_LOCALE_MODEL: flat
+CHPL_COMM: none
+CHPL_TASKS: fifo
+CHPL_LAUNCHER: none
+CHPL_TIMERS: generic
+CHPL_MEM: default
+CHPL_MAKE: make
+CHPL_ATOMICS: intrinsics
+CHPL_GMP: none
+CHPL_HWLOC: none
+CHPL_REGEXP: none
+CHPL_WIDE_POINTERS: struct
+CHPL_LLVM: none
+CHPL_AUX_FILESYS: none
+##########################
+ 
+[Cleaning file hello2-module.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_clean hello2-module.chpl Tue Aug 19 17:26:00 EDT 2014]
+[Starting sub_clean - Tue Aug 19 17:26:00 EDT 2014]
+[pwd: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C]
+Cleaning test: hello2-module
+ 
+[Working on file hello2-module.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_test Tue Aug 19 17:26:00 EDT 2014]
+[Starting subtest - Tue Aug 19 17:26:00 EDT 2014]
+[test: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello2-module.chpl]
+[Executing compiler /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/bin/linux64/chpl -o hello2-module --cc-warnings hello2-module.chpl < /dev/null]
+[Success compiling /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello2-module]
+[Executing program ./hello2-module  < /dev/null]
+[Executing ./PREDIFF]
+[Executing diff hello2-module.good hello2-module.exec.out.tmp]
+[Success matching program output for /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello2-module]
+ 
+[Cleaning file hello3-datapar.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_clean hello3-datapar.chpl Tue Aug 19 17:26:06 EDT 2014]
+[Starting sub_clean - Tue Aug 19 17:26:06 EDT 2014]
+[pwd: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C]
+Cleaning test: hello3-datapar
+ 
+[Working on file hello3-datapar.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_test Tue Aug 19 17:26:06 EDT 2014]
+[Starting subtest - Tue Aug 19 17:26:06 EDT 2014]
+[test: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello3-datapar.chpl]
+[Executing compiler /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/bin/linux64/chpl -o hello3-datapar --cc-warnings hello3-datapar.chpl < /dev/null]
+[Success compiling /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello3-datapar]
+[Executing program ./hello3-datapar  < /dev/null]
+[Executing ./PREDIFF]
+[Executing diff hello3-datapar.good hello3-datapar.exec.out.tmp]
+[Success matching program output for /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello3-datapar]
+ 
+[Cleaning file hello4-datapar-dist.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_clean hello4-datapar-dist.chpl Tue Aug 19 17:26:12 EDT 2014]
+[Starting sub_clean - Tue Aug 19 17:26:12 EDT 2014]
+[pwd: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C]
+Cleaning test: hello4-datapar-dist
+ 
+[Working on file hello4-datapar-dist.chpl]
+[Starting /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/util/test/sub_test Tue Aug 19 17:26:12 EDT 2014]
+[Starting subtest - Tue Aug 19 17:26:12 EDT 2014]
+[test: /fs/mashie/hzhang86/.chpl/chapel-test-efZ6C/hello4-datapar-dist.chpl]
+[Executing compiler /fs/mashie/hzhang86/program/Chapel/chapel-1.9.0/bin/linux64/chpl -o hello4-datapar-dist --cc-warnings hello4-datapar-dist.chpl < /dev/null]

@@ -1,0 +1,2 @@
+3
+variable-functions.chpl:18: error: halt reached - cannot assign value to A(1) if A(0) <= 0
