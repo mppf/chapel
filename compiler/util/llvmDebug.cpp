@@ -1,3 +1,6 @@
+#include <iostream>
+#include <map>
+
 #include "llvmDebug.h"
 #include "stringutil.h"
 #include "expr.h"
@@ -96,7 +99,7 @@ llvm::DIType debug_data::construct_type(Type *type)
   ModuleSymbol* defModule = type->symbol->getModule();
   const char* defFile = type->symbol->fname();
   int defLine = type->symbol->linenum();
-
+  
   if(!ty) return llvm::DIType();
   if(ty->isIntegerTy()) {
     N = this->dibuilder.createBasicType(
@@ -209,12 +212,9 @@ llvm::DIType debug_data::construct_type(Type *type)
         const char *struct_name = this_class->classStructName(true);
         llvm::Type* st = getTypeLLVM(struct_name);
         if(st){
-          printf("I'm in st==true\n");
           llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
           if(!struct_type->isOpaque()){
-            printf("I'm in struct_type != isOpaque\n");
 #if HAVE_LLVM_VER >= 36
-            printf("I'm in LLVM3.6\n");
             N = this->dibuilder.createForwardDecl(
               llvm::dwarf::DW_TAG_structure_type, 
               name,
@@ -246,7 +246,7 @@ llvm::DIType debug_data::construct_type(Type *type)
                 fieldDefLine,
                 layout->getTypeSizeInBits(fty),
                 8*layout->getABITypeAlignment(fty),
-                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)),
+                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->cname)),
                 0,
                 get_type(field->type));    
               
@@ -266,7 +266,6 @@ llvm::DIType debug_data::construct_type(Type *type)
               this->dibuilder.getOrCreateArray(EltTys));
 #else
             // Create the DIType for the struct at first
-            printf("I'm in LLVM3.3\n");
             N = this->dibuilder.createStructType(
 			  get_module_scope(defModule),
 			  name,
@@ -300,7 +299,7 @@ llvm::DIType debug_data::construct_type(Type *type)
                 fieldDefLine,
                 layout->getTypeSizeInBits(fty),
                 8*layout->getABITypeAlignment(fty),
-                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)), 
+                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->cname)), 
                 0,				  
                 get_type(field->type));
 		      
@@ -326,7 +325,7 @@ llvm::DIType debug_data::construct_type(Type *type)
     const llvm::StructLayout* slayout = NULL;
     llvm::StructType* struct_type = llvm::cast<llvm::StructType>(ty);
     slayout = layout->getStructLayout(struct_type);
-
+      
     for_fields(field, this_class) {
       const char* fieldDefFile = field->defPoint->fname();
       int fieldDefLine = field->defPoint->linenum();
@@ -334,11 +333,10 @@ llvm::DIType debug_data::construct_type(Type *type)
       llvm::Type* fty = fts->llvmType;
 
       if(!fty){
-        fty = getTypeLLVM(fts->name);
+        fty = getTypeLLVM(fts->cname);
         if(!fty)
           printf("Error: %s has no llvm type\n",fts->name);
       }
-      
       llvm::DIType mty = this->dibuilder.createMemberType(
         get_module_scope(defModule),
         field->name,
@@ -346,7 +344,7 @@ llvm::DIType debug_data::construct_type(Type *type)
         fieldDefLine,
         layout->getTypeSizeInBits(fty),
         8*layout->getABITypeAlignment(fty),
-        slayout->getElementOffsetInBits(this_class->getMemberGEP(field->name)),
+        slayout->getElementOffsetInBits(this_class->getMemberGEP(field->cname)),
         0,
         get_type(field->type));
 
@@ -525,7 +523,7 @@ llvm::DISubprogram debug_data::construct_function(FnSymbol *function)
 
   LLVM_DI_SUBROUTINE_TYPE function_type = get_function_type(function);
 
-  printf("CONSTRUCTING DEBUG DATA\n");
+  printf("CONSTRUCTING FUNCTION DEBUG DATA on %s\n",name);
 
   llvm::DISubprogram ret = this->dibuilder.createFunction(
     module, /* scope */
@@ -556,9 +554,6 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
   GenInfo *info = gGenInfo; 
   const char *name = gVarSym->name;
   const char *cname = gVarSym->cname;
-  //////////////////////////////////////////////////
-  printf("construct_global_variable CALLED on %s!\n", name);
-  ///////////////////////////////////////////////
   const char *file_name = gVarSym->astloc.filename;
   int line_number = gVarSym->astloc.lineno;
   
@@ -587,8 +582,6 @@ llvm::DIGlobalVariable debug_data::construct_global_variable(VarSymbol *gVarSym)
       !gVarSym->hasFlag(FLAG_EXPORT), /* is local to unit */
       llVal); /* must be llvm::Constant since LLVM 3.6 */
   else {
-    ///////////////////////////////////////////////////////////////////
-    printf("For this unsolved GV: %s type-name = %s astTag = %i\n",name,gVarSym->type->symbol->name, gVarSym->type->astTag);
     llvm::DIGlobalVariable ret; //Empty dbg node if the symbol type is unresolved
     return ret;
   }
@@ -605,14 +598,11 @@ llvm::DIGlobalVariable debug_data::get_global_variable(VarSymbol *gVarSym)
 llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
 {
   const char *name = varSym->name;
-  ///////////////////////////////////////////////
-  printf("construct_variable CALLED on %s!\n",name);
-  //////////////////////////////////////////////
   const char *file_name = varSym->astloc.filename;
   int line_number = varSym->astloc.lineno;
   FnSymbol *funcSym = NULL;
   if(isFnSymbol(varSym->defPoint->parentSymbol))
-    funcSym = (FnSymbol*)varSym->defPoint->parentSymbol;//TODO:if the parent is a block
+    funcSym = (FnSymbol*)varSym->defPoint->parentSymbol;//TODO:if parent is a block
   else 
     printf("Couldn't find the function parent of variable: %s!\n",name);
   
@@ -630,9 +620,7 @@ llvm::DIVariable debug_data::construct_variable(VarSymbol *varSym)
       varSym_type, /*Type*/
       true/*AlwaysPreserve, won't be removed when optimized*/
       ); //omit the  Flags and ArgNo
-  ///////////////////////////////////////////////
   else {
-    printf("For this unsolved LV: %s  type-name = %s astTag = %i\n",name,varSym->type->symbol->name, varSym->type->astTag);
     llvm::DIVariable ret; //Empty dbg node if the symbol type is unresolved
     return ret;
   }
@@ -649,9 +637,6 @@ llvm::DIVariable debug_data::get_variable(VarSymbol *varSym)
 llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned ArgNo)
 {
   const char *name = argSym->name;
-  ////////////////////////////////////////////////
-  printf("construct_formal_arg CALLED on %s!\n",name);
-  //////////////////////////////////////////////
   const char *file_name = argSym->astloc.filename;
   int line_number = argSym->astloc.lineno;
   FnSymbol *funcSym = NULL;
@@ -676,9 +661,7 @@ llvm::DIVariable debug_data::construct_formal_arg(ArgSymbol *argSym, unsigned Ar
       0,  /*Flags*/
       ArgNo
       ); 
-  ///////////////////////////////////////////////
   else {
-    printf("For this unsolved formal_arg: %s  type-name = %s astTag = %i\n",name,argSym->type->symbol->name, argSym->type->astTag);
     llvm::DIVariable ret; //Empty dbg node if the symbol type is unresolved
     return ret;
   }
