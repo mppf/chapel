@@ -1,6 +1,6 @@
 #include <iostream>
 #include <map>
-
+// a little change to make it recompile
 #include "llvmDebug.h"
 #include "stringutil.h"
 #include "expr.h"
@@ -214,7 +214,6 @@ llvm::DIType debug_data::construct_type(Type *type)
         if(st){
           llvm::StructType* struct_type = llvm::cast<llvm::StructType>(st);
           if(!struct_type->isOpaque()){
-#if HAVE_LLVM_VER >= 36
             N = this->dibuilder.createForwardDecl(
               llvm::dwarf::DW_TAG_structure_type, 
               name,
@@ -264,57 +263,14 @@ llvm::DIType debug_data::construct_type(Type *type)
               0, // RuntimeLang
               derivedFrom,
               this->dibuilder.getOrCreateArray(EltTys));
-#else
-            // Create the DIType for the struct at first
-            N = this->dibuilder.createStructType(
-			  get_module_scope(defModule),
-			  name,
-			  get_file(defFile),
-			  defLine,
-			  layout->getTypeSizeInBits(ty),
-			  8*layout->getABITypeAlignment(ty),
-			  0,
-			  derivedFrom,
-			  llvm::DIArray(NULL)); //filled in later
-	 
-            //N is added to the map (early) so that element search below can find it,
-	        //so as to avoid infinite recursion for structs that contain pointers to
-	        //their own type.
-            myTypeDescriptors[type] = N;
-            llvm::DICompositeType StructDescriptor(N);
-
-            slayout = layout->getStructLayout(struct_type); 
-            for_fields(field, this_class) {
-              // field is a Symbol
-              const char* fieldDefFile = field->defPoint->fname();
-              int fieldDefLine = field->defPoint->linenum();
-              TypeSymbol* fts = field->type->symbol;
-              llvm::Type* fty = fts->llvmType;
-              llvm::DIType mty; //
-              //use the dummy type for classes like 'BaseArr'
-              mty = this->dibuilder.createMemberType(
-                get_module_scope(defModule),
-                field->name,
-                get_file(fieldDefFile),
-                fieldDefLine,
-                layout->getTypeSizeInBits(fty),
-                8*layout->getABITypeAlignment(fty),
-                slayout->getElementOffsetInBits(this_class->getMemberGEP(field->cname)), 
-                0,				  
-                get_type(field->type));
-		      
-              EltTys.push_back(mty);
-		    }
-		    // set struct elements
-		    StructDescriptor.setTypeArray(this->dibuilder.getOrCreateArray(EltTys));
-#endif
+            
             return llvm::DIType(N);
           }//end of if(!Opaque)
         }// end of if(st)
       } // end of astTag == E_AggregateTy
     } // end of else (type==type->getType)
   } // end of ty->isPointerTy()
-  //------------------------------------------------------------------------------//
+  
   else if(ty->isStructTy() && type->astTag == E_AggregateType) {
     AggregateType *this_class = (AggregateType *)type;
     llvm::SmallVector<LLVM_METADATA_OPERAND_TYPE *, 8> EltTys;
@@ -325,7 +281,22 @@ llvm::DIType debug_data::construct_type(Type *type)
     const llvm::StructLayout* slayout = NULL;
     llvm::StructType* struct_type = llvm::cast<llvm::StructType>(ty);
     slayout = layout->getStructLayout(struct_type);
-      
+    
+    N = this->dibuilder.createForwardDecl(
+      llvm::dwarf::DW_TAG_structure_type, 
+      name,
+      get_module_scope(defModule),
+      get_file(defFile),
+      defLine,
+      0, // RuntimeLang
+      layout->getTypeSizeInBits(ty),
+      8*layout->getABITypeAlignment(ty));
+
+    //N is added to the map (early) so that element search below can find it,
+    //so as to avoid infinite recursion for structs that contain pointers to
+    //their own type.
+    myTypeDescriptors[type] = N;
+
     for_fields(field, this_class) {
       const char* fieldDefFile = field->defPoint->fname();
       int fieldDefLine = field->defPoint->linenum();
@@ -407,10 +378,10 @@ llvm::DIType debug_data::construct_type(Type *type)
     Symbol *eleSym = toDefExpr(this_class->fields.head)->sym;
     Type *eleType = eleSym->type;
     N = this->dibuilder.createArrayType(
-      Asize, //Array size: uint64_t
-      8*layout->getABITypeAlignment(ty), // Alighment: uint64_t
-      get_type(eleType),  // Element type: DIType
-      this->dibuilder.getOrCreateArray(Subscripts)); //Subscripts: DIArray
+      Asize, 
+      8*layout->getABITypeAlignment(ty), 
+      get_type(eleType),  
+      this->dibuilder.getOrCreateArray(Subscripts)); 
       
     myTypeDescriptors[type] = N;
     return llvm::DIType(N);
@@ -423,7 +394,7 @@ llvm::DIType debug_data::construct_type(Type *type)
   else {
     printf("\tllvmType is NULL\n");
   }
-  //return this->dibuilder.createUnspecifiedType(name);
+  
   llvm::DIType ret;
   return ret;
 }
@@ -463,8 +434,7 @@ llvm::DIFile debug_data::get_file(const char *fpath)
     return this->filesByName[fpath];
   }
 
-  // Otherwise, construct the type, add it to the map,
-  // and then return it.
+  // Otherwise, construct the type, add it to the map,and return it
   llvm::DIFile dif = construct_file(fpath);
   this->filesByName[fpath] = dif;
   return dif;
