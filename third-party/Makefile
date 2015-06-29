@@ -15,9 +15,10 @@ endif
 
 default: all
 
-all: chpldoc-venv dlmalloc gasnet gmp hwloc qthread tcmalloc llvm
+all: activeharmony chpldoc-venv dlmalloc gasnet gmp hwloc qthread tcmalloc llvm
 
 clean: FORCE
+	cd activeharmony && $(MAKE) clean
 	cd chpldoc-venv && $(MAKE) clean
 	cd dlmalloc && $(MAKE) clean
 	cd gasnet && $(MAKE) clean
@@ -30,6 +31,7 @@ clean: FORCE
 	cd tcmalloc && $(MAKE) clean
 
 cleanall: FORCE
+	cd activeharmony && $(MAKE) cleanall
 	cd chpldoc-venv && $(MAKE) cleanall
 	cd dlmalloc && $(MAKE) cleanall
 	cd gasnet && $(MAKE) cleanall
@@ -42,6 +44,7 @@ cleanall: FORCE
 	cd tcmalloc && $(MAKE) cleanall
 
 clobber: FORCE
+	cd activeharmony && $(MAKE) clobber
 	cd chpldoc-venv && $(MAKE) clobber
 	cd dlmalloc && $(MAKE) clobber
 	cd gasnet && $(MAKE) clobber
@@ -117,6 +120,11 @@ endif
 re2: $(RE2_H_FILE)
 $(RE2_H_FILE):
 	cd re2 && $(MAKE)
+
+activeharmony: $(ACTIVEHARMONY_INSTALL_DIR)
+$(ACTIVEHARMONY_INSTALL_DIR):
+	cd activeharmony && $(MAKE)
+$(ACTIVEHARMONY_ALIASES): activeharmony
 
 -include Makefile.devel
 

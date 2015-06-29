@@ -419,6 +419,7 @@ tags
 # Third party ignores.
 /third-party/**/build
 /third-party/**/install
+/third-party/activeharmony/activeharmony
 /third-party/gmp/gmp-6.0.0
 /third-party/hwloc/hwloc-1.7.2
 /third-party/llvm/llvm

@@ -1,0 +1,31 @@
+ifndef CHPL_MAKE_HOME
+export CHPL_MAKE_HOME=$(shell pwd)/../..
+endif
+
+include $(CHPL_MAKE_HOME)/make/Makefile.base
+include Makefile.include
+
+ACTIVEHARMONY_TARBALL=$(ACTIVEHARMONY_SUBDIR).tar.bz2
+ACTIVEHARMONY_BUILD_FLAGS=prefix=$(ACTIVEHARMONY_INSTALL_DIR) install
+
+default: all
+
+all: $(ACTIVEHARMONY_INSTALL_DIR)/include/hclient.h
+
+clean: FORCE
+	rm -rf $(ACTIVEHARMONY_INSTALL_DIR) $(ACTIVEHARMONY_BUILD_DIR)
+
+cleanall: clean
+
+clobber: clean
+	rm -rf *~
+
+$(ACTIVEHARMONY_INSTALL_DIR)/include/hclient.h: $(ACTIVEHARMONY_BUILD_DIR)
+	cd $(ACTIVEHARMONY_BUILD_DIR) && $(MAKE) $(ACTIVEHARMONY_BUILD_FLAGS)
+
+$(ACTIVEHARMONY_BUILD_DIR):
+	cd $(ACTIVEHARMONY_DIR) && tar --bzip2 -xf $(ACTIVEHARMONY_TARBALL)
+
+FORCE:
+
+.NOTPARALLEL:
