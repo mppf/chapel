@@ -73,6 +73,7 @@ const char* CHPL_REGEXP = NULL;
 const char* CHPL_WIDE_POINTERS = NULL;
 const char* CHPL_LLVM = NULL;
 const char* CHPL_AUX_FILESYS = NULL;
+const char* CHPL_TUNER = NULL;
 
 // quick and dirty
 #define MAX_CHPL_ENV_VARS 50
@@ -362,6 +363,7 @@ static void setupEnvVars() {
   SETUP_ENV_VAR(CHPL_WIDE_POINTERS);
   SETUP_ENV_VAR(CHPL_LLVM);
   SETUP_ENV_VAR(CHPL_AUX_FILESYS);
+  SETUP_ENV_VAR(CHPL_TUNER);
 }
 
 

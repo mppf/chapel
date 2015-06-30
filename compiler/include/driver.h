@@ -90,6 +90,7 @@ extern const char* CHPL_REGEXP;
 extern const char* CHPL_WIDE_POINTERS;
 extern const char* CHPL_LLVM;
 extern const char* CHPL_AUX_FILESYS;
+extern const char* CHPL_TUNER;
 extern int num_chpl_env_vars;
 extern const char* chpl_env_vars[];
 extern const char* chpl_env_var_names[];

@@ -50,6 +50,7 @@ endif
 # CHPL_MAKE_TARGET_MEM="dlmalloc"
 # CHPL_MAKE_MAKE="gmake"
 # CHPL_MAKE_ATOMICS="intrinsics"
+# CHPL_MAKE_TUNER="none"
 # CHPL_MAKE_NETWORK_ATOMICS="none"
 # CHPL_MAKE_GMP="none"
 # CHPL_MAKE_HWLOC="none"
@@ -173,6 +174,7 @@ printplatform:
 	@echo "CHPL_MAKE_LAUNCHER        = $(CHPL_MAKE_LAUNCHER)"
 	@echo "CHPL_MAKE_MEM             = $(CHPL_MAKE_MEM)"
 	@echo "CHPL_MAKE_ATOMICS         = $(CHPL_MAKE_ATOMICS)"
+	@echo "CHPL_MAKE_TUNER           = $(CHPL_MAKE_TUNER)"
 
 #
 # use: make print-X to print the value of the variable X
@@ -248,5 +250,6 @@ EXE_SUFFIX =
 -include $(CHPL_MAKE_HOME)/make/compiler/Makefile.$(CHPL_MAKE_COMPILER)
 -include $(CHPL_MAKE_HOME)/make/platform/Makefile.$(CHPL_MAKE_PLATFORM)
 -include $(CHPL_MAKE_HOME)/make/tasks/Makefile.$(CHPL_MAKE_TASKS)
+-include $(CHPL_MAKE_HOME)/make/tuners/Makefile.$(CHPL_MAKE_TUNER)
 
 .SECONDARY: $(OBJ_SUBDIR_TIMESTAMP)

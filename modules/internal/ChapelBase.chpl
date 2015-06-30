@@ -144,6 +144,11 @@ module ChapelBase {
     compilerWarning("CHPL_AUX_FILESYS not set");
   }
 
+  config param CHPL_TUNER = "unset";
+  if (CHPL_TUNER == "unset") {
+    compilerWarning("CHPL_TUNER not set");
+  }
+
   // Is the cache for remote data enabled at compile time?
   config param CHPL_CACHE_REMOTE: bool = false;
 

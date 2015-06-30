@@ -18,6 +18,7 @@ __all__ = [
     'chpl_tasks',
     'chpl_threads',
     'chpl_timers',
+    'chpl_tuner',
     'chpl_wide_pointers',
     'utils',
     # third-party package configuration helpers
