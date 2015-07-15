@@ -28,6 +28,7 @@
 #include "chplcgfns.h"
 #include "chpl-locale-model.h"
 #include "chpl-tasks.h"
+#include "chpl-tuner.h"
 #include "chpltypes.h"
 
 //
