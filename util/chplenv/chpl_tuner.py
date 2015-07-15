@@ -8,7 +8,7 @@ def get():
     tuner_val = os.environ.get('CHPL_TUNER')
     if not tuner_val:
         tuner_val = 'none'
-    elif tuner_val not in ('none'):
+    elif tuner_val not in ('none', 'harmony'):
         stderr.write('Warning: Unexpected tuner value {0}\n'.format(tuner_val))
         tuner_val = ''
     return tuner_val

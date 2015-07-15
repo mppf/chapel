@@ -55,6 +55,9 @@ include src/launch/$(CHPL_MAKE_LAUNCHER)/Makefile.include
 include src/mem/$(CHPL_MAKE_MEM)/Makefile.include
 include src/qio/Makefile.include
 
+ifneq "$(CHPL_MAKE_TUNER)" "none"
+include src/tuners/$(CHPL_MAKE_TUNER)/Makefile.include
+endif
 
 #
 # subdirectories and false subdirectory-oriented targets to force recursion

@@ -1,0 +1,63 @@
+/*
+ * Copyright 2004-2015 Cray Inc.
+ * Other additional copyright holders may be indicated within.
+ *
+ * The entirety of this work is licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ *
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "chplrt.h"
+#include "chpl-tuner.h"
+#include "hclient.h"
+
+void* chpl_tuner_session_init_hook(void) {
+  hdesc_t* hdesc = harmony_init();
+
+  harmony_strategy(hdesc, "nm.so");
+  if (harmony_getcfg(hdesc, "HARMONY_HOME") == NULL)
+    harmony_setcfg(hdesc, "HARMONY_HOME", HARMONY_PATH_STRING);
+
+  return hdesc;
+}
+
+void chpl_tuner_session_newvar_hook(void*    session,
+                                    c_string name,
+                                    _real64* val_ptr,
+                                    _real64  min,
+                                    _real64  max,
+                                    _real64  step) {
+  harmony_real(session, name, min, max, step);
+  harmony_bind_real(session, name, val_ptr);
+}
+
+void chpl_tuner_session_start_hook(void* session) {
+  harmony_launch(session, NULL, 0);
+  harmony_join(session, NULL, 0, NULL);
+  harmony_fetch(session);
+}
+
+void chpl_tuner_session_stop_hook(void* session) {
+  harmony_leave(session);
+}
+
+void chpl_tuner_session_fini_hook(void* session) {
+  harmony_leave(session);
+  harmony_fini(session);
+}
+
+void chpl_tuner_session_loop_hook(void*   session,
+                                  _real64 performance) {
+  harmony_report(session, &performance);
+  harmony_fetch(session);
+}
