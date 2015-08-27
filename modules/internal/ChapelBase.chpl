@@ -670,20 +670,66 @@ module ChapelBase {
     __primitive("chpl_exit_any", status);
   }
   
+  config param parallelInitElts=false;
   proc init_elts(x, s, type t) {
-    for i in 1..s {
-      //
-      // Q: why is the following declaration of 'y' in the loop?
-      //
-      // A: so that if the element type is something like an array,
-      // the element can 'steal' the array rather than copying it.
-      // One effect of having it in the loop is that the reference
-      // count for an array element's domain gets bumped once per
-      // element.  Is this good, bad, necessary?  Unclear.
-      //
-      pragma "no auto destroy" var y: t;  
-      __primitive("array_set_first", x, i-1, y);
+    //
+    // Q: why is the declaration of 'y' in the following loops?
+    //
+    // A: so that if the element type is something like an array,
+    // the element can 'steal' the array rather than copying it.
+    // One effect of having it in the loop is that the reference
+    // count for an array element's domain gets bumped once per
+    // element.  Is this good, bad, necessary?  Unclear.
+    //
+
+    //
+    // Heuristically determine if we should do parallel initialization. We want
+    // each task to "own" at least a page in order to get good first-touch
+    // behavior and to avoid false-sharing. We naively assume the parallel
+    // range iterator will create maxTaskPar tasks so we want the array to be
+    // at least (maxTaskPar * pagesizes) big. For non-numeric element types we
+    // guess that each element is at least 8 bytes with the assumption that
+    // most record/classes/arrays will be at least 8 bytes.
+    //
+    // TODO: improve the heuristic for non-numeric types
+    //
+    // TODO: Note that we could do even better if the range had an iterator
+    // that supported local overrides of dataParTasksPerLocale or
+    // MinGranularity. The current heuristic will always try to use
+    // dataParTasksPerLocale even if, say, arrsize is pagesize+1, where we'd
+    // really only want to use 2 tasks there or set minGranularity to pagesize.
+    // But at the very least, the current approach differentiates between
+    // larger and smaller arrays.
+    //
+
+    if parallelInitElts && here != dummyLocale {
+      extern proc chpl_getSysPageSize():size_t;
+      const pagesizeInBytes = chpl_getSysPageSize().safeCast(int);
+
+      const elemsizeInBytes = if (isNumericType(t)) then numBytes(t) else 8;
+      const arrsizeInBytes = s.safeCast(int) * elemsizeInBytes;
+      const heuristicThresh = pagesizeInBytes * here.maxTaskPar;
+      const heuristicWantsPar = arrsizeInBytes > heuristicThresh;
+
+      if heuristicWantsPar {
+        forall i in 1..s {
+          pragma "no auto destroy" var y: t;
+          __primitive("array_set_first", x, i-1, y);
+        }
+
+      } else {
+        for i in 1..s {
+          pragma "no auto destroy" var y: t;
+          __primitive("array_set_first", x, i-1, y);
+        }
+      }
+    } else {
+      for i in 1..s {
+        pragma "no auto destroy" var y: t;
+        __primitive("array_set_first", x, i-1, y);
+      }
     }
+
   }
   
   // dynamic data block class
@@ -813,7 +859,7 @@ module ChapelBase {
   // statement needed.
   pragma "dont disable remote value forwarding"
   pragma "no remote memory fence"
-  proc _upEndCount(e: _EndCount) {
+  proc _upEndCount(e: _EndCount, param countRunningTasks=true) {
     if useAtomicTaskCnt {
       e.i.add(1, memory_order_release);
       e.taskCnt.add(1, memory_order_release);
@@ -827,7 +873,9 @@ module ChapelBase {
         e.taskCnt += 1;
       }
     }
-    here.runningTaskCntAdd(1);  // decrement is in _waitEndCount()
+    if countRunningTasks {
+      here.runningTaskCntAdd(1);  // decrement is in _waitEndCount()
+    }
   }
   
   // This function is called once by each newly initiated task.  No on
@@ -841,15 +889,26 @@ module ChapelBase {
   // This function is called once by the initiating task.  As above, no
   // on statement needed.
   pragma "dont disable remote value forwarding"
-  proc _waitEndCount(e: _EndCount) {
+  proc _waitEndCount(e: _EndCount, param countRunningTasks=true) {
     // See if we can help with any of the started tasks
     __primitive("execute tasks in list", e.taskList);
-  
+
+    // Remove the task that will just be waiting/yielding in the following
+    // waitFor() from the running task count to let others do real work. It is
+    // re-added after the waitFor().
+    here.runningTaskCntSub(1);
+
     // Wait for all tasks to finish
     e.i.waitFor(0, memory_order_acquire);
 
-    const taskDec = if useAtomicTaskCnt then e.taskCnt.read() else e.taskCnt;
-    here.runningTaskCntSub(taskDec);  // increment is in _upEndCount()
+    if countRunningTasks {
+      const taskDec = if useAtomicTaskCnt then e.taskCnt.read() else e.taskCnt;
+      // taskDec-1 to adjust for the task that was waiting for others to finish
+      here.runningTaskCntSub(taskDec-1);  // increment is in _upEndCount()
+    } else {
+      // re-add the task that was waiting for others to finish
+      here.runningTaskCntAdd(1);
+    }
   
     // It is now safe to free the task list, because we know that all the
     // tasks have been completed.  We could free this list when all the
@@ -862,9 +921,9 @@ module ChapelBase {
     __primitive("free task list", e.taskList);
   }
   
-  proc _upEndCount() {
+  proc _upEndCount(param countRunningTasks=true) {
     var e = __primitive("get end count");
-    _upEndCount(e);
+    _upEndCount(e, countRunningTasks);
   }
   
   proc _downEndCount() {
@@ -872,9 +931,9 @@ module ChapelBase {
     _downEndCount(e);
   }
   
-  proc _waitEndCount() {
+  proc _waitEndCount(param countRunningTasks=true) {
     var e = __primitive("get end count");
-    _waitEndCount(e);
+    _waitEndCount(e, countRunningTasks);
   }
   
   pragma "command line setting"
@@ -1068,29 +1127,27 @@ module ChapelBase {
   inline proc chpl__maybeAutoDestroyed(x: object) param return false;
   inline proc chpl__maybeAutoDestroyed(x) param return true;
 
-  pragma "auto destroy fn" inline proc chpl__autoDestroy(x: object) { }
-  pragma "auto destroy fn" inline proc chpl__autoDestroy(type t)  { }
-  pragma "auto destroy fn"
+  inline proc chpl__autoDestroy(x: object) { }
+  inline proc chpl__autoDestroy(type t)  { }
   inline proc chpl__autoDestroy(x: ?t) {
     __primitive("call destructor", x);
   }
-  pragma "auto destroy fn"
   inline proc chpl__autoDestroy(ir: _iteratorRecord) {
     // body inserted during call destructors pass
   }
   pragma "dont disable remote value forwarding"
   pragma "removable auto destroy"
-  pragma "auto destroy fn" proc chpl__autoDestroy(x: _distribution) {
+  proc chpl__autoDestroy(x: _distribution) {
     __primitive("call destructor", x);
   }
   pragma "dont disable remote value forwarding"
   pragma "removable auto destroy"
-  pragma "auto destroy fn" proc chpl__autoDestroy(x: domain) {
+  proc chpl__autoDestroy(x: domain) {
     __primitive("call destructor", x);
   }
   pragma "dont disable remote value forwarding"
   pragma "removable auto destroy"
-  pragma "auto destroy fn" proc chpl__autoDestroy(x: []) {
+  proc chpl__autoDestroy(x: []) {
     __primitive("call destructor", x);
   }
   
@@ -1476,6 +1533,8 @@ module ChapelBase {
   proc isUnionType(type t) param return __primitive("is union type", t);
 
   proc isAtomicType(type t) param return __primitive("is atomic type", t);
+
+  proc isRefIterType(type t) param return __primitive("is ref iter type", t);
   
   // These style element #s are used in the default Writer and Reader.
   // and in e.g. implementations of those in Tuple.
