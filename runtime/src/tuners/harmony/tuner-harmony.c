@@ -22,13 +22,12 @@
 #include "hclient.h"
 
 void* chpl_tuner_session_init_hook(void) {
-  hdesc_t* hdesc = harmony_init();
+  hdesc_t* hd = ah_init();
 
-  harmony_strategy(hdesc, "nm.so");
-  if (harmony_getcfg(hdesc, "HARMONY_HOME") == NULL)
-    harmony_setcfg(hdesc, "HARMONY_HOME", HARMONY_PATH_STRING);
+  if (ah_get_cfg(hd, "HARMONY_HOME") == NULL)
+    ah_set_cfg(hd, "HARMONY_HOME", HARMONY_PATH_STRING);
 
-  return hdesc;
+  return hd;
 }
 
 void chpl_tuner_session_newvar_hook(void*    session,
@@ -37,27 +36,26 @@ void chpl_tuner_session_newvar_hook(void*    session,
                                     _real64  min,
                                     _real64  max,
                                     _real64  step) {
-  harmony_real(session, name, min, max, step);
-  harmony_bind_real(session, name, val_ptr);
+  ah_real(session, name, min, max, step);
+  ah_bind_real(session, name, val_ptr);
 }
 
 void chpl_tuner_session_start_hook(void* session) {
-  harmony_launch(session, NULL, 0);
-  harmony_join(session, NULL, 0, NULL);
-  harmony_fetch(session);
+  ah_launch(session, NULL, 0, NULL);
+  ah_fetch(session);
 }
 
 void chpl_tuner_session_stop_hook(void* session) {
-  harmony_leave(session);
+  ah_leave(session);
 }
 
 void chpl_tuner_session_fini_hook(void* session) {
-  harmony_leave(session);
-  harmony_fini(session);
+  ah_leave(session);
+  ah_fini(session);
 }
 
 void chpl_tuner_session_loop_hook(void*   session,
                                   _real64 performance) {
-  harmony_report(session, &performance);
-  harmony_fetch(session);
+  ah_report(session, &performance);
+  ah_fetch(session);
 }
