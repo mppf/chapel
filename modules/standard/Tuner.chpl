@@ -22,6 +22,9 @@ module Tuner {
   use Time; // For getCurrentTime().
   use Math; // For isnan() and NAN.
 
+  // Module-level config variables.
+  config var tuningEnabled :bool = true;
+
   // Module-level global variables.
   var default = new TuningSession();
 
@@ -91,12 +94,12 @@ module Tuner {
           // We've never seen this tuning variable before. Add it to our list.
           addNewVar(name, minVal, maxVal, stepVal, initVal);
 
-        } else if (firstVar == name) {
+        } else if (firstVar == name && tuningEnabled) {
           // User is requesting the first variable again. Code is at loop head.
           handleLoopHead;
         }
 
-        return if timerStarted
+        return if timerStarted && tuningEnabled
           then chpl_tuner_getVal(id, name :c_string)
           else defaultVal[name];
       }
