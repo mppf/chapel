@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#ifndef _chpl_tuners_h_
-#define _chpl_tuners_h_
+#ifndef _chpl_tuner_h_
+#define _chpl_tuner_h_
 
 #include <stdint.h>
 #include "chpltypes.h"
@@ -30,7 +30,7 @@
 // valid value range.  This file declares the interface to communicate
 // with external performance tuners.
 //
-// Third-party tuners should implement chpl_tuner_session_*_hook()
+// Third-party tuners should implement chpl_tuner_*()
 // functions.  These are called from the Chapel runtime tuning
 // framework.
 // ===================================================================
@@ -41,41 +41,36 @@
 // This function should return a unique identifier to be used with the
 // remaining functions declared in this file.
 //
-void* chpl_tuner_session_init_hook(void);
-
-//
-// Initialize a new variable within a tuning session.
-//
-void chpl_tuner_session_newvar_hook(void*    session,
-                                    c_string name,
-                                    _real64* val_ptr,
-                                    _real64  min,
-                                    _real64  max,
-                                    _real64  step);
-
-//
-// Begin generating values for all tuning variables declared thus far.
-//
-void chpl_tuner_session_start_hook(void* session);
-
-//
-// End the search for optimal values.
-//
-// This function is distinct from chpl_tuner_session_fini_hook() for
-// the "restart" case, when a session is stopped and started without
-// releasing associated resources.
-//
-void chpl_tuner_session_stop_hook(void* session);
+void* chpl_tuner_init(void);
 
 //
 // Release all resources associated with the specified tuning session.
 //
-void chpl_tuner_session_fini_hook(void* session);
+void chpl_tuner_fini(void* session);
+
+//
+// Add a new variable to the tuning session.
+//
+void chpl_tuner_addVar(void* session, c_string name, _real64* val_ptr,
+                       _real64 min, _real64 max, _real64 step);
+
+//
+// Begin generating values for the variables in the tuning session.
+//
+void chpl_tuner_start(void* session);
+
+//
+// End the search for optimal values.
+//
+// This function is distinct from chpl_tuner_fini() for the "restart"
+// case, when a session is stopped and started without releasing
+// associated resources.
+//
+void chpl_tuner_stop(void* session);
 
 //
 // Report the performance of a loop.
 //
-void chpl_tuner_session_loop_hook(void*   session,
-                                  _real64 performance);
+void chpl_tuner_loop(void* session, _real64 performance);
 
 #endif

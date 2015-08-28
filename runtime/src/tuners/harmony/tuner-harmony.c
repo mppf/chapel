@@ -21,7 +21,7 @@
 #include "chpltypes.h"
 #include "hclient.h"
 
-void* chpl_tuner_session_init_hook(void) {
+void* chpl_tuner_init(void) {
   hdesc_t* hd = ah_init();
 
   if (ah_get_cfg(hd, "HARMONY_HOME") == NULL)
@@ -30,32 +30,27 @@ void* chpl_tuner_session_init_hook(void) {
   return hd;
 }
 
-void chpl_tuner_session_newvar_hook(void*    session,
-                                    c_string name,
-                                    _real64* val_ptr,
-                                    _real64  min,
-                                    _real64  max,
-                                    _real64  step) {
-  ah_real(session, name, min, max, step);
-  ah_bind_real(session, name, val_ptr);
-}
-
-void chpl_tuner_session_start_hook(void* session) {
-  ah_launch(session, NULL, 0, NULL);
-  ah_fetch(session);
-}
-
-void chpl_tuner_session_stop_hook(void* session) {
-  ah_leave(session);
-}
-
-void chpl_tuner_session_fini_hook(void* session) {
+void chpl_tuner_fini(void* session) {
   ah_leave(session);
   ah_fini(session);
 }
 
-void chpl_tuner_session_loop_hook(void*   session,
-                                  _real64 performance) {
+void chpl_tuner_addVar(void* session, c_string name, _real64* val_ptr,
+                       _real64 min, _real64 max, _real64 step) {
+  ah_real(session, name, min, max, step);
+  ah_bind_real(session, name, val_ptr);
+}
+
+void chpl_tuner_start(void* session) {
+  ah_launch(session, NULL, 0, NULL);
+  ah_fetch(session);
+}
+
+void chpl_tuner_stop(void* session) {
+  ah_leave(session);
+}
+
+void chpl_tuner_loop(void* session, _real64 performance) {
   ah_report(session, &performance);
   ah_fetch(session);
 }
