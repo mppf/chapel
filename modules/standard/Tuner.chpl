@@ -81,7 +81,7 @@ module Tuner {
       var iterLimit :uint = 1;
       var firstVar :string;
       var varDomain :domain(string);
-      var val :[varDomain] real;
+      var defaultVal :[varDomain] real;
 
       var iterCount :uint = 0;
       var timestamp :real = NAN;
@@ -95,7 +95,10 @@ module Tuner {
           // User is requesting the first variable again. Code is at loop head.
           handleLoopHead;
         }
-        return val[name];
+
+        return if timerStarted
+          then chpl_tuner_getVal(id, name :c_string)
+          else defaultVal[name];
       }
 
       // The calling code is beginning a new loop iteration.
@@ -127,9 +130,8 @@ module Tuner {
           stopTimer;
         }
 
-        val[name] = initVal;
-        chpl_tuner_addVar(id, name :c_string, val[name],
-                          minVal, maxVal, stepVal);
+        defaultVal[name] = initVal;
+        chpl_tuner_addVar(id, name :c_string, minVal, maxVal, stepVal);
       }
 
       inline proc startTimer {
@@ -151,8 +153,9 @@ module Tuner {
   // Chapel runtime third-party tuner interface.
   extern proc chpl_tuner_init() :opaque;
   extern proc chpl_tuner_fini(session :opaque);
-  extern proc chpl_tuner_addVar(session :opaque, name :c_string, ref ptr :real,
+  extern proc chpl_tuner_addVar(session :opaque, name :c_string,
                                 minVal :real, maxVal :real, stepVal :real);
+  extern proc chpl_tuner_getVal(session :opaque, name :c_string) :real;
   extern proc chpl_tuner_start(session :opaque);
   extern proc chpl_tuner_stop(session :opaque);
   extern proc chpl_tuner_loop(session :opaque, performance :real);

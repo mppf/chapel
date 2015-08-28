@@ -35,15 +35,18 @@ void chpl_tuner_fini(void* session) {
   ah_fini(session);
 }
 
-void chpl_tuner_addVar(void* session, c_string name, _real64* val_ptr,
+void chpl_tuner_addVar(void* session, c_string name,
                        _real64 min, _real64 max, _real64 step) {
   ah_real(session, name, min, max, step);
-  ah_bind_real(session, name, val_ptr);
+}
+
+_real64 chpl_tuner_getVal(void* session, c_string name) {
+  return ah_get_real(session, name);
 }
 
 void chpl_tuner_start(void* session) {
   ah_launch(session, NULL, 0, NULL);
-  ah_fetch(session);
+  while (ah_fetch(session) != 1);
 }
 
 void chpl_tuner_stop(void* session) {

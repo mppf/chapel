@@ -51,8 +51,13 @@ void chpl_tuner_fini(void* session);
 //
 // Add a new variable to the tuning session.
 //
-void chpl_tuner_addVar(void* session, c_string name, _real64* val_ptr,
+void chpl_tuner_addVar(void* session, c_string name,
                        _real64 min, _real64 max, _real64 step);
+
+//
+// Retrieve the current value for the named tuning variable.
+//
+_real64 chpl_tuner_getVal(void* session, c_string name);
 
 //
 // Begin generating values for the variables in the tuning session.
