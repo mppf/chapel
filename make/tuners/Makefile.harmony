@@ -15,6 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RUNTIME_CFLAGS += -DENABLE_TUNER
 RUNTIME_CFLAGS += -DHARMONY_PATH_STRING=\"$(ACTIVEHARMONY_INSTALL_DIR)\"
 RUNTIME_INCLS  += -I$(ACTIVEHARMONY_INCLUDE_DIR)

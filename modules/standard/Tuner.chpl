@@ -19,68 +19,146 @@
 
 module Tuner {
 
-  // Chapel runtime low-level tuner interface.
-  pragma "insert line file info"
-  extern proc chpl_tuner_session_init(): opaque;
-
-  pragma "insert line file info"
-  extern proc chpl_tuner_session_fini(id: opaque);
-
-  extern proc chpl_tuner_session_loop_span(id:   opaque,
-                                           span: uint(32));
-
-  pragma "insert line file info"
-  extern proc chpl_tuner_get(id:   opaque,
-                             min:  real,
-                             max:  real,
-                             step: real,
-                             init: real): real;
-
-  // Class to encapsulate
-  class Session {
-    var id: opaque;
-
-    proc Session() {
-      id = chpl_tuner_session_init();
-    }
-
-    proc ~Session() {
-      chpl_tuner_session_fini(id);
-    }
-
-    proc loop_span(span) {
-      chpl_tuner_session_loop_span(id, span: uint(32));
-    }
-  }
+  use Time; // For getCurrentTime().
+  use Math; // For isnan() and NAN.
 
   // Module-level global variables.
-  var default_session = new Session();
+  var default = new TuningSession();
 
   // Chapel user tuner interface.
-  inline proc tune(min, max, step, init, session = default_session)
+  proc tune(minVal, maxVal, stepVal, initVal, session = default)
   {
-    return chpl_tuner_get(session.id,
-                          min:  real,
-                          max:  real,
-                          step: real,
-                          init: real);
+    var caller_file = __primitive("_get_user_file");
+    var caller_line = __primitive("_get_user_line"): string;
+    var caller_id = caller_file + ":" + caller_line;
+
+    return session.getValue(caller_id, minVal, maxVal, stepVal, initVal);
   }
 
-  inline proc tune(r: range(?), init, session = default_session)
+  proc tune(r: range(?), initVal, session = default)
   {
     assert(r.boundedType == BoundedRangeType.bounded);
-    var min, max, step: real;
 
-    if (r.stride > 0) {
-      min  = r.first:  real;
-      max  = r.last:   real;
-      step = r.stride: real;
-    } else {
-      min  =  r.last:   real;
-      max  =  r.first:  real;
-      step = -r.stride: real;
+    var caller_file = __primitive("_get_user_file");
+    var caller_line = __primitive("_get_user_line"): string;
+    var caller_id = caller_file + ":" + caller_line;
+
+    var minVal = min(r.first, r.last);
+    var maxVal = max(r.first, r.last);
+    var stepVal = abs(r.stride);
+
+    return session.getValue(caller_id, minVal, maxVal, stepVal, initVal): int;
+  }
+
+  inline proc tuningGranularity(iterations :uint, session = default) {
+    session.setGranularity(iterations);
+  }
+
+  // Representation of independent tuning sessions.
+  class TuningSession {
+    var data :SessionData = nil;
+
+    inline proc TuningSession() {
+      data = new SessionData( id=chpl_tuner_session_init_hook() );
     }
 
-    return chpl_tuner_get(session.id, min, max, step, init: real): int;
+    inline proc ~TuningSession() {
+      chpl_tuner_session_fini_hook(data.id);
+      delete data;
+    }
+
+    inline proc getValue(name, minVal, maxVal, stepVal, initVal) {
+      return data.getValue(name, minVal, maxVal, stepVal, initVal);
+    }
+
+    inline proc setGranularity(iterations :uint) {
+      data.iterLimit = iterations;
+    }
+
+    // Inner class to encapsulate session setup and state.
+    class SessionData {
+      var id :opaque;
+      var iterLimit :uint = 1;
+      var firstVar :string;
+      var varDomain :domain(string);
+      var val :[varDomain] real;
+
+      var iterCount :uint = 0;
+      var timestamp :real = NAN;
+
+      proc getValue(name, minVal, maxVal, stepVal, initVal) {
+        if (!varDomain.member(name)) {
+          // We've never seen this tuning variable before. Add it to our list.
+          addNewVar(name, minVal, maxVal, stepVal, initVal);
+
+        } else if (firstVar == name) {
+          // User is requesting the first variable again. Code is at loop head.
+          handleLoopHead;
+        }
+        return val[name];
+      }
+
+      // The calling code is beginning a new loop iteration.
+      inline proc handleLoopHead {
+        if (!timerStarted) {
+          // Session setup is complete. Begin timing loop iterations.
+          chpl_tuner_session_start_hook(id);
+          startTimer;
+
+        } else if (iterCount >= iterLimit) {
+          // Enough iterations have passed. Report elapsed time to the tuner.
+          var now :real = getCurrentTime(TimeUnits.microseconds);
+          chpl_tuner_session_loop_hook(id, now - timestamp);
+          startTimer;
+        }
+        iterCount += 1;
+      }
+
+      inline proc addNewVar(name, minVal, maxVal, stepVal, initVal) {
+        if (firstVar.length == 0) {
+          // Record the first variable we encounter.
+          firstVar = name;
+        }
+
+        if (timerStarted) {
+          // We are adding a tuning variable in the middle of timing
+          // the loop. Stop the session before we add a new variable.
+          chpl_tuner_session_stop_hook(id);
+          stopTimer;
+        }
+
+        val[name] = initVal;
+        chpl_tuner_session_newvar_hook(id, name :c_string, val[name],
+                                       minVal, maxVal, stepVal);
+      }
+
+      inline proc startTimer {
+        iterCount = 0;
+        timestamp = getCurrentTime(TimeUnits.microseconds);
+      }
+
+      inline proc stopTimer {
+        iterCount = 0;
+        timestamp = NAN;
+      }
+
+      inline proc timerStarted {
+        return !isnan(timestamp);
+      }
+    }
   }
+
+  // Chapel runtime third-party tuner interface.
+  extern proc chpl_tuner_session_init_hook() :opaque;
+  extern proc chpl_tuner_session_newvar_hook(session :opaque,
+                                             name :c_string,
+                                             ref ptr :real,
+                                             minVal :real,
+                                             maxVal :real,
+                                             stepVal :real);
+  extern proc chpl_tuner_session_start_hook(session :opaque);
+  extern proc chpl_tuner_session_stop_hook(session :opaque);
+  extern proc chpl_tuner_session_fini_hook(session :opaque);
+  extern proc chpl_tuner_session_loop_hook(session :opaque,
+                                           performance :real);
 }

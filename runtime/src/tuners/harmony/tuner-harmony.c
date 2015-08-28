@@ -18,7 +18,7 @@
  */
 
 #include "chplrt.h"
-#include "chpl-tuner.h"
+#include "chpltypes.h"
 #include "hclient.h"
 
 void* chpl_tuner_session_init_hook(void) {

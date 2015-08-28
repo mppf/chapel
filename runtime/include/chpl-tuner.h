@@ -23,8 +23,6 @@
 #include <stdint.h>
 #include "chpltypes.h"
 
-extern void* chpl_tuner_default_session;
-
 // ===================================================================
 // Chapel runtime third-party performance tuner interface.
 //
@@ -79,26 +77,5 @@ void chpl_tuner_session_fini_hook(void* session);
 //
 void chpl_tuner_session_loop_hook(void*   session,
                                   _real64 performance);
-
-// ===================================================================
-// Chapel runtime framework function declarations.
-//
-// Third-party tuners should not implement these functions.
-// ===================================================================
-
-void*   chpl_tuner_session_init(uint32_t  lineno,
-                                c_string  filename);
-void    chpl_tuner_session_fini(void*    session,
-                                uint32_t lineno,
-                                c_string filename);
-void    chpl_tuner_session_loop_span(void*    session,
-                                     uint32_t count);
-_real64 chpl_tuner_get(void*    session,
-                       _real64  min,
-                       _real64  max,
-                       _real64  step,
-                       _real64  init,
-                       uint32_t lineno,
-                       c_string filename);
 
 #endif
