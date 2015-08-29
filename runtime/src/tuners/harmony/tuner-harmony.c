@@ -30,35 +30,35 @@ void* chpl_tuner_init(void) {
   return hd;
 }
 
-void chpl_tuner_fini(void* session) {
-  ah_leave(session);
-  ah_fini(session);
+void chpl_tuner_fini(void* sessionID) {
+  ah_leave(sessionID);
+  ah_fini(sessionID);
 }
 
-void chpl_tuner_addVar(void* session, c_string name,
+void chpl_tuner_addVar(void* sessionID, c_string name,
                        _real64 min, _real64 max, _real64 step) {
-  ah_real(session, name, min, max, step);
+  ah_real(sessionID, name, min, max, step);
 }
 
-_real64 chpl_tuner_getVal(void* session, c_string name) {
-  return ah_get_real(session, name);
+_real64 chpl_tuner_getVal(void* sessionID, c_string name) {
+  return ah_get_real(sessionID, name);
 }
 
-void chpl_tuner_start(void* session) {
-  ah_launch(session, NULL, 0, NULL);
-  while (ah_fetch(session) != 1);
+void chpl_tuner_start(void* sessionID) {
+  ah_launch(sessionID, NULL, 0, NULL);
+  while (ah_fetch(sessionID) != 1);
 }
 
-void chpl_tuner_stop(void* session) {
-  ah_leave(session);
+void chpl_tuner_stop(void* sessionID) {
+  ah_leave(sessionID);
 }
 
-chpl_bool chpl_tuner_loop(void* session, _real64 performance) {
-  ah_report(session, &performance);
-  ah_fetch(session);
+chpl_bool chpl_tuner_loop(void* sessionID, _real64 performance) {
+  ah_report(sessionID, &performance);
+  ah_fetch(sessionID);
 
-  if (ah_converged(session) == 1) {
-    ah_best(session);
+  if (ah_converged(sessionID) == 1) {
+    ah_best(sessionID);
     return false;
   }
   return true;

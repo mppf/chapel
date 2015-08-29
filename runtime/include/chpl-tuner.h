@@ -46,23 +46,23 @@ void* chpl_tuner_init(void);
 //
 // Release all resources associated with the specified tuning session.
 //
-void chpl_tuner_fini(void* session);
+void chpl_tuner_fini(void* sessionID);
 
 //
 // Add a new variable to the tuning session.
 //
-void chpl_tuner_addVar(void* session, c_string name,
+void chpl_tuner_addVar(void* sessionID, c_string name,
                        _real64 min, _real64 max, _real64 step);
 
 //
 // Retrieve the current value for the named tuning variable.
 //
-_real64 chpl_tuner_getVal(void* session, c_string name);
+_real64 chpl_tuner_getVal(void* sessionID, c_string name);
 
 //
 // Begin generating values for the variables in the tuning session.
 //
-void chpl_tuner_start(void* session);
+void chpl_tuner_start(void* sessionID);
 
 //
 // End the search for optimal values.
@@ -71,7 +71,7 @@ void chpl_tuner_start(void* session);
 // case, when a session is stopped and started without releasing
 // associated resources.
 //
-void chpl_tuner_stop(void* session);
+void chpl_tuner_stop(void* sessionID);
 
 //
 // Retrieve new testing values for the tuning session.
@@ -80,6 +80,6 @@ void chpl_tuner_stop(void* session);
 // Once the search converges, this function should set the tuning
 // variable values to their best known values and return false.
 //
-chpl_bool chpl_tuner_loop(void* session, _real64 performance);
+chpl_bool chpl_tuner_loop(void* sessionID, _real64 performance);
 
 #endif

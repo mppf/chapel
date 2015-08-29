@@ -29,54 +29,54 @@ module Tuner {
   var default = new TuningSession();
 
   // Chapel user tuner interface.
-  proc tune(minVal :real, maxVal :real, stepVal :real, initVal :real,
+  proc tune(minVal: real, maxVal: real, stepVal: real, initVal: real,
             session = default)
   {
-    var caller_file = __primitive("_get_user_file");
-    var caller_line = __primitive("_get_user_line"): string;
-    var caller_id = caller_file + ":" + caller_line;
+    var callerFile = __primitive("_get_user_file");
+    var callerLine = __primitive("_get_user_line"): string;
+    var callerID = callerFile + ":" + callerLine;
 
-    return session.getValue(caller_id, minVal, maxVal, stepVal, initVal);
+    return session.getValue(callerID, minVal, maxVal, stepVal, initVal);
   }
 
-  proc tune(r: range(?), initVal :real, session = default) :int
+  proc tune(r: range(?), initVal: real, session = default): int
   {
     assert(r.boundedType == BoundedRangeType.bounded);
 
-    var caller_file = __primitive("_get_user_file");
-    var caller_line = __primitive("_get_user_line"): string;
-    var caller_id = caller_file + ":" + caller_line;
+    var callerFile = __primitive("_get_user_file");
+    var callerLine = __primitive("_get_user_line"): string;
+    var callerID = callerFile + ":" + callerLine;
 
-    var minVal :real = min(r.first, r.last);
-    var maxVal :real = max(r.first, r.last);
-    var stepVal :real = abs(r.stride);
+    var minVal: real = min(r.first, r.last);
+    var maxVal: real = max(r.first, r.last);
+    var stepVal: real = abs(r.stride);
 
-    return session.getValue(caller_id, minVal, maxVal, stepVal, initVal): int;
+    return session.getValue(callerID, minVal, maxVal, stepVal, initVal): int;
   }
 
-  inline proc tuningGranularity(iterations :uint, session = default) {
+  inline proc tuningGranularity(iterations: uint, session = default) {
     session.setGranularity(iterations);
   }
 
   // Representation of independent tuning sessions.
   class TuningSession {
-    var data :SessionData = nil;
+    var data: SessionData = nil;
 
     inline proc TuningSession() {
-      data = new SessionData(id=chpl_tuner_init());
+      data = new SessionData(sessionID=chpl_tuner_init());
     }
 
     inline proc ~TuningSession() {
-      chpl_tuner_fini(data.id);
+      chpl_tuner_fini(data.sessionID);
       delete data;
     }
 
-    inline proc getValue(name :string, minVal :real, maxVal :real,
-                         stepVal :real, initVal :real) {
+    inline proc getValue(name: string, minVal: real, maxVal: real,
+                         stepVal: real, initVal: real) {
       return data.getValue(name, minVal, maxVal, stepVal, initVal);
     }
 
-    inline proc setGranularity(iterations :uint) {
+    inline proc setGranularity(iterations: uint) {
       data.iterLimit = iterations;
     }
 
@@ -84,20 +84,20 @@ module Tuner {
     class SessionData {
 
       record Bounds {
-        var name :string;
-        var minVal, maxVal, stepVal :real;
+        var name: string;
+        var minVal, maxVal, stepVal: real;
       }
 
-      var id :opaque;
-      var varsByIndex :domain(int);
-      var varDef :[varsByIndex] Bounds;
-      var varsByName :domain(string);
-      var bestVal :[varsByName] real;
-      var iterLimit :uint = 1;
+      var sessionID: opaque;
+      var varsByIndex: domain(int);
+      var varDef: [varsByIndex] Bounds;
+      var varsByName: domain(string);
+      var bestVal: [varsByName] real;
+      var iterLimit: uint = 1;
 
-      var iterCount :uint = 0;
-      var timestamp :real = NAN;
-      var converged :bool = false;
+      var iterCount: uint = 0;
+      var timestamp: real = NAN;
+      var converged: bool = false;
 
       proc getValue(name, minVal, maxVal, stepVal, initVal) {
         if (!varsByName.member(name)) {
@@ -114,22 +114,22 @@ module Tuner {
         }
 
         return if (timerStarted)
-          then chpl_tuner_getVal(id, name: c_string)
+          then chpl_tuner_getVal(sessionID, name: c_string)
           else bestVal[name];
       }
 
       // The calling code is beginning a new loop iteration.
-      inline proc handleLoopHead {
+      proc handleLoopHead {
         if (!timerStarted) {
           // Session setup is complete. Begin a new tuning session.
           for i in 1..varsByIndex.size {
-            chpl_tuner_addVar(id,
-                              varDef[i].name :c_string,
+            chpl_tuner_addVar(sessionID,
+                              varDef[i].name: c_string,
                               varDef[i].minVal,
                               varDef[i].maxVal,
                               varDef[i].stepVal);
           }
-          chpl_tuner_start(id);
+          chpl_tuner_start(sessionID);
           startTimer;
 
         } else if (iterCount >= iterLimit) {
@@ -140,10 +140,10 @@ module Tuner {
       }
 
       // Enough iterations have passed.  Report elapsed time to the tuner.
-      inline proc handleLoopTail {
-        var now :real = getCurrentTime(TimeUnits.microseconds);
+      proc handleLoopTail {
+        var now: real = getCurrentTime(TimeUnits.microseconds);
 
-        if (chpl_tuner_loop(id, now - timestamp)) {
+        if (chpl_tuner_loop(sessionID, now - timestamp)) {
           // Tuning session has new parameters for testing.
           startTimer;
 
@@ -151,18 +151,18 @@ module Tuner {
           // Tuning session converged.  Store the best values and stop tuning.
           converged = true;
           for name in varsByName {
-            bestVal[name] = chpl_tuner_getVal(id, name :c_string);
+            bestVal[name] = chpl_tuner_getVal(sessionID, name: c_string);
           }
-          chpl_tuner_stop(id);
+          chpl_tuner_stop(sessionID);
           stopTimer;
         }
       }
 
-      inline proc addNewVar(name, minVal, maxVal, stepVal, initVal) {
+      proc addNewVar(name, minVal, maxVal, stepVal, initVal) {
         if (timerStarted) {
           // We are adding a tuning variable in the middle of timing
           // the loop. Stop the session before we add a new variable.
-          chpl_tuner_stop(id);
+          chpl_tuner_stop(sessionID);
           stopTimer;
         }
         converged = false;
@@ -192,12 +192,12 @@ module Tuner {
   }
 
   // Chapel runtime third-party tuner interface.
-  extern proc chpl_tuner_init() :opaque;
-  extern proc chpl_tuner_fini(session :opaque);
-  extern proc chpl_tuner_addVar(session :opaque, name :c_string,
-                                minVal :real, maxVal :real, stepVal :real);
-  extern proc chpl_tuner_getVal(session :opaque, name :c_string) :real;
-  extern proc chpl_tuner_start(session :opaque);
-  extern proc chpl_tuner_stop(session :opaque);
-  extern proc chpl_tuner_loop(session :opaque, performance :real) :bool;
+  extern proc chpl_tuner_init(): opaque;
+  extern proc chpl_tuner_fini(sessionID: opaque);
+  extern proc chpl_tuner_addVar(sessionID: opaque, name: c_string,
+                                minVal: real, maxVal: real, stepVal: real);
+  extern proc chpl_tuner_getVal(sessionID: opaque, name: c_string): real;
+  extern proc chpl_tuner_start(sessionID: opaque);
+  extern proc chpl_tuner_stop(sessionID: opaque);
+  extern proc chpl_tuner_loop(sessionID: opaque, performance: real): bool;
 }
