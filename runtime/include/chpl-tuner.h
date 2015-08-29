@@ -74,8 +74,12 @@ void chpl_tuner_start(void* session);
 void chpl_tuner_stop(void* session);
 
 //
-// Report the performance of a loop.
+// Retrieve new testing values for the tuning session.
 //
-void chpl_tuner_loop(void* session, _real64 performance);
+// Returns true if the tuner is actively searching for optimal values.
+// Once the search converges, this function should set the tuning
+// variable values to their best known values and return false.
+//
+chpl_bool chpl_tuner_loop(void* session, _real64 performance);
 
 #endif

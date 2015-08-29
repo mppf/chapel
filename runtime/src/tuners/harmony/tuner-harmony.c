@@ -53,7 +53,13 @@ void chpl_tuner_stop(void* session) {
   ah_leave(session);
 }
 
-void chpl_tuner_loop(void* session, _real64 performance) {
+chpl_bool chpl_tuner_loop(void* session, _real64 performance) {
   ah_report(session, &performance);
   ah_fetch(session);
+
+  if (ah_converged(session) == 1) {
+    ah_best(session);
+    return false;
+  }
+  return true;
 }

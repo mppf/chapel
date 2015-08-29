@@ -95,19 +95,24 @@ module Tuner {
 
       var iterCount :uint = 0;
       var timestamp :real = NAN;
+      var converged :bool = false;
 
       proc getValue(name, minVal, maxVal, stepVal, initVal) {
         if (!varsByName.member(name)) {
           // We've never seen this tuning variable before. Add it to our list.
           addNewVar(name, minVal, maxVal, stepVal, initVal);
 
-        } else if (varDef[1].name == name && tuningEnabled) {
-          // User is requesting the first variable again. Code is at loop head.
+        } else if (!tuningEnabled || converged) {
+          // Do not invoke the tuner in these cases.
+          return bestVal[name];
+
+        } else if (varDef[1].name == name) {
+          // Requesting the first variable again indicates a loop head.
           handleLoopHead;
         }
 
-        return if timerStarted && tuningEnabled
-          then chpl_tuner_getVal(id, name :c_string)
+        return if (timerStarted)
+          then chpl_tuner_getVal(id, name: c_string)
           else bestVal[name];
       }
 
@@ -126,12 +131,29 @@ module Tuner {
           startTimer;
 
         } else if (iterCount >= iterLimit) {
-          // Enough iterations have passed. Report elapsed time to the tuner.
-          var now :real = getCurrentTime(TimeUnits.microseconds);
-          chpl_tuner_loop(id, now - timestamp);
-          startTimer;
+          // Tuning granularity reached.  This was actually the loop tail.
+          handleLoopTail;
         }
         iterCount += 1;
+      }
+
+      // Enough iterations have passed.  Report elapsed time to the tuner.
+      inline proc handleLoopTail {
+        var now :real = getCurrentTime(TimeUnits.microseconds);
+
+        if (chpl_tuner_loop(id, now - timestamp)) {
+          // Tuning session has new parameters for testing.
+          startTimer;
+
+        } else {
+          // Tuning session converged.  Store the best values and stop tuning.
+          converged = true;
+          for name in varsByName {
+            bestVal[name] = chpl_tuner_getVal(id, name :c_string);
+          }
+          chpl_tuner_stop(id);
+          stopTimer;
+        }
       }
 
       inline proc addNewVar(name, minVal, maxVal, stepVal, initVal) {
@@ -141,6 +163,7 @@ module Tuner {
           chpl_tuner_stop(id);
           stopTimer;
         }
+        converged = false;
 
         var idx = varsByIndex.size + 1;
         varDef[idx].name = name;
@@ -174,5 +197,5 @@ module Tuner {
   extern proc chpl_tuner_getVal(session :opaque, name :c_string) :real;
   extern proc chpl_tuner_start(session :opaque);
   extern proc chpl_tuner_stop(session :opaque);
-  extern proc chpl_tuner_loop(session :opaque, performance :real);
+  extern proc chpl_tuner_loop(session :opaque, performance :real) :bool;
 }
