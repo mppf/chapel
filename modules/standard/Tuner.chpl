@@ -29,7 +29,8 @@ module Tuner {
   var default = new TuningSession();
 
   // Chapel user tuner interface.
-  proc tune(minVal, maxVal, stepVal, initVal, session = default)
+  proc tune(minVal :real, maxVal :real, stepVal :real, initVal :real,
+            session = default)
   {
     var caller_file = __primitive("_get_user_file");
     var caller_line = __primitive("_get_user_line"): string;
@@ -38,7 +39,7 @@ module Tuner {
     return session.getValue(caller_id, minVal, maxVal, stepVal, initVal);
   }
 
-  proc tune(r: range(?), initVal, session = default)
+  proc tune(r: range(?), initVal :real, session = default) :int
   {
     assert(r.boundedType == BoundedRangeType.bounded);
 
@@ -46,9 +47,9 @@ module Tuner {
     var caller_line = __primitive("_get_user_line"): string;
     var caller_id = caller_file + ":" + caller_line;
 
-    var minVal = min(r.first, r.last);
-    var maxVal = max(r.first, r.last);
-    var stepVal = abs(r.stride);
+    var minVal :real = min(r.first, r.last);
+    var maxVal :real = max(r.first, r.last);
+    var stepVal :real = abs(r.stride);
 
     return session.getValue(caller_id, minVal, maxVal, stepVal, initVal): int;
   }
@@ -70,7 +71,8 @@ module Tuner {
       delete data;
     }
 
-    inline proc getValue(name, minVal, maxVal, stepVal, initVal) {
+    inline proc getValue(name :string, minVal :real, maxVal :real,
+                         stepVal :real, initVal :real) {
       return data.getValue(name, minVal, maxVal, stepVal, initVal);
     }
 
