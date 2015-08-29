@@ -80,34 +80,48 @@ module Tuner {
 
     // Inner class to encapsulate session setup and state.
     class SessionData {
+
+      record Bounds {
+        var name :string;
+        var minVal, maxVal, stepVal :real;
+      }
+
       var id :opaque;
+      var varsByIndex :domain(int);
+      var varDef :[varsByIndex] Bounds;
+      var varsByName :domain(string);
+      var bestVal :[varsByName] real;
       var iterLimit :uint = 1;
-      var firstVar :string;
-      var varDomain :domain(string);
-      var defaultVal :[varDomain] real;
 
       var iterCount :uint = 0;
       var timestamp :real = NAN;
 
       proc getValue(name, minVal, maxVal, stepVal, initVal) {
-        if (!varDomain.member(name)) {
+        if (!varsByName.member(name)) {
           // We've never seen this tuning variable before. Add it to our list.
           addNewVar(name, minVal, maxVal, stepVal, initVal);
 
-        } else if (firstVar == name && tuningEnabled) {
+        } else if (varDef[1].name == name && tuningEnabled) {
           // User is requesting the first variable again. Code is at loop head.
           handleLoopHead;
         }
 
         return if timerStarted && tuningEnabled
           then chpl_tuner_getVal(id, name :c_string)
-          else defaultVal[name];
+          else bestVal[name];
       }
 
       // The calling code is beginning a new loop iteration.
       inline proc handleLoopHead {
         if (!timerStarted) {
-          // Session setup is complete. Begin timing loop iterations.
+          // Session setup is complete. Begin a new tuning session.
+          for i in 1..varsByIndex.size {
+            chpl_tuner_addVar(id,
+                              varDef[i].name :c_string,
+                              varDef[i].minVal,
+                              varDef[i].maxVal,
+                              varDef[i].stepVal);
+          }
           chpl_tuner_start(id);
           startTimer;
 
@@ -121,11 +135,6 @@ module Tuner {
       }
 
       inline proc addNewVar(name, minVal, maxVal, stepVal, initVal) {
-        if (firstVar.length == 0) {
-          // Record the first variable we encounter.
-          firstVar = name;
-        }
-
         if (timerStarted) {
           // We are adding a tuning variable in the middle of timing
           // the loop. Stop the session before we add a new variable.
@@ -133,8 +142,12 @@ module Tuner {
           stopTimer;
         }
 
-        defaultVal[name] = initVal;
-        chpl_tuner_addVar(id, name :c_string, minVal, maxVal, stepVal);
+        var idx = varsByIndex.size + 1;
+        varDef[idx].name = name;
+        varDef[idx].minVal = minVal;
+        varDef[idx].maxVal = maxVal;
+        varDef[idx].stepVal = stepVal;
+        bestVal[name] = initVal;
       }
 
       inline proc startTimer {
