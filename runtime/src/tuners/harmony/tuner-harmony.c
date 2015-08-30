@@ -23,9 +23,7 @@
 
 void* chpl_tuner_init(void) {
   hdesc_t* hd = ah_init();
-
-  if (ah_get_cfg(hd, "HARMONY_HOME") == NULL)
-    ah_set_cfg(hd, "HARMONY_HOME", HARMONY_PATH_STRING);
+  ah_set_cfg(hd, "HARMONY_HOME", HARMONY_PATH_STRING);
 
   return hd;
 }
