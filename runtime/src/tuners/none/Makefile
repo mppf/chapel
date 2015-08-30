@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-RUNTIME_ROOT = ../..
-RUNTIME_SUBDIR = src/tuners
+RUNTIME_ROOT = ../../..
+RUNTIME_SUBDIR = src/tuners/$(CHPL_MAKE_TUNER)
 
 ifndef CHPL_MAKE_HOME
 export CHPL_MAKE_HOME=$(shell pwd)/$(RUNTIME_ROOT)/..
@@ -27,11 +27,12 @@ endif
 #
 include $(RUNTIME_ROOT)/make/Makefile.runtime.head
 
-TARGETS =
+TUNER_OBJDIR = $(RUNTIME_OBJDIR)
+include Makefile.share
 
-SUBDIRS = $(CHPL_MAKE_TUNER)
+TARGETS = $(TUNER_OBJS)
 
-include $(RUNTIME_ROOT)/make/Makefile.runtime.emptydirrules
+include $(RUNTIME_ROOT)/make/Makefile.runtime.subdirrules
 
 FORCE:
 

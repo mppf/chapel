@@ -27,6 +27,9 @@ module Tuner {
 
   // Module-level global variables.
   var default = new TuningSession();
+  if (ChapelBase.CHPL_TUNER == "none") {
+    compilerWarning("Tuning support disabled: CHPL_TUNER=none");
+  }
 
   // Chapel user tuner interface.
   proc tune(minVal: real, maxVal: real, stepVal: real, initVal: real,
@@ -73,7 +76,9 @@ module Tuner {
 
     inline proc getValue(name: string, minVal: real, maxVal: real,
                          stepVal: real, initVal: real) {
-      return data.getValue(name, minVal, maxVal, stepVal, initVal);
+      return if !is_c_nil(data.sessionID)
+        then data.getValue(name, minVal, maxVal, stepVal, initVal)
+        else initVal;
     }
 
     inline proc setGranularity(iterations: uint) {
@@ -88,7 +93,7 @@ module Tuner {
         var minVal, maxVal, stepVal: real;
       }
 
-      var sessionID: opaque;
+      var sessionID: c_void_ptr;
       var varsByIndex: domain(int);
       var varDef: [varsByIndex] Bounds;
       var varsByName: domain(string);
@@ -192,12 +197,12 @@ module Tuner {
   }
 
   // Chapel runtime third-party tuner interface.
-  extern proc chpl_tuner_init(): opaque;
-  extern proc chpl_tuner_fini(sessionID: opaque);
-  extern proc chpl_tuner_addVar(sessionID: opaque, name: c_string,
+  extern proc chpl_tuner_init(): c_void_ptr;
+  extern proc chpl_tuner_fini(sessionID: c_void_ptr);
+  extern proc chpl_tuner_addVar(sessionID: c_void_ptr, name: c_string,
                                 minVal: real, maxVal: real, stepVal: real);
-  extern proc chpl_tuner_getVal(sessionID: opaque, name: c_string): real;
-  extern proc chpl_tuner_start(sessionID: opaque);
-  extern proc chpl_tuner_stop(sessionID: opaque);
-  extern proc chpl_tuner_loop(sessionID: opaque, performance: real): bool;
+  extern proc chpl_tuner_getVal(sessionID: c_void_ptr, name: c_string): real;
+  extern proc chpl_tuner_start(sessionID: c_void_ptr);
+  extern proc chpl_tuner_stop(sessionID: c_void_ptr);
+  extern proc chpl_tuner_loop(sessionID: c_void_ptr, performance: real): bool;
 }
