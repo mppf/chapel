@@ -8,7 +8,7 @@ for i in 1..100 do {
   var y = tune(1..100 by 5 align 5, 5);
   var z = 0;
 
-  tuningGranularity(granularity);
+  tunerGranularity(granularity);
 
   for j in 1..(x * 100):int do {
     for k in 1..(y * 100):int do {
