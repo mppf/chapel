@@ -1,0 +1,237 @@
+======================================
+Run-time Auto-tuning Support in Chapel
+======================================
+
+Status
+  Draft
+
+Author
+  Ray Chen
+
+
+Abstract
+========
+
+Add support for automated parameter tuning via empirical testing at
+run-time.  Only a single function is necessary to take advantage of
+tuning capabilities.  This feature is implemented through Chapel's
+module system, and may be used to tune user variables as well as
+Chapel internal variables.
+
+
+Rationale
+=========
+
+Chapel aims to improve programmer productivity by providing high-level
+constructs which abstract away low-level implementation details.
+However, performance is often affected by the decisions made at those
+lower levels.  Chapel is not clairvoyant; it cannot know which choices
+are best for every program it builds.  Instead, it should rely on
+auto-tuning to make better decisions at run-time.
+
+Auto-tuning is an established technique in the High Performance
+Computing realm.  This is because many of their optimization problems
+rely on understanding incredibly complex sub-systems.  For example,
+the optimal unrolling and tiling factors for a given loop depend on
+features of the underlying memory hierarchy.  Empirical trials provide
+an evidence-based alternative to model-based approaches that would
+otherwise require manual analysis of cache levels, sizes,
+associativity, input data sizes, etc.
+
+Additionally, auto-tuning can also be useful if exported to Chapel
+users.  Such a feature would free users to focus on the algorithmic
+details of their program.  Optimization considerations can be dealt
+with later when full system information is available.
+
+On-line vs. Off-line Auto-tuning
+--------------------------------
+
+Specifically, I am advocating for online auto-tuning, where empirical
+testing occurs during the actual program run.  Traditionally,
+auto-tuning is an offline technique that uses training runs to search
+for optimal parameter values in preparation for the actual program
+run.  However, preparatory runs require representative input data
+sets, which is unreasonable to request of a compiler for arbitrary
+programs.
+
+An online approach circumvents these problems by always testing with
+real data during an actual run.
+
+
+Chapel-Level Tuning Interface
+=============================
+
+A key goal of this proposal is a simple and intuitive user interface.
+To this end, I propose a single additional function that expresses all
+necessary properties for tuning.  The following is an example of the
+function in its simplest form:
+
+.. code-block:: chapel
+
+   use Tuner;
+
+   // tune() returns an auto-tuner selected value from the given range.
+   var bufferSize = tune(16..16384 by 16, initVal=4096);
+
+In general, wall-time auto-tuners must know three things before they
+may begin:
+
+1) **What** to tune - the data/variables that the auto-tuner may
+   modify without affecting the program's functional correctness.
+
+   Such tuning variables may be inferred from the distinct [1]_ call
+   sites of ``tune()``.  They implicitly indicate a request for a new
+   decision to be made on behalf of the user.
+
+2) **Where** to tune - the locations in code where the auto-tuner may
+   safely update tuning variables.
+
+   Tuning locations may also be inferred from the distinct call sites
+   of ``tune()``.  A user implicitly indicates that the call site is a
+   safe location to update a variable through the assignment of the
+   return value.
+
+3) **How** to tune - the valid range of values each tuning variable
+   may have.
+
+   Value ranges are explicitly passed as a parameter to ``tune()``.
+
+Technically, auto-tuners also need to know **why** they are tuning;
+meaning they must know which performance metric determines why one
+choice is better than another.  Minimizing wall-time is the only
+metric I'm concerned with for now.  This will likely be extended in
+the future.
+
+.. [1] The current implementation identifies tuning variables via the
+       source file name and line number of ``tune()`` function call
+       sites.  This prevents code structures like the following:
+
+       .. code-block:: chapel
+
+          // The following line produces errant behavior.
+          var x = tune(1..100, initVal=10), y = tune(-5..5, initVal=0);
+
+       Using call site AST IDs instead would be better, but isn't
+       currently available as a compiler primitive.
+
+Work-loop Tuning
+----------------
+
+Tuning the work loops of scientific computing applications is the
+primary use-case for this feature.  These programs tend to have a
+major loop that is responsible for a large percentage of the total
+program execution time, referred to as the **work loop**.
+
+The space between work loop iterations (or sets of iterations) becomes
+a natural location for performance measurement and tuning variable
+modification.  From the tuner's perspective, a loop begins and ends
+when the first defined variable is requested again.
+
+As a concrete example, consider the following Chapel pseudo-code:
+
+.. code-block:: chapel
+
+   // Include Tuning support for this program.
+   use Tuner;
+
+   // The following loop contains two tuning variables:
+   // xLength and yLength (determined by file name and line number).
+   while (!done) {
+
+     // Because x_size is the first tuning value requested,
+     // it becomes the inferred tuning loop head/tail.
+     var xLength = tune(16..128 by 8, initVal=64);
+     var yLength = tune(32..256 by 8, initVal=128);
+
+     // Make a 2D stencil domain based on tuned values,
+     //   and use it to multiply A and B matrices.
+     var tile = {0..xLength, 0..yLength};
+     C = tiledMatrixMultiply(A, B, tile);
+   }
+
+Tuning a Data Parallel Loop
+---------------------------
+
+The behavior of the ``tune()`` function inside a data parallel loop
+deserves discussion.  Nothing precludes it from an auto-tuning
+standpoint; all the tuner requires in this situation is a parallel
+search algorithm, of which several exist.  However, the resulting
+behavior would unlikely be what the user actually wants.
+
+Tuning within a data parallel loop involves parallel tasks testing
+distinct tuning values from one another at the same time.  Tuning
+variables tend to represent metadata that is common to the specific
+tuning location.  For instance, functional correctness would be
+affected if the iterations of a parallel loop each used a different
+data distribution size.  Tuning a data parallel loop is akin to
+parallelizing the auto-tuning search.  Few tuning parameters come to
+mind that would support this sort of modification.
+
+Ultimately, while there are feasible applications for this
+sort of tuning, they are few and far between.  For this reason, it
+seems like the best approach is to disallow the ``tune()`` function
+within parallel loops similar to the break [2]_ or return statements.
+
+.. [2] I do not know if there exists a method within the Chapel
+       compiler to request a compiler error when a given function is
+       part of a forall loop.
+
+Inter-node Tuning
+-----------------
+
+I have yet to investigate the possible tuning knobs for inter-node
+optimization, or how such a system would operate.  We consider this
+work to be firmly in the realm of future work.
+
+Whole-program Tuning
+--------------------
+
+The ``tune()`` function could also be used outside of loops, given a
+scheme for persistently storing tuner data between program executions.
+A simple strategy might be to save a file in $HOME using a filename
+deterministically produced from a hash of the program binary.
+
+I have not yet considered the implementation challenges or
+repercussions of such a simple strategy.
+
+Multiple Tuning Sessions
+------------------------
+
+Auto-tuners are more efficient (converge at a greater rate) if
+mutually independent variables are tuned separately.  Our proposed
+interface function takes this into account:
+
+.. code-block:: chapel
+
+   // Include Tuning support for this program.
+   use Tuner;
+
+   // The following tuning variables control TCP transmission buffers.
+   // Since no session is specified, they are part the global tuning session.
+   var tcpSendBuffer = tune(16..16384 by 16, initVal=4096);
+   var tcpRecvBuffer = tune(16..16384 by 16, initVal=4096);
+
+   // The following tuning variables control how a loop is built.
+   // These are unlikely to affect (or be affected) by the variables above.
+   var tuneLoop = new TuningSession();
+   var loopTileSize = tune(16..128 by 8, initVal=64, session=tuneLoop);
+   var loopUnrollFactor = tune(1..16, initVal=1, session=tuneLoop);
+
+
+Third-Party Tuner Interface
+===========================
+
+I also propose a third-party tuner interface to allow for flexibility
+of underlying tuning implementation.  Inspiration for this design was
+taken from Chapel's ability to support multiple tasking packages.
+
+The CHPL_TUNER environment variable is used to control which tuner should be used, and is "none" by default.  The default empty tuner simply returns the initial value for invocations of ``tune()``.
+
+
+Discussion Questions and Future Work
+====================================
+
+- Is it possible to tune from deeper within Chapel?  For instance, can
+  this interface be used to tune Block.dataParTasksPerLocale or
+  Block.dataParMinGranularity at run-time?  If not, what is a better
+  interface?
