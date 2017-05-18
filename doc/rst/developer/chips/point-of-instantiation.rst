@@ -325,4 +325,4 @@ take in the functions they rely on that aren't necessarily visible at their
 definition point.  In that situation, we could also move to always using
 point-of-definition.
 
-.. _CHIP 2: <https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst>
+.. _2: <https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst>
