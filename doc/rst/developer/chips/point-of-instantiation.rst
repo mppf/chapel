@@ -13,7 +13,7 @@ Abstract
 --------
 
 This document discusses an approach to limit the point-of-instantiation
-rule and a describes a simple design for private scoping that can work
+rule and describes a simple design for private scoping that can work
 with that design.
 
 Rationale
@@ -168,7 +168,7 @@ Consider the following program:
   }
 
 This program compiles and runs with Chapel 1.15. The `x()` call in `DefineFoo`
-rresolves to the `proc x()` in `UseFoo`. But what would happen if `proc x()`
+resolves to the `proc x()` in `UseFoo`. But what would happen if `proc x()`
 were declared as private? Would the program be valid?
 
 .. code-block:: chapel
@@ -289,6 +289,7 @@ either:
     point of definiton)
  2. Use 'implements' clauses to explicitly provide the functions
     to the generic function - see CHIP #2.
+ 3. Require these dependencies as first-class function arguments.
 
 Implications
 ++++++++++++
@@ -305,10 +306,15 @@ Under this proposal, the existing caching strategy for generic
 instantiations is sufficient, because it's not possible to have more than
 one function.
 
-Potential Alternative
-+++++++++++++++++++++
+Potential Alternatives
+++++++++++++++++++++++
 
 Once CHIP #2 is implemented, we could move to always using
 point-of-definition and using 'implements' to pass around function
 requirements.
 
+If first-class functions support gets re-implemented, generic functions
+which today rely on point-of-instantiation would be able to explicitly
+take in the functions they rely on that aren't necessarily visible at their
+definition point.  In that situation, we could also move to always using
+point-of-definition.
