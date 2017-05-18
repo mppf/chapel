@@ -140,10 +140,9 @@ Why does public/private interact with point-of-instantiation?
 In this example, should the `sort` call be able to find the `<` routine?
 Certainly the instantiation of `sort` should have access to any private symbols
 in the Sort module. One might argue that it additionally should have access to
-private symbols from the call site, especially since it came from a `private
-use`. However, enabling such access would mean that instantiations can use
-private symbols from the point of instantiation, which causes new problems as
-discussed below.
+private symbols from the call site. However, enabling such access would mean
+that instantiations can use private symbols from the point of instantiation,
+which causes new problems as discussed below.
 
 Consider the following program:
 
@@ -200,6 +199,13 @@ x()` should be valid.  The main drawback to interpreting the
 point-of-instantiation rule in that manner is that `private proc x()` would no
 longer make `x` actually private; it could be called from any generic function
 called from the module in which it is declared.
+
+This is not a problem if the caller was aware that `foo` would rely on its
+private functions, but having this reliance depend on function calls is very
+subtle - if the writer of the function wanted to depend on outside functions, it
+is best to specify that dependency explicitly as part of `foo`s declaration,
+either via an interface requirement (see CHIP #2) or by taking the function it
+relies upon in as a first-class function argument.
 
 Function Hijacking
 ------------------
