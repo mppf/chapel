@@ -25,13 +25,13 @@ several implications. Having functions from the call site available to
 the generic instantiation is known as a "point of instantiation" rule.
 
 A decision must be reached on this area of the language design in order
-to make progress with `private use` or to improve the function resolution
+to make progress with ``private use`` or to improve the function resolution
 phase of the compiler.
 
 Description
 -----------
 
-Consider a program that uses the `Sort` module. One would like to be able
+Consider a program that uses the ``Sort`` module. One would like to be able
 to provide a sorting function that can be called. For example:
 
 .. code-block:: chapel
@@ -52,11 +52,11 @@ to provide a sorting function that can be called. For example:
     sort(A); // programmer indends it to call < declared above
   }
  
-However, the `<` function declared in Test is not visible to the definition
-point of `proc sort`. In order to enable patterns like this, the generic
+However, the ``<`` function declared in Test is not visible to the definition
+point of ``proc sort``. In order to enable patterns like this, the generic
 instantiation process uses a *point of instantiation* rule in which the generic
-instantiation of `sort` can use symbols available only at the call site. That
-enables the `<` function to be found and resolved.
+instantiation of ``sort`` can use symbols available only at the call site. That
+enables the ``<`` function to be found and resolved.
 
 Problems in the Implementation
 ------------------------------
@@ -137,9 +137,9 @@ Why does public/private interact with point-of-instantiation?
     sort(A); // programmer indends it to call < declared above
   }
 
-In this example, should the `sort` call be able to find the `<` routine?
-Certainly the instantiation of `sort` should have access to any private symbols
-in the `Sort` module. One might argue that it additionally should have access to
+In this example, should the ``sort`` call be able to find the ``<`` routine?
+Certainly the instantiation of ``sort`` should have access to any private symbols
+in the ``Sort`` module. One might argue that it additionally should have access to
 private symbols from the call site. However, enabling such access would mean
 that instantiations can use private symbols from the point of instantiation,
 which causes new problems as discussed below.
@@ -166,8 +166,8 @@ Consider the following program:
     }
   }
 
-This program compiles and runs with Chapel 1.15. The `x()` call in `DefineFoo`
-resolves to the `proc x()` in `UseFoo`. But what would happen if `proc x()`
+This program compiles and runs with Chapel 1.15. The ``x()`` call in ``DefineFoo``
+resolves to the ``proc x()`` in ``UseFoo``. But what would happen if ``proc x()``
 were declared as private? Would the program be valid?
 
 .. code-block:: chapel
@@ -191,19 +191,19 @@ were declared as private? Would the program be valid?
   }
 
 
-In 1.15, it results in a compilation error. That might make sense: if `proc
-x()` is private, it is not visible outside of the module it is declared in. In
-particular, it is not visible in `DefineFoo`. However, one might interpret the
-point-of-instantiation rule as indicating that such a call to a `private proc
-x()` should be valid.  The main drawback to interpreting the
-point-of-instantiation rule in that manner is that `private proc x()` would no
-longer make `x` actually private; it could be called from any generic function
+In 1.15, it results in a compilation error. That might make sense: if ``proc
+x()`` is private, it is not visible outside of the module it is declared in. In
+particular, it is not visible in ``DefineFoo``. However, one might interpret the
+point-of-instantiation rule as indicating that such a call to a ``private proc
+x()`` should be valid.  The main drawback to interpreting the
+point-of-instantiation rule in that manner is that ``private proc x()`` would no
+longer make ``x`` actually private; it could be called from any generic function
 called from the module in which it is declared.
 
-This is not a problem if the caller was aware that `foo` would rely on its
+This is not a problem if the caller was aware that ``foo`` would rely on its
 private functions, but having this reliance depend on function calls is very
 subtle - if the writer of the function wanted to depend on outside functions, it
-is best to specify that dependency explicitly as part of `foo`s declaration,
+is best to specify that dependency explicitly as part of ``foo``s declaration,
 either via an interface requirement (see CHIP 2_) or by taking the function it
 relies upon in as a first-class function argument.
 
@@ -217,8 +217,8 @@ Another problem with the current design for generics in Chapel concerns the
 visibility of other functions from inside generic functions.
 
 Suppose that a library developer creates the following module in which the
-generic function named `print_hello_world` makes a call to another auxiliary
-generic function named `helper`.
+generic function named ``print_hello_world`` makes a call to another auxiliary
+generic function named ``helper``.
 
 .. code-block:: chapel
 
@@ -231,9 +231,9 @@ generic function named `helper`.
     }
   }
 
-Then suppose that an application programmer decides to use `M1` and writes
+Then suppose that an application programmer decides to use ``M1`` and writes
 the following code. It just so happens that somewhere in the application, there
-is another function named `helper`.
+is another function named ``helper``.
 
 
 .. code-block:: chapel
@@ -271,7 +271,7 @@ Specific Proposal
 
 As we have seen above, point-of-instantiation is problematic because:
  * it can result in surprising behavior
- * it interferes with improvements to `private`
+ * it interferes with improvements to ``private``
  * the implementation is challenging to build
 
 Here, we propose that the point-of-instantiation rule be limited to a
@@ -293,15 +293,15 @@ either:
 
  1. Meet the strict requirements above (e.g. public, none defined at
     point of definiton)
- 2. Use `implements` clauses to explicitly provide the functions
+ 2. Use ``implements`` clauses to explicitly provide the functions
     to the generic function - see CHIP 2_.
  3. Require these dependencies as first-class function arguments.
 
 Implications
 ++++++++++++
 
-The `<` function is still passable to the `Sort` module, including when
-multiple `<` functions are declared at different scopes at the point of
+The ``<`` function is still passable to the ``Sort`` module, including when
+multiple ``<`` functions are declared at different scopes at the point of
 instantiation.
 
 The caching strategy for generic instantiations would need to be improved
@@ -316,7 +316,7 @@ Potential Alternatives
 ++++++++++++++++++++++
 
 Once CHIP 2_ is implemented, we could move to always using
-point-of-definition and using `implements` to pass around function
+point-of-definition and using ``implements`` to pass around function
 requirements.
 
 If first-class functions support gets re-implemented, generic functions
@@ -325,4 +325,4 @@ take in the functions they rely on that aren't necessarily visible at their
 definition point.  In that situation, we could also move to always using
 point-of-definition.
 
-.. _CHIP 2: https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst
+.. _CHIP 2: <https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst>
