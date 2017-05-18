@@ -204,14 +204,14 @@ This is not a problem if the caller was aware that ``foo`` would rely on its
 private functions, but having this reliance depend on function calls is very
 subtle - if the writer of the function wanted to depend on outside functions, it
 is best to specify that dependency explicitly as part of ``foo``s declaration,
-either via an interface requirement (see CHIP 2_) or by taking the function it
+either via an interface requirement (see CHIP 2) or by taking the function it
 relies upon in as a first-class function argument.
 
 Function Hijacking
 ------------------
 
 The point-of-instantiation rule is also related to a *function hijacking*
-behavior that is described in this excerpt from CHIP 2_:
+behavior that is described in this excerpt from CHIP 2:
 
 Another problem with the current design for generics in Chapel concerns the
 visibility of other functions from inside generic functions.
@@ -294,7 +294,7 @@ either:
  1. Meet the strict requirements above (e.g. public, none defined at
     point of definiton)
  2. Use ``implements`` clauses to explicitly provide the functions
-    to the generic function - see CHIP 2_.
+    to the generic function - see CHIP 2.
  3. Require these dependencies as first-class function arguments.
 
 Implications
@@ -315,7 +315,7 @@ one function.
 Potential Alternatives
 ++++++++++++++++++++++
 
-Once CHIP 2_ is implemented, we could move to always using
+Once CHIP 2 is implemented, we could move to always using
 point-of-definition and using ``implements`` to pass around function
 requirements.
 
@@ -324,5 +324,3 @@ which today rely on point-of-instantiation would be able to explicitly
 take in the functions they rely on that aren't necessarily visible at their
 definition point.  In that situation, we could also move to always using
 point-of-definition.
-
-.. _2: <https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst>
