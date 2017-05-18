@@ -31,7 +31,7 @@ phase of the compiler.
 Description
 -----------
 
-Consider a program that uses the Sort module. One would like to be able
+Consider a program that uses the `Sort` module. One would like to be able
 to provide a sorting function that can be called. For example:
 
 .. code-block:: chapel
@@ -139,7 +139,7 @@ Why does public/private interact with point-of-instantiation?
 
 In this example, should the `sort` call be able to find the `<` routine?
 Certainly the instantiation of `sort` should have access to any private symbols
-in the Sort module. One might argue that it additionally should have access to
+in the `Sort` module. One might argue that it additionally should have access to
 private symbols from the call site. However, enabling such access would mean
 that instantiations can use private symbols from the point of instantiation,
 which causes new problems as discussed below.
@@ -204,21 +204,21 @@ This is not a problem if the caller was aware that `foo` would rely on its
 private functions, but having this reliance depend on function calls is very
 subtle - if the writer of the function wanted to depend on outside functions, it
 is best to specify that dependency explicitly as part of `foo`s declaration,
-either via an interface requirement (see CHIP #2) or by taking the function it
+either via an interface requirement (see CHIP 2_) or by taking the function it
 relies upon in as a first-class function argument.
 
 Function Hijacking
 ------------------
 
 The point-of-instantiation rule is also related to a *function hijacking*
-behavior that is described in this excerpt from CHIP 2:
+behavior that is described in this excerpt from CHIP 2_:
 
 Another problem with the current design for generics in Chapel concerns the
 visibility of other functions from inside generic functions.
 
 Suppose that a library developer creates the following module in which the
-generic function named ``print_hello_world`` makes a call to another auxiliary
-generic function named ``helper``.
+generic function named `print_hello_world` makes a call to another auxiliary
+generic function named `helper`.
 
 .. code-block:: chapel
 
@@ -231,9 +231,9 @@ generic function named ``helper``.
     }
   }
 
-Then suppose that an application programmer decides to use ``M1`` and writes
+Then suppose that an application programmer decides to use `M1` and writes
 the following code. It just so happens that somewhere in the application, there
-is another function named ``helper``.
+is another function named `helper`.
 
 
 .. code-block:: chapel
@@ -293,8 +293,8 @@ either:
 
  1. Meet the strict requirements above (e.g. public, none defined at
     point of definiton)
- 2. Use 'implements' clauses to explicitly provide the functions
-    to the generic function - see CHIP #2.
+ 2. Use `implements` clauses to explicitly provide the functions
+    to the generic function - see CHIP 2_.
  3. Require these dependencies as first-class function arguments.
 
 Implications
@@ -315,8 +315,8 @@ one function.
 Potential Alternatives
 ++++++++++++++++++++++
 
-Once CHIP #2 is implemented, we could move to always using
-point-of-definition and using 'implements' to pass around function
+Once CHIP 2_ is implemented, we could move to always using
+point-of-definition and using `implements` to pass around function
 requirements.
 
 If first-class functions support gets re-implemented, generic functions
@@ -324,3 +324,5 @@ which today rely on point-of-instantiation would be able to explicitly
 take in the functions they rely on that aren't necessarily visible at their
 definition point.  In that situation, we could also move to always using
 point-of-definition.
+
+.. _CHIP 2: https://github.com/chapel-lang/chapel/blob/master/doc/rst/developer/chips/2.rst
