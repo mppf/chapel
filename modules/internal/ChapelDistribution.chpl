@@ -122,23 +122,28 @@ module ChapelDistribution {
       _domsLock.clear();
     }
 
+    pragma "last resort"
     proc dsiNewRectangularDom(param rank: int, type idxType, param stridable: bool, inds) {
       compilerError("rectangular domains not supported by this distribution");
     }
 
+    pragma "last resort"
     proc dsiNewAssociativeDom(type idxType, param parSafe: bool) {
       compilerError("associative domains not supported by this distribution");
     }
 
+    pragma "last resort"
     proc dsiNewAssociativeDom(type idxType, param parSafe: bool)
     where isEnumType(idxType) {
       compilerError("enumerated domains not supported by this distribution");
     }
 
+    pragma "last resort"
     proc dsiNewOpaqueDom(type idxType, param parSafe: bool) {
       compilerError("opaque domains not supported by this distribution");
     }
 
+    pragma "last resort"
     proc dsiNewSparseDom(param rank: int, type idxType, dom: domain) {
       compilerError("sparse domains not supported by this distribution");
     }

@@ -95,6 +95,7 @@ module ChapelIteratorSupport {
   }
 
   pragma "suppress lvalue error"
+  pragma "last resort"
   inline proc _getIterator(x) {
     return _getIterator(x.these());
   }
