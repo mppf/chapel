@@ -619,6 +619,7 @@ module ChapelDistribution {
       halt("clear not implemented for this distribution");
     }
 
+    pragma "last resort"
     proc dsiAdd(idx) {
       compilerError("Index addition is not supported by this domain");
       return 0;
