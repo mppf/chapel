@@ -3525,6 +3525,14 @@ static int compareSpecificity(ResolutionCandidate*         candidate1,
     prefer1 = !DS.fn1Promotes;
     prefer2 = !DS.fn2Promotes;
 
+  } else if (isMoreVisible(DC.scope, candidate1->fn, candidate2->fn)) {
+    EXPLAIN("\nQ: preferring more visible function\n");
+    prefer1 = true;
+
+  } else if (isMoreVisible(DC.scope, candidate2->fn, candidate1->fn)) {
+    EXPLAIN("\nR: preferring more visible function\n");
+    prefer2 = true;
+
   } else if (DS.fn1MoreSpecific != DS.fn2MoreSpecific) {
     EXPLAIN("\nP1: only one more specific argument mapping\n");
 
