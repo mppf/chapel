@@ -275,8 +275,6 @@ static void resolveSpecifiedReturnType(FnSymbol* fn) {
       fn->retType = retType;
     }
 
-    fn->retExprType->remove();
-
     if (fn->isIterator() == true && fn->iteratorInfo == NULL) {
       // Note: protoIteratorClass changes fn->retType to the iterator record.
       // The original return type is stored here in retType.
