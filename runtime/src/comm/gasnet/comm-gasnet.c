@@ -759,9 +759,9 @@ static void set_max_segsize() {
     return;
   }
 
-  // If GASNET_NEEDS_MAX_SEGSIZE is defined then we have to have
-  // GASNET_MAX_SEGSIZE set.  Otherwise, we don't.
-#ifdef GASNET_NEEDS_MAX_SEGSIZE
+  // If segment is large or fast, we need to set GASNET_MAX_SEGSIZE.
+  // Note: this used to be ifdef GASNET_NEEDS_MAX_SEGSIZE
+#if defined(GASNET_SEGMENT_FAST) || defined(GASNET_SEGMENT_LARGE)
   if (getenv("GASNET_MAX_SEGSIZE")) {
     return;
   }
