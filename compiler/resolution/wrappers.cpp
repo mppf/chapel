@@ -1516,6 +1516,9 @@ static void addArgCoercion(FnSymbol*  fn,
     checkAgain = true;
     castCall   = new CallExpr("readFE", gMethodToken, prevActual);
 
+    if (argumentCanModifyActual(formal))
+      issueErrorValueTemporaryToRef(call, formal);
+
   } else if (isSingleType(ats->getValType()) == true) {
     checkAgain = true;
 
