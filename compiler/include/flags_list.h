@@ -244,6 +244,7 @@ symbolFlag( FLAG_ON , npr, "on" , ncm )
 symbolFlag( FLAG_ON_BLOCK , npr, "on block" , ncm )
 
 symbolFlag( FLAG_OWNED , ypr, "owned", "owned class instance for lifetime checking" )
+symbolFlag( FLAG_OWNED_RECORD , ypr, "Owned record" , ncm )
 
 symbolFlag( FLAG_PARAM , npr, "param" , "parameter (compile-time constant)" )
 
