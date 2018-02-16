@@ -101,10 +101,7 @@ module OwnedObject {
   pragma "no copy"
   pragma "copy mutates"
   pragma "managed pointer"
-<<<<<<< HEAD
   pragma "Owned record"
-=======
->>>>>>> Start to add support for Owned(Child)->Owned(Parent)
   record Owned {
     pragma "no doc"
     type t;                // contained type (class type)
