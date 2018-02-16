@@ -1289,6 +1289,10 @@ module ChapelBase {
       chpl__delete(a);
   }
 
+  proc chpl__delete(ref arg) where arg:Owned {
+    arg.clear();
+  }
+
   // report an error when 'delete' is inappropriate
   proc chpl__delete(arg) {
     if isRecord(arg) then
