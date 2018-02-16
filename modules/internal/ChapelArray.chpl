@@ -859,6 +859,11 @@ module ChapelArray {
     return _newDistribution(x);
   }
 
+  proc chpl__buildDistValue(ref x) where x: Owned && x.t:BaseDist {
+    var rawptr = x.release();
+    return _newDistribution(rawptr);
+  }
+
   proc chpl__buildDistValue(x) {
     compilerError("illegal domain map value specifier - must be a subclass of BaseDist");
   }
