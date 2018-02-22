@@ -5734,7 +5734,7 @@ static void resolveNew(CallExpr* call) {
 
   INT_ASSERT(call->parentSymbol);
   Type* newType = call->typeInfo();
-  if (call->getModule()->modTag == MOD_USER && // TODO -- remove
+  if (fNewReturnsOwned &&
       isClass(newType) &&
       !isReferenceType(newType) &&
       !newType->symbol->hasFlag(FLAG_DATA_CLASS) &&

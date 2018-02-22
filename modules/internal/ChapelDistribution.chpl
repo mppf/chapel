@@ -368,7 +368,7 @@ module ChapelDistribution {
     param stridable: bool;
 
     proc getBaseArrType() type {
-      var tmp = new BaseArrOverRectangularDom(rank=rank, idxType=idxType, stridable=stridable);
+      var tmp = chpl__toraw(new BaseArrOverRectangularDom(rank=rank, idxType=idxType, stridable=stridable));
       return tmp.type;
     }
 

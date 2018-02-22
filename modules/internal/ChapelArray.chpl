@@ -339,6 +339,10 @@ module ChapelArray {
     else
       return new _array(nullPid, value);
   }
+  pragma "no copy return"
+  proc _newArray(ref value:Owned) {
+    return _newArray(chpl__toraw(value));
+  }
 
   pragma "no copy return"
   proc _getArray(value) {
@@ -346,6 +350,10 @@ module ChapelArray {
       return new _array(_newPrivatizedClass(value), value, _unowned=true);
     else
       return new _array(nullPid, value, _unowned=true);
+  }
+  pragma "no copy return"
+  proc _getArray(ref value:Owned) {
+    return _getArray(chpl__toraw(value));
   }
 
   pragma "unsafe"
@@ -355,6 +363,9 @@ module ChapelArray {
     else
       return new _domain(nullPid, value);
   }
+  proc _newDomain(ref value:Owned) {
+    return _newDomain(chpl__toraw(value));
+  }
 
   proc _getDomain(value) {
     if _isPrivatized(value) then
@@ -362,6 +373,10 @@ module ChapelArray {
     else
       return new _domain(nullPid, value, _unowned=true);
   }
+  proc _getDomain(ref value:Owned) {
+    return _getDomain(chpl__toraw(value));
+  }
+
 
   pragma "unsafe" // value assumed to be borrow but it's ownership xfer
   proc _newDistribution(value) {
@@ -370,6 +385,9 @@ module ChapelArray {
     else
       return new _distribution(nullPid, value);
   }
+  proc _newDistribution(ref value:Owned) {
+    return _newDistribution(chpl__toraw(value));
+  }
 
   proc _getDistribution(value) {
     if _isPrivatized(value) then
@@ -377,6 +395,10 @@ module ChapelArray {
     else
       return new _distribution(nullPid, value, _unowned=true);
   }
+  proc _getDistribution(ref value:Owned) {
+    return _getDistribution(chpl__toraw(value));
+  }
+
 
   // Run-time type support
   //
@@ -4047,6 +4069,7 @@ module ChapelArray {
   //
 
   pragma "init copy fn"
+  pragma "suppress lvalue error"
   proc chpl__initCopy(ir: _iteratorRecord) {
 
     // We'd like to know the yielded type of the record, but we can't

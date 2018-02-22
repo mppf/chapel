@@ -75,42 +75,42 @@ class SystemError : Error {
   */
   proc type fromSyserr(err: syserr, details: string = "") {
     if err == EAGAIN || err == EALREADY || err == EWOULDBLOCK || err == EINPROGRESS {
-      return new BlockingIOError(details, err);
+      return chpl__toraw(new BlockingIOError(details, err));
     } else if err == ECHILD {
-      return new ChildProcessError(details, err);
+      return chpl__toraw(new ChildProcessError(details, err));
     } else if err == EPIPE || err == ESHUTDOWN {
-      return new BrokenPipeError(details, err);
+      return chpl__toraw(new BrokenPipeError(details, err));
     } else if err == ECONNABORTED {
-      return new ConnectionAbortedError(details, err);
+      return chpl__toraw(new ConnectionAbortedError(details, err));
     } else if err == ECONNREFUSED {
-      return new ConnectionRefusedError(details, err);
+      return chpl__toraw(new ConnectionRefusedError(details, err));
     } else if err == ECONNRESET {
-      return new ConnectionResetError(details, err);
+      return chpl__toraw(new ConnectionResetError(details, err));
     } else if err == EEXIST {
-      return new FileExistsError(details, err);
+      return chpl__toraw(new FileExistsError(details, err));
     } else if err == ENOENT {
-      return new FileNotFoundError(details, err);
+      return chpl__toraw(new FileNotFoundError(details, err));
     } else if err == EINTR {
-      return new InterruptedError(details, err);
+      return chpl__toraw(new InterruptedError(details, err));
     } else if err == EISDIR {
-      return new IsADirectoryError(details, err);
+      return chpl__toraw(new IsADirectoryError(details, err));
     } else if err == ENOTDIR {
-      return new NotADirectoryError(details, err);
+      return chpl__toraw(new NotADirectoryError(details, err));
     } else if err == EACCES || err == EPERM {
-      return new PermissionError(details, err);
+      return chpl__toraw(new PermissionError(details, err));
     } else if err == ESRCH {
-      return new ProcessLookupError(details, err);
+      return chpl__toraw(new ProcessLookupError(details, err));
     } else if err == ETIMEDOUT {
-      return new TimeoutError(details, err);
+      return chpl__toraw(new TimeoutError(details, err));
     } else if err == EEOF {
-      return new EOFError(details, err);
+      return chpl__toraw(new EOFError(details, err));
     } else if err == ESHORT {
-      return new UnexpectedEOFError(details, err);
+      return chpl__toraw(new UnexpectedEOFError(details, err));
     } else if err == EFORMAT {
-      return new BadFormatError(details, err);
+      return chpl__toraw(new BadFormatError(details, err));
     }
 
-    return new SystemError(err, details);
+    return chpl__toraw(new SystemError(err, details));
   }
 
   /*

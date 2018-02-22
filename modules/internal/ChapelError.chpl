@@ -350,7 +350,7 @@ module ChapelError {
   proc chpl_fix_thrown_error(err: Error): Error {
     var fixErr: Error = err;
     if fixErr == nil then
-      fixErr = new NilThrownError();
+      fixErr = chpl__toraw(new NilThrownError());
 
     const line = __primitive("_get_user_line");
     const fileId = __primitive("_get_user_file");
@@ -408,7 +408,7 @@ module ChapelError {
     if err:TaskErrors then
       return err;
     // If err wasn't a taskError, wrap it in one
-    return new TaskErrors(err);
+    return chpl__toraw(new TaskErrors(err));
   }
 
   // The compiler generates functions to cast from strings to enums. This
