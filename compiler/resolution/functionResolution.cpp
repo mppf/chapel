@@ -5761,10 +5761,13 @@ static void resolveNew(CallExpr* call) {
           } else if (CallExpr* parentCall = toCallExpr(se->parentExpr)) {
             if (parentCall->isNamed("chpl__toraw") ||
                 parentCall->isNamed("chpl__buildDistValue") ||
-                parentCall->isNamed("chpl_fix_thrown_error"))
+                parentCall->isNamed("chpl_fix_thrown_error")) {
               ; // OK
-            else {
-              USR_WARN(call, "new in standard module will be unstable\n"
+            } else if (parentCall->isPrimitive(PRIM_NEW) &&
+                       parentCall->get(1)->typeInfo()->symbol->hasFlag(FLAG_MANAGED_POINTER)) {
+              ; // OK e.g. new Owned(new MyClass())
+            } else {
+              USR_WARN(call, "new in standard module is be unstable - "
                              "wrap in chpl__toraw or new Owned");
             }
           }
