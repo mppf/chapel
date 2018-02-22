@@ -5734,38 +5734,72 @@ static void resolveNew(CallExpr* call) {
 
   INT_ASSERT(call->parentSymbol);
   Type* newType = call->typeInfo();
-  if (fNewReturnsOwned &&
-      isClass(newType) &&
+  if (isClass(newType) &&
       !isReferenceType(newType) &&
       !newType->symbol->hasFlag(FLAG_DATA_CLASS) &&
       !newType->symbol->hasFlag(FLAG_NO_OBJECT) &&
       !newType->symbol->hasFlag(FLAG_NO_DEFAULT_FUNCTIONS)) {
-    // Change 'new SomeClass()' into 'new Owned(new SomeClass())'
 
-    // Un-set the type for the LHS
-    // This is set during normalization in many cases.
-    // It would be better not to set it during normalization in any case.
-    if (CallExpr* parentCall = toCallExpr(call->parentExpr))
-      if (parentCall->isPrimitive(PRIM_MOVE) ||
-          parentCall->isPrimitive(PRIM_ASSIGN))
-        if (SymExpr* lhsSe = toSymExpr(parentCall->get(1)))
-          lhsSe->symbol()->type = dtUnknown;
+    // Check that internal/standard modules use 'new' in a
+    // stable way, transitionally. This check can be removed
+    // once fNewReturnsOwned is the default.
+    if (call->getModule()->modTag == MOD_INTERNAL ||
+        call->getModule()->modTag == MOD_STANDARD) {
+      SymExpr* checkSe = NULL;
+      if (CallExpr* parentCall = toCallExpr(call->parentExpr))
+        if (parentCall->isPrimitive(PRIM_MOVE) ||
+            parentCall->isPrimitive(PRIM_ASSIGN))
+          if (SymExpr* lhsSe = toSymExpr(parentCall->get(1)))
+            checkSe = lhsSe;
 
-    VarSymbol* tmp = newTemp();
-    DefExpr* def = new DefExpr(tmp);
-    CallExpr* set = new CallExpr(PRIM_MOVE, tmp); // add 2nd arg in a moment
-    CallExpr* makeOwned = new CallExpr(PRIM_NEW, dtOwned->symbol, tmp);
-    call->getStmtExpr()->insertBefore(def);
-    call->getStmtExpr()->insertBefore(set);
-    call->replace(makeOwned);
+      if (checkSe) {
+        for_SymbolSymExprs(se, checkSe->symbol()) {
+          // Check that 'new' was used either in
+          // chpl__unref or in an initialization of Owned/Shared/etc.
+          if (se == checkSe) {
+            ; // OK
+          } else if (CallExpr* parentCall = toCallExpr(se->parentExpr)) {
+            if (parentCall->isNamed("chpl__toraw") ||
+                parentCall->isNamed("chpl__buildDistValue") ||
+                parentCall->isNamed("chpl_fix_thrown_error"))
+              ; // OK
+            else {
+              USR_WARN(call, "new in standard module will be unstable\n"
+                             "wrap in chpl__toraw or new Owned");
+            }
+          }
+        }
+      }
+    }
 
-    // Now add the _new call to the 2nd arg of the PRIM_MOVE we added above
-    set->insertAtTail(call);
 
-    // Now resolve it.
-    resolveCall(set);
-    resolveCall(makeOwned);
+    if (fNewReturnsOwned) {
+      // Change 'new SomeClass()' into 'new Owned(new SomeClass())'
 
+      // Un-set the type for the LHS
+      // This is set during normalization in many cases.
+      // It would be better not to set it during normalization in any case.
+      if (CallExpr* parentCall = toCallExpr(call->parentExpr))
+        if (parentCall->isPrimitive(PRIM_MOVE) ||
+            parentCall->isPrimitive(PRIM_ASSIGN))
+          if (SymExpr* lhsSe = toSymExpr(parentCall->get(1)))
+            lhsSe->symbol()->type = dtUnknown;
+
+      VarSymbol* tmp = newTemp();
+      DefExpr* def = new DefExpr(tmp);
+      CallExpr* set = new CallExpr(PRIM_MOVE, tmp); // add 2nd arg in a moment
+      CallExpr* makeOwned = new CallExpr(PRIM_NEW, dtOwned->symbol, tmp);
+      call->getStmtExpr()->insertBefore(def);
+      call->getStmtExpr()->insertBefore(set);
+      call->replace(makeOwned);
+
+      // Now add the _new call to the 2nd arg of the PRIM_MOVE we added above
+      set->insertAtTail(call);
+
+      // Now resolve it.
+      resolveCall(set);
+      resolveCall(makeOwned);
+    }
   }
 }
 
