@@ -5760,6 +5760,7 @@ static void resolveNew(CallExpr* call) {
             ; // OK
           } else if (CallExpr* parentCall = toCallExpr(se->parentExpr)) {
             if (parentCall->isNamed("chpl__toraw") ||
+                parentCall->isNamed("chpl__delete") ||
                 parentCall->isNamed("chpl__buildDistValue") ||
                 parentCall->isNamed("chpl_fix_thrown_error")) {
               ; // OK
