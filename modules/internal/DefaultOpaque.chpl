@@ -71,7 +71,7 @@ module DefaultOpaque {
   
     proc DefaultOpaqueDom(dist: DefaultDist, param parSafe: bool) {
       this.dist = dist;
-      adomain = new DefaultAssociativeDom(_OpaqueIndex, dist, parSafe=parSafe);
+      adomain = chpl__toraw(new DefaultAssociativeDom(_OpaqueIndex, dist, parSafe=parSafe));
     }
   
     proc deinit() {
@@ -132,7 +132,7 @@ module DefaultOpaque {
     }
   
     proc dsiBuildArray(type eltType) {
-      var ia = new DefaultOpaqueArr(eltType=eltType, idxType=idxType, parSafe=parSafe, dom=this);
+      var ia = chpl__toraw(new DefaultOpaqueArr(eltType=eltType, idxType=idxType, parSafe=parSafe, dom=this));
       return ia;
     }
   }
@@ -159,8 +159,7 @@ module DefaultOpaque {
     param parSafe: bool;
   
     var dom: DefaultOpaqueDom(idxType=idxType, parSafe=parSafe);
-    var anarray = new DefaultAssociativeArr(eltType=eltType, idxType=idxType,
-                                            parSafeDom=parSafe, dom=dom.adomain);
+    var anarray = chpl__toraw(new DefaultAssociativeArr(eltType=eltType, idxType=idxType, parSafeDom=parSafe, dom=dom.adomain));
   
     proc deinit() {
       delete anarray;
