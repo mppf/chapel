@@ -1299,12 +1299,6 @@ module ChapelBase {
       chpl__delete(a);
   }
 
-  // TODO: disallow 'delete' on not-var-Owned
-  pragma "suppress lvalue error"
-  proc chpl__delete(const ref arg) where arg:Owned {
-    arg.clear();
-  }
-
   // report an error when 'delete' is inappropriate
   proc chpl__delete(arg) {
     if isRecord(arg) then
