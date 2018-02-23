@@ -1226,7 +1226,7 @@ module ChapelBase {
   pragma "compiler generated"
   pragma "last resort"
   pragma "auto destroy fn"
-  inline proc chpl__autoDestroy(x: object) { }
+  inline proc chpl__autoDestroy(x: ?t) where t:object { }
 
   pragma "compiler generated"
   pragma "last resort"
