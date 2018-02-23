@@ -5758,7 +5758,7 @@ static void resolveNew(CallExpr* call) {
                        parentCall->get(1)->typeInfo()->symbol->hasFlag(FLAG_MANAGED_POINTER)) {
               ; // OK e.g. new Owned(new MyClass())
             } else {
-              USR_WARN(call, "new in standard module is be unstable - "
+              USR_WARN(call, "new in standard module is unstable - "
                              "wrap in chpl__toraw or new Owned");
             }
           }
