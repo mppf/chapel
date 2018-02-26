@@ -1223,12 +1223,15 @@ module ChapelBase {
   // Uses this spelling to be a peer to the below version
   // (otherwise the below version won't be used if t coerces to object)
   inline proc chpl__maybeAutoDestroyed(x: ?t) param where t:object return false;
+  //inline proc chpl__maybeAutoDestroyed(x: object) param return false;
   inline proc chpl__maybeAutoDestroyed(x) param return true;
 
   pragma "compiler generated"
   pragma "last resort"
   pragma "auto destroy fn"
-  inline proc chpl__autoDestroy(x: ?t) where t:object { }
+  // this version is failing
+  //inline proc chpl__autoDestroy(x: ?t) where t:object { }
+  inline proc chpl__autoDestroy(x: object) { }
 
   pragma "compiler generated"
   pragma "last resort"
@@ -1239,7 +1242,11 @@ module ChapelBase {
   pragma "last resort"
   pragma "auto destroy fn"
   inline proc chpl__autoDestroy(x: ?t) {
-    __primitive("call destructor", x);
+    // this version is failing
+    //if isClassType(t) then
+    //  compilerError("X");
+    //else
+      __primitive("call destructor", x);
   }
   pragma "auto destroy fn"
   inline proc chpl__autoDestroy(ir: _iteratorRecord) {
