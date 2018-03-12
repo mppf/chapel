@@ -101,7 +101,6 @@ module OwnedObject {
   pragma "no copy"
   pragma "copy mutates"
   pragma "managed pointer"
-  pragma "Owned record"
   record Owned {
     pragma "no doc"
     type t;                // contained type (class type)

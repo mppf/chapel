@@ -592,16 +592,6 @@ Type* getConcreteParentForGenericFormal(Type* actualType, Type* formalType) {
         break;
       }
     }
-
-    if (retval == NULL) {
-      // Handle e.g. Owned(GenericClass) passed to a formal of type GenericClass
-      if (isManagedPtrType(at) && isClass(formalType)) {
-        Type* classType = actualType->getField("t")->type;
-        if (canInstantiate(classType, formalType)) {
-          retval = classType;
-        }
-      }
-    }
   }
 
   return retval;
