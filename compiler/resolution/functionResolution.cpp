@@ -5747,19 +5747,20 @@ static void resolveNew(CallExpr* call) {
           // Check that 'new' was used either in
           // chpl__unref or in an initialization of Owned/Shared/etc.
           if (se == checkSe) {
-            ; // OK
+            // OK
           } else if (CallExpr* parentCall = toCallExpr(se->parentExpr)) {
             if (parentCall->isNamed("chpl__toraw") ||
                 parentCall->isNamed("chpl__delete") ||
                 parentCall->isNamed("chpl__buildDistValue") ||
                 parentCall->isNamed("chpl_fix_thrown_error")) {
-              ; // OK
+              // OK
             } else if (parentCall->isPrimitive(PRIM_NEW) &&
                        parentCall->get(1)->typeInfo()->symbol->hasFlag(FLAG_MANAGED_POINTER)) {
-              ; // OK e.g. new Owned(new MyClass())
+              // OK e.g. new Owned(new MyClass())
             } else {
-              USR_WARN(call, "new in standard module is unstable - "
-                             "wrap in chpl__toraw or new Owned");
+              // This checking is currently disabled.
+              //USR_WARN(call, "new in standard module is unstable - "
+              //               "wrap in chpl__toraw or new Owned");
             }
           }
         }
