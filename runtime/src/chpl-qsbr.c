@@ -438,64 +438,71 @@ static inline void give_deferred(struct tls_node *giver, struct tls_node *receiv
 }
 
 void chpl_qsbr_init(void) {
+  if (chpl_qsbr_enabled()) {
     CHPL_TLS_INIT(chpl_qsbr_tls);
+  }
 }
 
 void chpl_qsbr_unblocked(void) {
-  struct tls_node *tls = CHPL_TLS_GET(chpl_qsbr_tls);
-  assert(tls != NULL);
+  if (chpl_qsbr_enabled()) {
+    struct tls_node *tls = CHPL_TLS_GET(chpl_qsbr_tls);
+    assert(tls != NULL);
 
-  // Notify that we are now in-use.
-  unpark(tls);
+    // Notify that we are now in-use.
+    unpark(tls);
+  }
 }
 
 
 void chpl_qsbr_blocked(void) {
-  struct tls_node *tls = CHPL_TLS_GET(chpl_qsbr_tls);
+  if (chpl_qsbr_enabled()) {
+    struct tls_node *tls = CHPL_TLS_GET(chpl_qsbr_tls);
 
-  // Initialize TLS...
-  if (tls == NULL) {
-    chpl_qsbr_init_tls();
-    tls = CHPL_TLS_GET(chpl_qsbr_tls);
-  }
-
-  acquire_spinlock(tls, (uintptr_t) tls);
-  park(tls);
-
-  // Empty as best we can
-  if(tls->deferList != NULL) {
-    handle_deferred_data(tls);
-  }
-
-  // Check if fully emptied.
-  if (tls->deferList == NULL) {
-    release_spinlock(tls);
-    return;
-  }
-
-  // At this point if we have any deferred data, we must pass this to some
-  // other thread, as we could be parked indefinitely. Find first active
-  // thread to dump the rest of our work on...
-  struct tls_node *node = get_tls_list();
-  for (; node != NULL; node = node->next) {
-    if (node != tls && !is_parked(node)) {
-      // Double check...
-      acquire_spinlock(node, (uintptr_t) tls);
-      if (!is_parked(node)) {
-        give_deferred(tls, node);
-        release_spinlock(node);
-        release_spinlock(tls);
-        return;
-      }
-      release_spinlock(node);  
+    // Initialize TLS...
+    if (tls == NULL) {
+      chpl_qsbr_init_tls();
+      tls = CHPL_TLS_GET(chpl_qsbr_tls);
     }
+
+    acquire_spinlock(tls, (uintptr_t) tls);
+    park(tls);
+
+    // Empty as best we can
+    if(tls->deferList != NULL) {
+      handle_deferred_data(tls);
+    }
+
+    // Check if fully emptied.
+    if (tls->deferList == NULL) {
+      release_spinlock(tls);
+      return;
+    }
+
+    // At this point if we have any deferred data, we must pass this to some
+    // other thread, as we could be parked indefinitely. Find first active
+    // thread to dump the rest of our work on...
+    struct tls_node *node = get_tls_list();
+    for (; node != NULL; node = node->next) {
+      if (node != tls && !is_parked(node)) {
+        // Double check...
+        acquire_spinlock(node, (uintptr_t) tls);
+        if (!is_parked(node)) {
+          give_deferred(tls, node);
+          release_spinlock(node);
+          release_spinlock(tls);
+          return;
+        }
+        release_spinlock(node);
+      }
+    }
+    // all threads are finished so we should be able to safely handle our deferred data...
+    handle_deferred_data(tls);
+    release_spinlock(tls);
   }
-  // all threads are finished so we should be able to safely handle our deferred data...
-  handle_deferred_data(tls);
-  release_spinlock(tls);
 }
 
 void chpl_qsbr_checkpoint(void) {
+  if (chpl_qsbr_enabled()) {
     #if CHPL_QSBR_PROFILE
     atomic_fetch_add_uint_least64_t(&nCheckpoints, 1);
     #endif
@@ -515,7 +522,8 @@ void chpl_qsbr_checkpoint(void) {
       acquire_spinlock(tls, (uintptr_t) tls);
       handle_deferred_data(tls);
       release_spinlock(tls);
-    } 
+    }
+  }
 }
 
 static void _defer_deletion(void *data, int numData) {
@@ -545,11 +553,15 @@ static void _defer_deletion(void *data, int numData) {
 }
 
 void chpl_qsbr_defer_deletion(void *data) {
+  if (chpl_qsbr_enabled()) {
     _defer_deletion(data, 0);
+  }
 }
 
 void chpl_qsbr_defer_deletion_multi(void **arrData, int numData) {
+  if (chpl_qsbr_enabled()) {
     _defer_deletion(arrData, numData);
+  }
 }
 
 void chpl_qsbr_disable(void) {
