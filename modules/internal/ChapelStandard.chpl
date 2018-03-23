@@ -30,6 +30,7 @@ module ChapelStandard {
   use ChapelDebugPrint;
   use ChapelEnv;
   use ChapelBase;
+  use RawObject;
   use OwnedObject;
   use MemConsistency;
   use Atomics;

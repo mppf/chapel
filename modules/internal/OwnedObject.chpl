@@ -93,6 +93,8 @@
  */
 module OwnedObject {
 
+  use RawObject;
+
   /*
      :record:`Owned` manages the deletion of a class instance assuming
      that this :record:`Owned` is the only thing responsible for managing
@@ -172,9 +174,9 @@ module OwnedObject {
        If this record was already managing a non-nil instance,
        that instance will be deleted.
      */
-    proc ref retain(newPtr:p.type) {
+    proc ref retain(newPtr:Raw(p.type)) {
       var oldPtr = p;
-      p = newPtr;
+      p = newPtr.p;
       if oldPtr then
         delete oldPtr;
     }
@@ -183,10 +185,10 @@ module OwnedObject {
        Empty this :record:`Owned` so that it manages `nil`.
        Returns the instance previously managed by this :record:`Owned`.
      */
-    proc ref release():p.type {
+    proc ref release():Raw(p.type) {
       var oldPtr = p;
       p = nil;
-      return oldPtr;
+      return new Raw(oldPtr);
     }
 
     /*
