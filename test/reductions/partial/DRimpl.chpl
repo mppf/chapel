@@ -20,7 +20,8 @@ proc DefaultDist.dsiPartialReduce(const reduceOp, const resDimSpec,
     partRedCheckAndCreateResultDimensions(this, resDimSpec, srcArr, srcDims);
 
   var resArr: [resDom] srcArr.eltType = reduceOp.identity;
-  const resReduceOp = new (reduceOp.type)(eltType=resArr.type);
+  type alias = (reduceOp.type)(resArr.type);
+  const resReduceOp = new alias(eltType=resArr.type);
 
   forall (srcIdx, srcElm) in zip(srcDom, srcArr)
     with (resReduceOp reduce resArr)
