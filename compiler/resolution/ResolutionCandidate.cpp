@@ -265,8 +265,6 @@ bool ResolutionCandidate::computeAlignment(CallInfo& info) {
 *                                                                             *
 ************************************** | *************************************/
 
-static Type* getInstantiationType(Type* actualType, Type* formalType);
-
 static Type* getBasicInstantiationType(Type* actualType, Type* formalType);
 
 int ResolutionCandidate::computeSubstitutions() {
@@ -409,7 +407,7 @@ void ResolutionCandidate::computeSubstitution(ArgSymbol* formal) {
   }
 }
 
-static Type* getInstantiationType(Type* actualType, Type* formalType) {
+Type* getInstantiationType(Type* actualType, Type* formalType) {
   Type* ret = getBasicInstantiationType(actualType, formalType);
 
   // Now, if formalType is a generic parent type to actualType,
