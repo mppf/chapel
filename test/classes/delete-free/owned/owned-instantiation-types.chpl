@@ -66,10 +66,13 @@ proc const_in_class(const in x:MyClass) {
 }
 const_in_class(new owned MyClass());
 
+// compilation error
+/*
 proc ref_untyped(ref x) {
   writeln("ref_untyped ", x.type:string);
 }
 { var x = new owned MyClass(); ref_untyped(x); }
+*/
 
 proc ref_owned(ref x:owned) {
   writeln("ref_owned ", x.type:string);
@@ -82,10 +85,13 @@ proc ref_owned(ref x:owned) {
 }
 { var x = new owned MyClass(); ref_class(x); }*/
 
+// compilation error
+/*
 proc const_ref_untyped(const ref x) {
   writeln("const_ref_untyped ", x.type:string);
 }
 const_ref_untyped(new owned MyClass());
+*/
 
 proc const_ref_owned(const ref x:owned) {
   writeln("const_ref_owned ", x.type:string);

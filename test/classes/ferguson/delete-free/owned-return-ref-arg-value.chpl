@@ -7,7 +7,7 @@ class C {
   }
 }
 
-proc returnByValue(ref arg)
+proc returnByValue(ref arg:owned)
 {
   ref tmp = arg; // workaround for bug, see missing-auto-copy.chpl
   return tmp;

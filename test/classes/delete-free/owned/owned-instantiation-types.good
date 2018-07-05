@@ -10,9 +10,7 @@ in_class MyClass
 const_in_untyped MyClass
 const_in_owned _owned(MyClass)
 const_in_class MyClass
-ref_untyped _owned(MyClass)
 ref_owned _owned(MyClass)
-const_ref_untyped _owned(MyClass)
 const_ref_owned _owned(MyClass)
 
 =================================================================================================================

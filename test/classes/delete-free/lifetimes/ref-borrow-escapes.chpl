@@ -42,7 +42,7 @@ proc test1() {
   writeln(r);
 }
 
-proc bad(const ref r) const ref {
+proc bad(const ref r:owned) const ref {
   var b = r.borrow();
   return refIdentity(b);
 }

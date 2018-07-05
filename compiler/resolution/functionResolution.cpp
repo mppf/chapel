@@ -4101,10 +4101,7 @@ static void handleTaskIntentArgs(CallInfo& info, FnSymbol* taskFn) {
       if (isManagedPtrType(varActual->getValType()) &&
           (taskFn->hasFlag(FLAG_COBEGIN_OR_COFORALL) ||
            taskFn->hasFlag(FLAG_BEGIN)) &&
-          (//origFormalIntent == INTENT_IN ||
-           origFormalIntent == INTENT_CONST ||
-           //origFormalIntent == INTENT_CONST_IN ||
-           origFormalIntent == INTENT_BLANK)) {
+          (origFormalIntent != INTENT_TYPE)) {
         if (taskFn->hasFlag(FLAG_COBEGIN_OR_COFORALL))
           shouldCapture = true;
         formal->type = getManagedPtrBorrowType(varActual->getValType());

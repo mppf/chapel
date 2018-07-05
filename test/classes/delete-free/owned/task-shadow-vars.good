@@ -18,30 +18,30 @@ blank shared
   MyClass
 const ref owned
  coforall
-  _owned(MyClass)
-  _owned(MyClass)
-  _owned(MyClass)
-  _owned(MyClass)
+  MyClass
+  MyClass
+  MyClass
+  MyClass
 ref owned
  coforall
-  _owned(MyClass)
-  _owned(MyClass)
-  _owned(MyClass)
-  _owned(MyClass)
+  MyClass
+  MyClass
+  MyClass
+  MyClass
 blank begin
   MyClass
   MyClass
 const ref begin
-  _owned(MyClass)
-  _shared(MyClass)
+  MyClass
+  MyClass
 ref begin
-  _owned(MyClass)
-  _shared(MyClass)
+  MyClass
+  MyClass
 in begin
-  _owned(MyClass)
-  _shared(MyClass)
-nil
+  MyClass
+  MyClass
+{x = 1}
 const in begin
-  _owned(MyClass)
-  _shared(MyClass)
-nil
+  MyClass
+  MyClass
+{x = 1}
