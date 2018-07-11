@@ -37,6 +37,32 @@ module DefaultRectangular {
   config param defaultDisableLazyRADOpt = false;
   config param earlyShiftData = true;
 
+  proc polly_array_index(arguments:int ...):int {
+    param rank = (arguments.size - 1) / 2;
+    param blkStart = 2;
+    param blkEnd = 2 + rank - 1;
+    param indStart = blkEnd + 1;
+    param indEnd = indStart + rank - 1;
+    var offset = arguments(1);
+    var blk:rank*int;
+    var ind:rank*int;
+
+    for param i in 1..rank {
+      blk(i) = arguments(blkStart+i-1);
+    }
+
+    for param j in 1..rank {
+      ind(j) = arguments(indStart+j-1);
+    }
+
+    var ret:int = offset;
+    for param i in 1..rank {
+      ret += ind(i) * blk(i);
+    }
+
+    return ret;
+  }
+
   pragma "use default init"
   class DefaultDist: BaseDist {
     override proc dsiNewRectangularDom(param rank: int, type idxType, param stridable: bool, inds) {
@@ -1126,15 +1152,21 @@ module DefaultRectangular {
         if (rank == 1 && wantShiftedIndex) {
           return chpl__idxToInt(ind(1));
         } else {
-          var sum = 0:intIdxType;
+          //var sum = 0:intIdxType;
 
-          for param i in 1..rank-1 {
-            sum += chpl__idxToInt(ind(i)) * blk(i);
-          }
-          sum += chpl__idxToInt(ind(rank));
+          //for param i in 1..rank-1 {
+          //  sum += chpl__idxToInt(ind(i)) * blk(i);
+          //}
+          //sum += chpl__idxToInt(ind(rank));
 
-          if !wantShiftedIndex then sum -= factoredOffs;
-          return sum;
+          //if !wantShiftedIndex then sum -= factoredOffs;
+          //return sum;
+          var useOffset:int = 0;
+          if !wantShiftedIndex then useOffset -= factoredOffs;
+
+          blk(rank) = 1;
+          var useBlk = blk;
+          return polly_array_index(useOffset, (...useBlk), (...ind));
         }
       }
     }
