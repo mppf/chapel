@@ -37,6 +37,8 @@ module DefaultRectangular {
   config param defaultDisableLazyRADOpt = false;
   config param earlyShiftData = true;
 
+  pragma "lineno ok"
+  pragma "llvm readnone"
   proc polly_array_index(arguments:int ...):int {
     param rank = (arguments.size - 1) / 2;
     param blkStart = 2;
