@@ -5478,7 +5478,9 @@ static bool codegenIsSpecialPrimitive(BaseAST* target, Expr* e, GenRet& ret) {
         GenRet tablePtr = info->lvt->getValue("chpl_privateObjects");
         // this is of type i8***
         INT_ASSERT(tablePtr.val);
-        // load the table
+        // load the global table pointer
+        codegenInvariantStart(tablePtr.val->getType()->getPointerElementType(),
+                              tablePtr.val);
         llvm::Instruction* table = info->irBuilder->CreateLoad(tablePtr.val);
         // create the GEP
         llvm::Value* GEPLocs[1];
@@ -5488,6 +5490,8 @@ static bool codegenIsSpecialPrimitive(BaseAST* target, Expr* e, GenRet& ret) {
         elementPtr = createInBoundsGEP(table, GEPLocs);
 
         // create the load
+        codegenInvariantStart(elementPtr->getType()->getPointerElementType(),
+                              elementPtr);
         llvm::Instruction* value = info->irBuilder->CreateLoad(elementPtr);
         r.val = value;
 #endif
