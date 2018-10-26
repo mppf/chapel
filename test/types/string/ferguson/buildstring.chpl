@@ -2,12 +2,12 @@ config const n = 10000000;
 
 proc kernel() {
   var s: string;
-  for i in 1..10 {
+  for i in 1..5 {
     s += "a";
   }
-  var t = s[2..6];
+  var t = s[2..4];
   var u: string;
-  for ch in s {
+  for ch in t {
     u += ch + " ";
   }
   var z = s + t + u;

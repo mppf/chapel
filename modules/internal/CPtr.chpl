@@ -297,6 +297,7 @@ module CPtr {
 
   pragma "no doc"
   extern proc c_pointer_return(ref x:?t):c_ptr(t);
+  extern "c_pointer_return" proc c_pointer_return_const(const ref x:?t):c_ptr(t);
 
 
   /*
@@ -334,6 +335,10 @@ module CPtr {
       compilerError("c_ptrTo domain type not supported", 2);
     // Other cases should be avoided, e.g. sync vars
     return c_pointer_return(x);
+  }
+  
+  inline proc const_c_ptrTo(const ref x:?t):c_ptr(t) {
+    return c_pointer_return_const(x);
   }
 
   pragma "no doc"

@@ -30,8 +30,8 @@ proc digitToString(d:uint):string {
 
 proc makestring(arg:uint(32)) {
   var ret:string;
-  ret += digitToString((arg>>28) & 7);
-  ret += digitToString((arg>>24) & 7);
+  //ret += digitToString((arg>>28) & 7);
+  //ret += digitToString((arg>>24) & 7);
   ret += digitToString((arg>>20) & 7);
   ret += digitToString((arg>>16) & 7);
   ret += digitToString((arg>>12) & 7);

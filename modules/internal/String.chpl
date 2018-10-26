@@ -198,6 +198,8 @@ module String {
 
 */
 
+  param INLINE_STRING_SIZE = 9;
+
   private extern proc qio_decode_char_buf(ref chr:int(32), ref nbytes:c_int, buf:c_string, buflen:ssize_t):syserr;
   private extern proc qio_encode_char_buf(dst:c_void_ptr, chr:int(32)):syserr;
   private extern proc qio_nbytes_char(chr:int(32)):c_int;
@@ -311,20 +313,19 @@ module String {
     pragma "no doc"
     var len: int = 0; // length of string in bytes
     pragma "no doc"
-    var __size: int = 0; // size of the buffer we own
-    pragma "no doc"
     var buffptr: bufferType = nil;
     pragma "no doc"
-    var isowned: bool = true;
+    var __size: int = 0; // size of the buffer we own
+    pragma "no doc"
+    var zero: uint(8) = 0;
+    pragma "no doc"
+    var _isowned: bool = true;
     pragma "no doc"
     var isinline: bool = true;
     pragma "no doc"
     // We use chpl_nodeID as a shortcut to get at here.id without actually constructing
     // a locale object. Used when determining if we should make a remote transfer.
     var locale_id = chpl_nodeID; // : chpl_nodeID_t
-
-    // TODO -- could we store size in here?
-    var ibuff: chpl__inPlaceBuffer;
 
     //pragma "no doc"
     //var u: chpl_string_c_t;
@@ -346,7 +347,7 @@ module String {
       // TODO - the argument really shouldn't be called isowned
       const sLen = s.len;
       const doget = !_local && s.locale_id != chpl_nodeID;
-      const docopy = doget || isowned || sLen < CHPL_SHORT_STRING_SIZE;
+      const docopy = doget || isowned || sLen < INLINE_STRING_SIZE;
 
       this.complete();
 
@@ -356,7 +357,7 @@ module String {
         this.buffptr = nil;
 
       } else if docopy {
-        if sLen < CHPL_SHORT_STRING_SIZE {
+        if sLen < INLINE_STRING_SIZE {
           // Handle short strings
           this.isinline = true;
           this.len = sLen;
@@ -542,19 +543,19 @@ module String {
     pragma "no doc"
     inline proc buff:bufferType {
       return if this.isinline then
-                chpl__getInPlaceBufferDataForWrite(this.ibuff)
+                c_ptrTo(this.__size):bufferType
              else
                 this.buffptr;
     }
     pragma "no doc"
     inline proc cbuff:bufferType {
       return if this.isinline then
-                chpl__getInPlaceBufferData(this.ibuff)
+                const_c_ptrTo(this.__size):bufferType
              else
                 this.buffptr;
     }
 
-    proc _size return if this.isinline then CHPL_SHORT_STRING_SIZE else __size;
+    proc _size return if this.isinline then INLINE_STRING_SIZE else __size;
 
     /*
       :returns: The number of bytes in the string.
@@ -717,9 +718,9 @@ module String {
       if maxbytes < 0 || maxbytes > 4 then
         maxbytes = 4;
 
-      chpl_string_setup_inline(ret.u, 0);
+      ret.isinline = true;
       ret.len = 0;
-      chpl_string_set_isowned(ret.u, true);
+      ret.isowned = true;
 
       const remoteThis = this.locale_id != chpl_nodeID;
       var multibytes: bufferType;
@@ -736,7 +737,6 @@ module String {
         c_memcpy(ret.buff, multibytes, nbytes);
       }
       ret.buff[nbytes] = 0;
-      chpl_string_set_len(ret.u, nbytes);
       ret.len = nbytes;
 
       return ret;
@@ -803,7 +803,7 @@ module String {
 
       const r2 = this._getView(r);
       var retlen = r2.size:int;
-      if r2.size < CHPL_SHORT_STRING_SIZE {
+      if r2.size < INLINE_STRING_SIZE {
         ret.isinline = true;
         ret.len = retlen;
       } else {
@@ -1788,7 +1788,7 @@ module String {
 
     retlen = s0len + s1len;
 
-    if retlen < CHPL_SHORT_STRING_SIZE {
+    if retlen < INLINE_STRING_SIZE {
       ret.isinline = true;
       ret.isowned = true;
       ret.len = retlen;
@@ -1799,6 +1799,7 @@ module String {
       ret.isinline = false;
       ret.isowned = true;
       //ret.nodeId = chpl_nodeID
+      ret.len = retlen;
       ret.__size = allocSize;
       ret.buffptr = dest;
     }
@@ -2029,11 +2030,11 @@ module String {
 
   private inline proc _strcmp_local(a: string, b:string) : int {
     // Assumes a and b are on same locale and not empty.
-    extern proc printf(fmt:c_string);
+    /*extern proc printf(fmt:c_string);
     if (a.isinline && b.isinline) { 
     } else {
       printf("not inline\n");
-    }
+    }*/
     const size = min(a.len, b.len);
     const result =  c_memcmp(a.cbuff, b.cbuff, size);
 
