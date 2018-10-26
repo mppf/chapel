@@ -198,7 +198,7 @@ module String {
 
 */
 
-  param INLINE_STRING_SIZE = 9;
+  param INLINE_STRING_SIZE = 20;
 
   private extern proc qio_decode_char_buf(ref chr:int(32), ref nbytes:c_int, buf:c_string, buflen:ssize_t):syserr;
   private extern proc qio_encode_char_buf(dst:c_void_ptr, chr:int(32)):syserr;
@@ -312,23 +312,28 @@ module String {
   record string {
     pragma "no doc"
     var len: int = 0; // length of string in bytes
-    pragma "no doc"
-    var buffptr: bufferType = nil;
+
+    // The following fields, up until notinline,
+    // can be overwritten with inline string data.
     pragma "no doc"
     var __size: int = 0; // size of the buffer we own
     pragma "no doc"
-    var zero: uint(8) = 0;
+    var buffptr: bufferType = nil;
+
     pragma "no doc"
-    var _isowned: bool = true;
+    var pad1: uint(8) = 0;
     pragma "no doc"
-    var isinline: bool = true;
+    var pad2: uint(8) = 0;
     pragma "no doc"
+    var _isowned: uint(8) = 1;
+    pragma "no doc"
+    var notinline: uint(8) = 0; // 0 for inline so it can be the 0 terminator
+
     // We use chpl_nodeID as a shortcut to get at here.id without actually constructing
     // a locale object. Used when determining if we should make a remote transfer.
+    pragma "no doc"
     var locale_id = chpl_nodeID; // : chpl_nodeID_t
 
-    //pragma "no doc"
-    //var u: chpl_string_c_t;
 
     pragma "no doc"
     proc init() {
@@ -352,21 +357,21 @@ module String {
       this.complete();
 
       if sLen == 0 {
-        this.isinline = false;
+        this.notinline = 1;
         this.len = 0;
         this.buffptr = nil;
 
       } else if docopy {
         if sLen < INLINE_STRING_SIZE {
           // Handle short strings
-          this.isinline = true;
+          this.notinline = 0;
           this.len = sLen;
         } else {
           // Handle allocating a long string
           const allocSize = chpl_here_good_alloc_size(sLen+1);
 
-          this.isinline = false;
-          this.isowned = true;
+          this.notinline = 1;
+          this._isowned = 1;
           //this.locale_id = chpl_nodeID;
           this.len = sLen;
           this.__size = allocSize;
@@ -388,8 +393,8 @@ module String {
       } else {
         // Handle sharing a long string
         // note, isowned == false
-        this.isinline = false;
-        this.isowned = false;
+        this.notinline = 1;
+        this._isowned = 0;
         //this.locale_id = chpl_nodeID;
         this.len = sLen;
         this.__size = s._size;
@@ -408,7 +413,8 @@ module String {
     proc init(cs: c_string, length: int = cs.length,
               isowned: bool = true, needToCopy:  bool = true) {
       this.init();
-      this.isowned = isowned;
+      this.notinline = 1;
+      this._isowned = isowned:uint(8);
       const cs_len = length;
       this.reinitString(cs:bufferType, cs_len, cs_len+1, needToCopy);
     }
@@ -427,7 +433,7 @@ module String {
     proc init(buff: bufferType, length: int, size: int,
                 isowned: bool = true, needToCopy: bool = true) {
       this.init();
-      this.isowned = isowned;
+      this._isowned = isowned;
       this.reinitString(buff, length, size, needToCopy);
     }
 
@@ -496,9 +502,9 @@ module String {
             const allocSize = chpl_here_good_alloc_size(s_len+1);
             var dest = chpl_here_alloc(allocSize,
                                        offset_STR_COPY_DATA):bufferType;
-            this.isinline = false;
+            this.notinline = 1;
             // We just allocated a buffer, make sure to free it later
-            this.isowned = true;
+            this._isowned = 1;
             //this.nodeId = chpl_nodeID
             this.__size = allocSize;
             this.buffptr = dest;
@@ -510,8 +516,8 @@ module String {
           // needToCopy == false
           if couldfree then
             chpl_here_free(this.buffptr);
-          this.isinline = false;
-          this.isowned = false;
+          this.notinline = 1;
+          this._isowned = 0;
           //chpl_string_set_nodeid(this.u, chpl_nodeID);
           this.__size = size;
           this.buffptr = buf;
@@ -526,11 +532,12 @@ module String {
         // implication is that the string takes ownership of the given buffer,
         // so we need to store it and free it later.
         if needToCopy {
+          this.notinline = 1;
           this.buffptr = nil;
           this.len = s_len;
         } else {
-          this.isinline = false;
-          this.isowned = true;
+          this.notinline = 1;
+          this._isowned = 1;
           //chpl_string_set_nodeid(this.u, chpl_nodeID);
           this.__size = 0;
           this.buffptr = buf;
@@ -555,7 +562,9 @@ module String {
                 this.buffptr;
     }
 
-    proc _size return if this.isinline then INLINE_STRING_SIZE else __size;
+    inline proc _size return if this.isinline then INLINE_STRING_SIZE else __size;
+    inline proc isinline return this.notinline == 0;
+    inline proc isowned return this.notinline == 0 || this._isowned != 0;
 
     /*
       :returns: The number of bytes in the string.
@@ -622,7 +631,7 @@ module String {
         return __primitive("cast", t, x);
       }
 
-      if this.locale_id != chpl_nodeID then
+      if _local == false && this.locale_id != chpl_nodeID then
         halt("Cannot call .c_str() on a remote string");
 
       return this.cbuff:c_string;
@@ -718,11 +727,11 @@ module String {
       if maxbytes < 0 || maxbytes > 4 then
         maxbytes = 4;
 
-      ret.isinline = true;
+      ret.notinline = 0;
       ret.len = 0;
-      ret.isowned = true;
+      ret._isowned = true;
 
-      const remoteThis = this.locale_id != chpl_nodeID;
+      const remoteThis = _local == false && this.locale_id != chpl_nodeID;
       var multibytes: bufferType;
       if remoteThis {
         chpl_string_comm_get(ret.buff, this.locale_id, this.cbuff + i - 1, maxbytes);
@@ -804,15 +813,15 @@ module String {
       const r2 = this._getView(r);
       var retlen = r2.size:int;
       if r2.size < INLINE_STRING_SIZE {
-        ret.isinline = true;
+        ret.notinline = 0;
         ret.len = retlen;
       } else {
         const newSize = chpl_here_good_alloc_size(retlen+1);
         var retsize = max(chpl_string_min_alloc_size, newSize);
         var dest = chpl_here_alloc(ret._size,
                                    offset_STR_COPY_DATA): bufferType;
-        ret.isinline = false;
-        ret.isowned = true;
+        ret.notinline = 1;
+        ret._isowned = 1;
         //chpl_string_set_nodeid(ret.u, chpl_nodeID);
         ret.__size = newSize;
         ret.buffptr = dest;
@@ -1739,7 +1748,7 @@ module String {
         const len = rhs.len; // cache the remote copy of len
         var remote_buf:bufferType = nil;
         if len != 0 then
-          remote_buf = copyRemoteBuffer(rhs.locale_id, rhs.buff, len);
+          remote_buf = copyRemoteBuffer(rhs.locale_id, rhs.cbuff, len);
         lhs.reinitString(remote_buf, len, len+1, needToCopy=false);
       }
     }
@@ -1789,15 +1798,14 @@ module String {
     retlen = s0len + s1len;
 
     if retlen < INLINE_STRING_SIZE {
-      ret.isinline = true;
-      ret.isowned = true;
+      ret.notinline = 0;
       ret.len = retlen;
     } else {
       const allocSize = chpl_here_good_alloc_size(retlen+1);
       const dest = chpl_here_alloc(allocSize,
                                    offset_STR_COPY_DATA): bufferType;
-      ret.isinline = false;
-      ret.isowned = true;
+      ret.notinline = 1;
+      ret._isowned = true;
       //ret.nodeId = chpl_nodeID
       ret.len = retlen;
       ret.__size = allocSize;
@@ -1994,8 +2002,8 @@ module String {
           var newBuff = chpl_here_alloc(newSize,
                                         offset_STR_COPY_DATA):bufferType;
           c_memcpy(newBuff, lhs.buff, lhs.len);
-          lhs.isinline = false;
-          lhs.isowned = true;
+          lhs.notinline = 1;
+          lhs._isowned = true;
           lhs.buffptr = newBuff;
         }
 
@@ -2166,10 +2174,10 @@ module String {
 
     if _local || a.locale_id == chpl_nodeID {
       // the string must be local so we can index into buff
-      return a.buff[0];
+      return a.cbuff[0];
     } else {
       // a[1] grabs the first character as a string (making it local)
-      return a[1].buff[0];
+      return a[1].cbuff[0];
     }
   }
 
@@ -2218,8 +2226,8 @@ module String {
       then __primitive("string_copy", cs): bufferType
       else nil;
 
-    ret.isinline = false;
-    ret.isowned = true;
+    ret.notinline = 1;
+    ret._isowned = true;
     ret.len = len;
     ret.__size = len+1;
     ret.buffptr = buf;
