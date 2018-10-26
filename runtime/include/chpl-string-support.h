@@ -177,10 +177,7 @@ static inline void chpl_string_set_size(chpl_string_c_t* s, int64_t size)
 static inline
 uint8_t* chpl_string_ptr(chpl_string_c_t* s)
 {
-  if (chpl_string_isinline(s))
-    return s->u.buf.buf;
-  else
-    return s->u.ptr.ptr;
+  return (chpl_string_isinline(s))?(s->u.buf.buf):(s->u.ptr.ptr);
 }
 static inline
 void chpl_string_set_ptr(chpl_string_c_t* s, uint8_t* ptr)
