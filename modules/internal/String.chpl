@@ -178,7 +178,8 @@ module String {
   // setup methods; one for inline one for not.
   private extern proc chpl_string_setup_inline(ref s:chpl_string_c_t, len:int(64));
 
-  private extern proc chpl_string_isinline(const ref s:chpl_string_c_t):bool;
+  pragma "no doc"
+  extern proc chpl_string_isinline(const ref s:chpl_string_c_t):bool;
   private extern proc chpl_string_set_isinline(ref s:chpl_string_c_t, x:bool);
   private extern proc chpl_string_isowned(const ref s:chpl_string_c_t):bool;
   pragma "no doc"
@@ -329,7 +330,7 @@ module String {
       const sRemote = s.locale_id != chpl_nodeID;
       const sLen = s.len;
       const doget = !_local && sRemote;
-      const docopy = doget || isowned;
+      const docopy = doget || isowned || sLen < CHPL_STRING_MAX_INLINE;
 
       this.complete();
 
@@ -460,7 +461,8 @@ module String {
 
       // If the this.buff is longer than buf, then reuse the buffer if we are
       // allowed to (this.isowned == true)
-      var thisowned = chpl_string_isowned(this.u);
+      var thisowned = chpl_string_isowned(this.u) ||
+                      chpl_string_isinline(this.u);
       var thissize = chpl_string_size(this.u);
       var couldfree = thisowned &&
                       !chpl_string_isinline(this.u) &&

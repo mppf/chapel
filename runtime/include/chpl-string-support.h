@@ -195,6 +195,7 @@ void chpl_string_setup_inline(chpl_string_c_t* s, int64_t len)
   memset(s, 0, sizeof(chpl_string_c_t));
   assert(len < CHPL_STRING_MAX_INLINE);
   chpl_string_set_isinline(s, true);
+  chpl_string_set_isowned(s, true);
   chpl_string_set_len(s, len);
   assert(chpl_string_isinline(s));
   assert(chpl_string_len(s) == len);
