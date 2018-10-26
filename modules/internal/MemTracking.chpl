@@ -90,7 +90,7 @@ module MemTracking
       if memLeaksByDesc.length != 0 {
         var local_memLeaksByDesc = memLeaksByDesc;
         // Intentionally leak the string to persist the underlying buffer
-        local_memLeaksByDesc.isowned = false;
+        chpl_string_set_isowned(local_memLeaksByDesc.u, false);
         ret_memLeaksByDesc = local_memLeaksByDesc.c_str();
       } else {
         ret_memLeaksByDesc = nil;
@@ -99,7 +99,7 @@ module MemTracking
       if memLog.length != 0 {
         var local_memLog = memLog;
         // Intentionally leak the string to persist the underlying buffer
-        local_memLog.isowned = false;
+        chpl_string_set_isowned(local_memLog.u, false);
         ret_memLog = local_memLog.c_str();
       } else {
         ret_memLog = nil;
@@ -108,7 +108,7 @@ module MemTracking
       if memLeaksLog.length != 0 {
         var local_memLeaksLog = memLeaksLog;
         // Intentionally leak the string to persist the underlying buffer
-        local_memLeaksLog.isowned = false;
+        chpl_string_set_isowned(local_memLeaksLog.u, false);
         ret_memLeaksLog = local_memLeaksLog.c_str();
       } else {
         ret_memLeaksLog = nil;

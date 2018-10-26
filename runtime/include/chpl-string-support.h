@@ -39,8 +39,168 @@
 // threads.
 typedef const char* c_string;
 
+
 #include "chpltypes.h"
+#include <assert.h>
 #include <string.h>
+
+extern c_nodeid_t chpl_nodeID; // unique ID for each node: 0, 1, 2, ...
+
+#define CHPL_STRING_FLAG_INLINE 128
+#define CHPL_STRING_FLAG_OWNED  64
+// lower 6 bits can store a length
+#define CHPL_STRING_FLAG_LENGTH  63
+
+#define CHPL_STRING_MAX_INLINE 31
+
+typedef struct chpl_string_c_s {
+  union {
+    struct {
+      unsigned char flags;
+      c_nodeid_t nodeid;
+      int64_t len;
+      int64_t size;
+      uint8_t* ptr;
+    } ptr;
+    struct {
+      unsigned char flags;
+      uint8_t buf[CHPL_STRING_MAX_INLINE];
+    } buf;
+  } u;
+} chpl_string_c_t;
+
+static inline
+unsigned char chpl_string_flags(const chpl_string_c_t* s)
+{
+  unsigned char* flags_ptr = (unsigned char*) s;
+  return *flags_ptr;
+}
+
+static inline
+void chpl_string_set_flags(const chpl_string_c_t* s,
+                           unsigned char flags)
+{
+  unsigned char* flags_ptr = (unsigned char*) s;
+  *flags_ptr = flags;
+}
+
+static inline
+unsigned char chpl_string_get_flag(const chpl_string_c_t* s, unsigned char flag)
+{
+  return (chpl_string_flags(s) & flag) != 0;
+}
+static inline
+void chpl_string_set_flag(const chpl_string_c_t* s,
+                          unsigned char flag,
+                          unsigned char value)
+{
+  unsigned char oldflags = chpl_string_flags(s);
+  unsigned char newflag  = value?flag:0;
+  unsigned char newflags = (oldflags & ~flag) | newflag;
+  chpl_string_set_flags(s, newflags);
+}
+
+static inline
+chpl_bool chpl_string_isinline(const chpl_string_c_t* s)
+{
+  return chpl_string_get_flag(s, CHPL_STRING_FLAG_INLINE);
+}
+static inline
+void chpl_string_set_isinline(const chpl_string_c_t* s, chpl_bool value)
+{
+  chpl_string_set_flag(s, CHPL_STRING_FLAG_INLINE, value);
+}
+
+static inline
+chpl_bool chpl_string_isowned(const chpl_string_c_t* s)
+{
+  return chpl_string_get_flag(s, CHPL_STRING_FLAG_OWNED);
+}
+static inline
+void chpl_string_set_isowned(const chpl_string_c_t* s, chpl_bool value)
+{
+  chpl_string_set_flag(s, CHPL_STRING_FLAG_OWNED, value);
+}
+
+static inline
+c_nodeid_t chpl_string_nodeid(const chpl_string_c_t* s)
+{
+  if (chpl_string_isinline(s))
+    return chpl_nodeID;
+  else
+    return s->u.ptr.nodeid;
+}
+static inline
+void chpl_string_set_nodeid(chpl_string_c_t* s,
+                                          c_nodeid_t node)
+{
+  if (!chpl_string_isinline(s))
+    s->u.ptr.nodeid = node;
+}
+
+static inline
+int64_t chpl_string_len(const chpl_string_c_t* s)
+{
+  if (chpl_string_isinline(s))
+    return (chpl_string_flags(s) & CHPL_STRING_FLAG_LENGTH);
+  else
+    return s->u.ptr.len;
+}
+static inline
+void chpl_string_set_len(chpl_string_c_t* s, int64_t len)
+{
+  if (chpl_string_isinline(s)) {
+    assert(len <= CHPL_STRING_MAX_INLINE);
+    unsigned char oldflags = chpl_string_flags(s);
+    unsigned char mask     = CHPL_STRING_FLAG_LENGTH;
+    unsigned char newflag  = len;
+    unsigned char newflags = (oldflags & ~mask) | newflag;
+    chpl_string_set_flags(s, newflags);
+  } else {
+    s->u.ptr.len = len;
+  }
+}
+
+static inline int64_t chpl_string_size(const chpl_string_c_t* s)
+{
+  if (chpl_string_isinline(s))
+    return sizeof(s->u.buf.buf);
+  else
+    return s->u.ptr.size;
+}
+static inline void chpl_string_set_size(chpl_string_c_t* s, int64_t size)
+{
+  if (!chpl_string_isinline(s))
+    s->u.ptr.size = size;
+}
+
+static inline
+uint8_t* chpl_string_ptr(chpl_string_c_t* s)
+{
+  if (chpl_string_isinline(s))
+    return s->u.buf.buf;
+  else
+    return s->u.ptr.ptr;
+}
+static inline
+void chpl_string_set_ptr(chpl_string_c_t* s, uint8_t* ptr)
+{
+  if (!chpl_string_isinline(s))
+    s->u.ptr.ptr = ptr;
+}
+
+static inline
+void chpl_string_setup_inline(chpl_string_c_t* s, int64_t len)
+{
+  memset(s, 0, sizeof(chpl_string_c_t));
+  assert(len < CHPL_STRING_MAX_INLINE);
+  chpl_string_set_isinline(s, true);
+  chpl_string_set_len(s, len);
+  assert(chpl_string_isinline(s));
+  assert(chpl_string_len(s) == len);
+}
+
+
 
 static inline
 int8_t ascii(c_string s) {

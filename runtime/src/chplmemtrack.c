@@ -616,6 +616,8 @@ printMemAllocs(chpl_mem_descInt_t description, int64_t threshold,
 
 
 void chpl_reportMemInfo() {
+  return;
+
   if (memStats) {
     fprintf(memLogFile, "\n");
     chpl_printMemAllocStats(0, 0);

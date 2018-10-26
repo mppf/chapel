@@ -171,6 +171,29 @@ module String {
   pragma "no doc"
   type bufferType = c_ptr(uint(8));
 
+  pragma "no doc"
+  extern type chpl_string_c_t;
+
+  // TODO -- replace set methods with just two
+  // setup methods; one for inline one for not.
+  private extern proc chpl_string_setup_inline(ref s:chpl_string_c_t, len:int(64));
+
+  private extern proc chpl_string_isinline(const ref s:chpl_string_c_t):bool;
+  private extern proc chpl_string_set_isinline(ref s:chpl_string_c_t, x:bool);
+  private extern proc chpl_string_isowned(const ref s:chpl_string_c_t):bool;
+  pragma "no doc"
+  extern proc chpl_string_set_isowned(ref s:chpl_string_c_t, x:bool);
+  private extern proc chpl_string_nodeid(const ref s:chpl_string_c_t):chpl_nodeID.type;
+  private extern proc chpl_string_set_nodeid(ref s:chpl_string_c_t, x:chpl_nodeID.type);
+  private extern proc chpl_string_len(const ref s:chpl_string_c_t):int(64);
+  private extern proc chpl_string_set_len(ref s:chpl_string_c_t, x:int(64));
+  private extern proc chpl_string_size(const ref s:chpl_string_c_t):int(64);
+  private extern proc chpl_string_set_size(ref s:chpl_string_c_t, x:int(64));
+  private extern proc chpl_string_ptr(const ref s:chpl_string_c_t):bufferType;
+  private extern proc chpl_string_set_ptr(ref s:chpl_string_c_t, x:bufferType);
+
+  private extern const CHPL_STRING_MAX_INLINE : c_int;
+
   private extern proc qio_decode_char_buf(ref chr:int(32), ref nbytes:c_int, buf:c_string, buflen:ssize_t):syserr;
   private extern proc qio_encode_char_buf(dst:c_void_ptr, chr:int(32)):syserr;
   private extern proc qio_nbytes_char(chr:int(32)):c_int;
@@ -209,6 +232,7 @@ module String {
     var size      : int;
     var locale_id : chpl_nodeID.type;
     var shortData : chpl__inPlaceBuffer;
+    // TODO -- use short string opt
   }
 
   /*
@@ -281,21 +305,15 @@ module String {
   pragma "no default functions" // avoid the default (read|write)This routines
   record string {
     pragma "no doc"
-    var len: int = 0; // length of string in bytes
-    pragma "no doc"
-    var _size: int = 0; // size of the buffer we own
-    pragma "no doc"
-    var buff: bufferType = nil;
-    pragma "no doc"
-    var isowned: bool = true;
-    pragma "no doc"
-    // We use chpl_nodeID as a shortcut to get at here.id without actually constructing
-    // a locale object. Used when determining if we should make a remote transfer.
-    var locale_id = chpl_nodeID; // : chpl_nodeID_t
+    var u: chpl_string_c_t;
+    // We use chpl_nodeID as a shortcut to get at here.id without actually
+    // constructing a locale object. Used when determining if we should make
+    // a remote transfer.
 
     pragma "no doc"
     proc init() {
-      // Let compiler insert defaults
+      this.complete();
+      chpl_string_setup_inline(this.u, 0);
     }
 
     /*
@@ -307,31 +325,56 @@ module String {
       of a shallow copy.
      */
     proc init(s: string, isowned: bool = true) {
+      // TODO - the argument really shouldn't be called isowned
       const sRemote = s.locale_id != chpl_nodeID;
       const sLen = s.len;
-      this.isowned = isowned;
+      const doget = !_local && sRemote;
+      const docopy = doget || isowned;
+
       this.complete();
-      // Don't need to do anything if s is an empty string
-      if sLen != 0 {
-        this.len = sLen;
-        if !_local && sRemote {
-          // ignore supplied value of isowned for remote strings so we don't leak
-          this.isowned = true;
-          this.buff = copyRemoteBuffer(s.locale_id, s.buff, sLen);
-          this._size = sLen+1;
+
+      if sLen == 0 {
+        chpl_string_setup_inline(this.u, sLen);
+        const dest = chpl_string_ptr(this.u);
+        dest[sLen] = 0;
+
+      } else if docopy {
+        if sLen < CHPL_STRING_MAX_INLINE {
+          // Handle short strings
+          chpl_string_setup_inline(this.u, sLen);
         } else {
-          if this.isowned {
-            const allocSize = chpl_here_good_alloc_size(sLen+1);
-            this.buff = chpl_here_alloc(allocSize,
+          // Handle allocating a long string
+          const allocSize = chpl_here_good_alloc_size(sLen+1);
+
+          chpl_string_set_isinline(this.u, false);
+          chpl_string_set_isowned(this.u, true);
+          chpl_string_set_nodeid(this.u, chpl_nodeID);
+          chpl_string_set_len(this.u, sLen);
+          chpl_string_set_size(this.u, allocSize);
+          const dest = chpl_here_alloc(allocSize,
                                        offset_STR_COPY_DATA): bufferType;
-            c_memcpy(this.buff, s.buff, s.len);
-            this.buff[sLen] = 0;
-            this._size = allocSize;
-          } else {
-            this.buff = s.buff;
-            this._size = s._size;
-          }
+          chpl_string_set_ptr(this.u, dest);
         }
+
+        const dest = chpl_string_ptr(this.u);
+        const src = chpl_string_ptr(s.u);
+        if !_local && sRemote {
+          const node = chpl_string_nodeid(s.u);
+          chpl_string_comm_get(dest, node, src, sLen);
+        } else {
+          c_memcpy(dest, src, sLen);
+        }
+        dest[sLen] = 0;
+
+      } else {
+        // Handle sharing a long string
+        // note, isowned == false
+        chpl_string_set_isinline(this.u, false);
+        chpl_string_set_isowned(this.u, false);
+        chpl_string_set_nodeid(this.u, chpl_nodeID);
+        chpl_string_set_len(this.u, sLen);
+        chpl_string_set_size(this.u, chpl_string_size(s.u));
+        chpl_string_set_ptr(this.u, chpl_string_ptr(s.u));
       }
     }
 
@@ -344,9 +387,9 @@ module String {
       `c_string` is not copied in.
      */
     proc init(cs: c_string, length: int = cs.length,
-                isowned: bool = true, needToCopy:  bool = true) {
-      this.isowned = isowned;
-      this.complete();
+              isowned: bool = true, needToCopy:  bool = true) {
+      this.init();
+      chpl_string_set_isowned(this.u, isowned);
       const cs_len = length;
       this.reinitString(cs:bufferType, cs_len, cs_len+1, needToCopy);
     }
@@ -364,8 +407,8 @@ module String {
     // This initializer can cause a leak if isowned = false and needToCopy = true
     proc init(buff: bufferType, length: int, size: int,
                 isowned: bool = true, needToCopy: bool = true) {
-      this.isowned = isowned;
-      this.complete();
+      this.init();
+      chpl_string_set_isowned(this.u, isowned);
       this.reinitString(buff, length, size, needToCopy);
     }
 
@@ -374,7 +417,9 @@ module String {
       // Checking for size here isn't sufficient. A string may have been
       // initialized from a c_string allocated from memory but beginning with
       // a null-terminator.
-      if isowned && this.buff != nil {
+      if chpl_string_isowned(this.u) &&
+         !chpl_string_isinline(this.u) &&
+         chpl_string_ptr(this.u) != nil {
         on __primitive("chpl_on_locale_num",
                        chpl_buildLocaleID(this.locale_id, c_sublocid_any)) {
           chpl_here_free(this.buff);
@@ -415,47 +460,81 @@ module String {
 
       // If the this.buff is longer than buf, then reuse the buffer if we are
       // allowed to (this.isowned == true)
+      var thisowned = chpl_string_isowned(this.u);
+      var thissize = chpl_string_size(this.u);
+      var couldfree = thisowned &&
+                      !chpl_string_isinline(this.u) &&
+                      chpl_string_ptr(this.u) != nil;
+
       if s_len != 0 {
         if needToCopy {
-          if !this.isowned || s_len+1 > this._size {
+          if !thisowned || s_len+1 > thissize {
             // If the new string is too big for our current buffer or we dont
             // own our current buffer then we need a new one.
-            if this.isowned && !this.isEmptyString() then
-              chpl_here_free(this.buff);
+            if couldfree then
+              chpl_here_free(chpl_string_ptr(this.u));
             // TODO: should I just allocate 'size' bytes?
             const allocSize = chpl_here_good_alloc_size(s_len+1);
-            this.buff = chpl_here_alloc(allocSize,
+            var buff = chpl_here_alloc(allocSize,
                                        offset_STR_COPY_DATA):bufferType;
-            this._size = allocSize;
+            chpl_string_set_isinline(this.u, false);
             // We just allocated a buffer, make sure to free it later
-            this.isowned = true;
+            chpl_string_set_isowned(this.u, true);
+            chpl_string_set_nodeid(this.u, chpl_nodeID);
+            chpl_string_set_size(this.u, allocSize);
+            chpl_string_set_ptr(this.u, buff);
           }
-          c_memmove(this.buff, buf, s_len);
-          this.buff[s_len] = 0;
+          var dst = chpl_string_ptr(this.u);
+          c_memmove(dst, buf, s_len);
+          dst[s_len] = 0;
         } else {
-          if this.isowned && !this.isEmptyString() then
-            chpl_here_free(this.buff);
-          this.buff = buf;
-          this._size = size;
+          // needToCopy == false
+          if couldfree then
+            chpl_here_free(chpl_string_ptr(this.u));
+          chpl_string_set_isinline(this.u, false);
+          chpl_string_set_isowned(this.u, false);
+          chpl_string_set_nodeid(this.u, chpl_nodeID);
+          chpl_string_set_size(this.u, size);
+          chpl_string_set_ptr(this.u, buf);
         }
       } else {
         // If s_len is 0, 'buf' may still have been allocated. Regardless, we
         // need to free the old buffer if 'this' is isowned.
-        if this.isowned && !this.isEmptyString() then chpl_here_free(this.buff);
-        this._size = 0;
+        if couldfree then
+          chpl_here_free(this.buff);
 
         // If we need to copy, we can just set 'buff' to nil. Otherwise the
         // implication is that the string takes ownership of the given buffer,
         // so we need to store it and free it later.
         if needToCopy {
-          this.buff = nil;
+          chpl_string_setup_inline(this.u, s_len);
         } else {
-          this.buff = buf;
+          chpl_string_set_isinline(this.u, false);
+          chpl_string_set_isowned(this.u, true);
+          chpl_string_set_nodeid(this.u, chpl_nodeID);
+          chpl_string_set_size(this.u, 0);
+          chpl_string_set_ptr(this.u, buf);
         }
       }
 
-      this.len = s_len;
+      chpl_string_set_len(this.u, s_len);
     }
+
+    pragma "no doc"
+    inline proc len:int return chpl_string_len(this.u);
+
+    pragma "no doc"
+    inline proc _size:int return chpl_string_size(this.u);
+
+    pragma "no doc"
+    inline proc buff:bufferType return chpl_string_ptr(this.u);
+
+    pragma "no doc"
+    inline proc isowned:bool return chpl_string_isowned(this.u);
+
+    pragma "no doc"
+    inline proc locale_id:chpl_nodeID.type return chpl_string_nodeid(this.u);
+
 
     /*
       :returns: The number of bytes in the string.
@@ -617,11 +696,9 @@ module String {
       var maxbytes = (this.len - (i - 1)): ssize_t;
       if maxbytes < 0 || maxbytes > 4 then
         maxbytes = 4;
-      const newSize = chpl_here_good_alloc_size(maxbytes + 1);
-      ret._size = max(chpl_string_min_alloc_size, newSize);
-      ret.buff = chpl_here_alloc(ret._size,
-                                offset_STR_COPY_DATA): bufferType;
-      ret.isowned = true;
+
+      chpl_string_setup_inline(ret.u, 0);
+      chpl_string_set_isowned(ret.u, true);
 
       const remoteThis = this.locale_id != chpl_nodeID;
       var multibytes: bufferType;
@@ -638,7 +715,7 @@ module String {
         c_memcpy(ret.buff, multibytes, nbytes);
       }
       ret.buff[nbytes] = 0;
-      ret.len = nbytes;
+      chpl_string_set_len(ret.u, nbytes);
 
       return ret;
     }
@@ -703,38 +780,41 @@ module String {
       if this.isEmptyString() then return ret;
 
       const r2 = this._getView(r);
-      if r2.size <= 0 {
-        // TODO: I can't just return "" (ret var gets freed for some reason)
-        ret = "";
+      var retlen = r2.size:int;
+      if r2.size < CHPL_STRING_MAX_INLINE {
+        chpl_string_setup_inline(ret.u, retlen);
       } else {
-        ret.len = r2.size:int;
-        const newSize = chpl_here_good_alloc_size(ret.len+1);
-        ret._size = max(chpl_string_min_alloc_size, newSize);
-        // FIXME: I was dumb here, just copy the correct region over in
-        // multi-locale and use that as the string buffer. No need to copy stuff
-        // about after pulling it across.
-        ret.buff = chpl_here_alloc(ret._size,
-                                  offset_STR_COPY_DATA): bufferType;
-
-        var thisBuff: bufferType;
-        const remoteThis = this.locale_id != chpl_nodeID;
-        if remoteThis {
-          // TODO: Could do an optimization here and only pull down the data
-          // between r2.low and r2.high. Indexing for the copy below gets a bit
-          // more complex when that is performed though.
-          thisBuff = copyRemoteBuffer(this.locale_id, this.buff, this.len);
-        } else {
-          thisBuff = this.buff;
-        }
-
-        var buff = ret.buff; // Has perf impact and our LICM can't hoist :(
-        for (r2_i, i) in zip(r2, 0..) {
-          buff[i] = thisBuff[r2_i-1];
-        }
-        buff[ret.len] = 0;
-
-        if remoteThis then chpl_here_free(thisBuff);
+        const newSize = chpl_here_good_alloc_size(retlen+1);
+        var retsize = max(chpl_string_min_alloc_size, newSize);
+        var buff = chpl_here_alloc(ret._size,
+                                   offset_STR_COPY_DATA): bufferType;
+        chpl_string_set_isinline(ret.u, false);
+        chpl_string_set_isowned(ret.u, true);
+        chpl_string_set_nodeid(ret.u, chpl_nodeID);
+        chpl_string_set_size(ret.u, newSize);
+        chpl_string_set_ptr(ret.u, buff);
       }
+
+      chpl_string_set_len(ret.u, retlen);
+
+      var thisBuff: bufferType;
+      const remoteThis = this.locale_id != chpl_nodeID;
+      if remoteThis {
+        // TODO: Could do an optimization here and only pull down the data
+        // between r2.low and r2.high. Indexing for the copy below gets a bit
+        // more complex when that is performed though.
+        thisBuff = copyRemoteBuffer(this.locale_id, this.buff, this.len);
+      } else {
+        thisBuff = this.buff;
+      }
+
+      var buff = ret.buff; // Has perf impact and our LICM can't hoist :(
+      for (r2_i, i) in zip(r2, 0..) {
+        buff[i] = thisBuff[r2_i-1];
+      }
+      buff[ret.len] = 0;
+
+      if remoteThis then chpl_here_free(thisBuff);
 
       return ret;
     }
@@ -1681,12 +1761,22 @@ module String {
     if s1len == 0 then return s0;
 
     var ret: string;
-    ret.len = s0len + s1len;
-    const allocSize = chpl_here_good_alloc_size(ret.len+1);
-    ret._size = allocSize;
-    ret.buff = chpl_here_alloc(allocSize,
-                              offset_STR_COPY_DATA): bufferType;
-    ret.isowned = true;
+    var retlen: int;
+
+    retlen = s0len + s1len;
+
+    if retlen < CHPL_STRING_MAX_INLINE {
+      chpl_string_setup_inline(ret.u, retlen);
+    } else {
+      const allocSize = chpl_here_good_alloc_size(retlen+1);
+      const buff = chpl_here_alloc(allocSize,
+                                   offset_STR_COPY_DATA): bufferType;
+      chpl_string_set_isinline(ret.u, false);
+      chpl_string_set_isowned(ret.u, true);
+      chpl_string_set_nodeid(ret.u, chpl_nodeID);
+      chpl_string_set_size(ret.u, allocSize);
+      chpl_string_set_ptr(ret.u, buff);
+    }
 
     const s0remote = s0.locale_id != chpl_nodeID;
     if s0remote {
@@ -1701,7 +1791,7 @@ module String {
     } else {
       c_memcpy(ret.buff+s0len, s1.buff, s1len);
     }
-    ret.buff[ret.len] = 0;
+    ret.buff[retlen] = 0;
 
     return ret;
   }
@@ -1869,18 +1959,21 @@ module String {
         const newSize = chpl_here_good_alloc_size(
             max(newLength+1, lhs.len*chpl_stringGrowthFactor):int);
 
-        if lhs.isowned {
-          lhs.buff = chpl_here_realloc(lhs.buff, newSize,
-                                      offset_STR_COPY_DATA):bufferType;
+        if lhs.isowned && ! chpl_string_isinline(lhs.u) {
+          var buff = chpl_string_ptr(lhs.u);
+          buff = chpl_here_realloc(buff, newSize,
+                                   offset_STR_COPY_DATA):bufferType;
+          chpl_string_set_ptr(lhs.u, buff);
         } else {
           var newBuff = chpl_here_alloc(newSize,
-                                       offset_STR_COPY_DATA):bufferType;
+                                        offset_STR_COPY_DATA):bufferType;
           c_memcpy(newBuff, lhs.buff, lhs.len);
-          lhs.buff = newBuff;
-          lhs.isowned = true;
+          chpl_string_set_isinline(lhs.u, false);
+          chpl_string_set_isowned(lhs.u, true);
+          chpl_string_set_ptr(lhs.u, newBuff);
         }
 
-        lhs._size = newSize;
+        chpl_string_set_size(lhs.u, newSize);
       }
       const rhsRemote = rhs.locale_id != chpl_nodeID;
       if rhsRemote {
@@ -1888,7 +1981,7 @@ module String {
       } else {
         c_memcpy(lhs.buff+lhs.len, rhs.buff, rhsLen);
       }
-      lhs.len = newLength;
+      chpl_string_set_len(lhs.u, newLength);
       lhs.buff[newLength] = 0;
     }
   }
@@ -2103,12 +2196,16 @@ module String {
   pragma "no doc"
   proc _cast(type t, cs: c_string) where t == string {
     var ret: string;
-    ret.len = cs.length;
-    ret._size = ret.len+1;
-    ret.buff = if ret.len > 0
+    var len = cs.length;
+    var buf = if len > 0
       then __primitive("string_copy", cs): bufferType
       else nil;
-    ret.isowned = true;
+
+    chpl_string_set_isinline(ret.u, false);
+    chpl_string_set_isowned(ret.u, true);
+    chpl_string_set_len(ret.u, len);
+    chpl_string_set_size(ret.u, len+1);
+    chpl_string_set_ptr(ret.u, buf);
 
     return ret;
   }

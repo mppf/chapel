@@ -75,10 +75,7 @@ module StringCasts {
       }
     }
 
-    var ret: string;
-    ret.buff = csc:c_ptr(uint(8));
-    ret.len = strlen(csc).safeCast(int);
-    ret._size = ret.len+1;
+    var ret = new string(csc, isowned=true, needToCopy=false);
 
     return ret;
   }
@@ -148,10 +145,7 @@ module StringCasts {
 
     var csc = real_to_c_string(x:real(64), isImag);
 
-    var ret: string;
-    ret.buff = csc:c_ptr(uint(8));
-    ret.len = strlen(csc).safeCast(int);
-    ret._size = ret.len+1;
+    var ret = new string(csc, isowned=true, needToCopy=false);
 
     return ret;
   }
