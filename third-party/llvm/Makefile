@@ -167,11 +167,13 @@ $(LLVM_CLANG_FILE):
 	  cd $(LLVM_BUILD_DIR) && cmake --build . --target install-clang ; \
 	fi
 
-# Create a file containing extra arguments for clang
-# This file is necessary on darwin where important headers are
-# not in /usr/include. This causes a problem when building another clang
-# because the new clang can't find the appropriate headers.
-$(LLVM_CLANG_CONFIG_FILE):
+configure-llvm: $(LLVM_CONFIGURED_HEADER_FILE)
+
+llvm: $(LLVM_CONFIGURED_HEADER_FILE) $(LLVM_HEADER_FILE) $(LLVM_SUPPORT_FILE) $(LLVM_CLANG_FILE) $(LLVM_CONFIG_FILE)
+	# Create a file containing extra arguments for clang
+	# This file is necessary on darwin where important headers are
+	# not in /usr/include. This causes a problem when building another
+	# clang because the new clang can't find the appropriate headers.
 	mkdir -p $(LLVM_INSTALL_DIR)
 	if [ "clang" = "$(CHPL_MAKE_HOST_COMPILER)" ]; then \
 	  ../../util/config/gather-clang-sysroot-arguments clang > $(LLVM_CLANG_CONFIG_FILE) ; \
@@ -179,15 +181,17 @@ $(LLVM_CLANG_CONFIG_FILE):
           touch $(LLVM_CLANG_CONFIG_FILE) ; \
         fi
 
-configure-llvm: $(LLVM_CONFIGURED_HEADER_FILE)
-
-llvm: $(LLVM_CONFIGURED_HEADER_FILE) $(LLVM_HEADER_FILE) $(LLVM_SUPPORT_FILE) $(LLVM_CLANG_FILE) $(LLVM_CONFIG_FILE) $(LLVM_CLANG_CONFIG_FILE)
 
 llvm-minimal: $(LLVM_CONFIGURED_HEADER_FILE) $(LLVM_HEADER_FILE) $(LLVM_SUPPORT_FILE) $(LLVM_CONFIG_FILE)
 
 clang-included: llvm
 
-system: $(LLVM_CLANG_CONFIG_FILE)
+system:
+	# Create a file containing extra arguments for clang
+	# because we are starting from a system-installed clang and
+	# need to forward arguments such as -resource-dir.
+	mkdir -p $(LLVM_INSTALL_DIR)
+	../../util/config/gather-clang-sysroot-arguments $(CLANG_CC) > $(LLVM_CLANG_CONFIG_FILE) ; \
 
 system-minimal:
 
