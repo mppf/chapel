@@ -191,7 +191,7 @@ system:
 	@# because we are starting from a system-installed clang and
 	@# need to forward arguments such as -resource-dir.
 	mkdir -p $(LLVM_INSTALL_DIR)
-	../../util/config/gather-clang-sysroot-arguments $(CLANG_CC) > $(LLVM_CLANG_CONFIG_FILE) ; \
+	../../util/config/gather-clang-sysroot-arguments $(CLANG_CC) > $(LLVM_CLANG_CONFIG_FILE)
 
 system-minimal:
 
