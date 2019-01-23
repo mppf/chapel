@@ -210,7 +210,7 @@ void ResolveScope::addBuiltIns() {
   extend(gCVoidPtr);
 
   extend(dtFile->symbol);
-  extend(gFile);
+  //extend(gFile);
 
   extend(dtOpaque->symbol);
   extend(gOpaque);
