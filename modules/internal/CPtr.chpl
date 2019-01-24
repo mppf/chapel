@@ -199,27 +199,6 @@ module CPtr {
     return __primitive("cast", t, x);
 
 
-  pragma "compiler generated"
-  pragma "last resort"
-  pragma "no doc"
-  inline proc _defaultOf(type t:c_void_ptr) {
-      return __primitive("cast", t, nil);
-  }
-
-  pragma "compiler generated"
-  pragma "last resort"
-  pragma "no doc"
-  inline proc _defaultOf(type t:c_ptr) {
-      return __primitive("cast", t, nil);
-  }
-
-  pragma "compiler generated"
-  pragma "last resort"
-  pragma "no doc"
-  inline proc _defaultOf(type t:c_fn_ptr) {
-      return __primitive("cast", t, nil);
-  }
-
   pragma "no doc"
   inline proc =(ref a:c_fn_ptr, b:_nilType) { __primitive("=", a, c_nil); }
 
