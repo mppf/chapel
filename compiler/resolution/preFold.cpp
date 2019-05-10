@@ -535,6 +535,8 @@ static Expr* preFoldPrimOp(CallExpr* call) {
         !t->symbol->hasFlag(FLAG_C_PTR_CLASS) &&
         !t->symbol->hasFlag(FLAG_DATA_CLASS)) {
       retval = new SymExpr(gTrue);
+    } else if (isManagedPtrType(t)) {
+      retval = new SymExpr(gTrue);
     } else {
       retval = new SymExpr(gFalse);
     }
