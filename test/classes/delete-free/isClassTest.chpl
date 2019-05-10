@@ -6,11 +6,9 @@ proc testit(type t) {
 
   writeln(isClass(t));
   writeln(isClassType(t));
-  //  writeln(isClassValue(t));
 
   var c: t = new t();
   writeln(isClass(c));
-  //  writeln(isClassType(c));
   writeln(isClassValue(c));
 
   writeln();
