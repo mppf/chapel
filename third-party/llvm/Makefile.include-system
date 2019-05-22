@@ -11,6 +11,7 @@ else
   LLVM_CLANG_LIBS=-lclangFrontend -lclangSerialization -lclangDriver -lclangCodeGen -lclangParse -lclangSema -lclangAnalysis -lclangEdit -lclangAST -lclangLex -lclangBasic
 endif
 
+LLVM_CLANG_LIBS += /usr/lib/llvm-8/lib/LLVMPolly.so
 
 # Ubuntu 16.04 needed -fno-rtti for LLVM 3.7
 # tested on that system after installing

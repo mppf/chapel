@@ -71,6 +71,13 @@
 #include "rv/passes.h"
 #endif
 
+#define HAVE_LLVM_POLLY 1
+
+#ifdef HAVE_LLVM_POLLY
+#include "polly/RegisterPasses.h"
+#endif
+
+
 #endif
 
 #include "astutil.h"
@@ -1433,6 +1440,23 @@ static void registerRVPasses(const llvm::PassManagerBuilder &Builder,
 }
 #endif
 
+/*
+static void* globaljunk = NULL;
+
+#ifdef HAVE_LLVM_POLLY
+static void registerPollyPasses(const llvm::PassManagerBuilder &Builder,
+                             llvm::legacy::PassManagerBase &PM) {
+
+  if (developer)
+    printf("Adding Polly passes\n");
+
+  //polly::registerPollyPasses(PM);
+  globaljunk = (void*) & polly::registerPollyPasses;
+}
+
+#endif
+*/
+
 static
 void configurePMBuilder(PassManagerBuilder &PMBuilder, bool forFunctionPasses, int optLevel=-1) {
   ClangInfo* clangInfo = gGenInfo->clangInfo;
@@ -1484,6 +1508,13 @@ void configurePMBuilder(PassManagerBuilder &PMBuilder, bool forFunctionPasses, i
                            registerRVPasses);
   }
 #endif
+
+  /*
+#ifdef HAVE_LLVM_POLLY
+  PMBuilder.addExtension(PassManagerBuilder::EP_ModuleOptimizerEarly,
+                         registerPollyPasses);
+#endif
+   */
 
   // TODO: we might need to call TargetMachine's addEarlyAsPossiblePasses
 }
@@ -1587,6 +1618,16 @@ bool setAlreadyConvertedExtern(ModuleSymbol* module, const char* name)
 
 
 void runClang(const char* just_parse_filename) {
+
+
+#ifdef HAVE_LLVM_POLLY
+  if (just_parse_filename == NULL) {
+    // Include polly passes in default pass pipeline
+    llvm::PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
+    polly::initializePollyPasses(Registry);
+  }
+#endif
+
   static bool is_installed_fatal_error_handler = false;
 
   const char* clang_warn[] = {"-Wall", "-Werror", "-Wpointer-arith",
