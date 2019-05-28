@@ -41,7 +41,7 @@ module ChapelDistribution {
 
     // Returns a distribution that should be freed or nil.
     pragma "dont disable remote value forwarding"
-    proc remove(): unmanaged BaseDist {
+    proc remove(): unmanaged BaseDist? {
       var free_dist = false;
       if dsiTrackDomains() {
         on this {
@@ -188,22 +188,24 @@ module ChapelDistribution {
     proc deinit() {
     }
 
+    pragma "unsafe"
     proc dsiMyDist(): unmanaged BaseDist {
       halt("internal error: dsiMyDist is not implemented");
-      return nil;
+      var ret: unmanaged BaseDist; // nil
+      return ret;
     }
 
     // Returns (dom, dist).
     // if this domain should be deleted, dom=this; otherwise it is nil.
     // dist is nil or a distribution that should be removed.
     pragma "dont disable remote value forwarding"
-    proc remove() : (unmanaged BaseDom, unmanaged BaseDist) {
+    proc remove() : (unmanaged BaseDom?, unmanaged BaseDist?) {
 
       // TODO -- remove dsiLinksDistribution
       assert( dsiMyDist().dsiTrackDomains() == dsiLinksDistribution() );
 
-      var ret_dom:unmanaged BaseDom = nil;
-      var ret_dist:unmanaged BaseDist = nil;
+      var ret_dom:unmanaged BaseDom? = nil;
+      var ret_dist:unmanaged BaseDist? = nil;
       var dist = dsiMyDist();
       var free_dom = false;
       var remove_dist = false;
@@ -237,13 +239,19 @@ module ChapelDistribution {
     }
 
     // returns true if the domain should be removed
-    inline proc remove_arr(x:unmanaged BaseArr): bool {
+    // 'rmFromList' indicates whether this is an array that we've been
+    // storing in the _arrs linked list or not (just counting it).
+    // Currently, only slices using existing domains avoid the list.
+    inline proc remove_arr(x:unmanaged BaseArr, param rmFromList=true): bool {
       var count = -1;
       on this {
         var cnt = -1;
         local {
           _lock_arrs();
-          _arrs.remove(x);
+          if rmFromList then
+            _arrs.remove(x);
+          else
+            _arrs_containing_dom -=1;
           cnt = _arrs.size;
           cnt += _arrs_containing_dom;
           // add one for the main domain record
@@ -256,11 +264,19 @@ module ChapelDistribution {
       return (count==0);
     }
 
-    inline proc add_arr(x:unmanaged BaseArr, param locking=true) {
+    // addToList indicates whether this array should be added to the
+    // '_arrs' linked list, or just counted.  At present, slice views
+    // are not added to the linked list because they don't need to be
+    // resized when their domain is re-assigned).
+    inline proc add_arr(x:unmanaged BaseArr, param locking=true,
+                        param addToList = true) {
       on this {
         if locking then
           _lock_arrs();
-        _arrs.append(x);
+        if addToList then
+          _arrs.append(x);
+        else
+          _arrs_containing_dom += 1;
         if locking then
           _unlock_arrs();
       }
@@ -644,6 +660,10 @@ module ChapelDistribution {
     var pid:int = nullPid; // privatized ID, if privatization is supported
     var _decEltRefCounts : bool = false;
 
+    proc chpl__rvfMe() param {
+      return false;
+    }
+
     proc isSliceArrayView() param {
       return false;
     }
@@ -661,24 +681,30 @@ module ChapelDistribution {
 
     proc dsiStaticFastFollowCheck(type leadType) param return false;
 
+    pragma "unsafe"
     proc dsiGetBaseDom(): unmanaged BaseDom {
       halt("internal error: dsiGetBaseDom is not implemented");
-      return nil;
+      var ret: unmanaged BaseDom; // nil
+      return ret;
     }
 
+    // takes 'rmFromList' which indicates whether the array should
+    // be removed from the domain's list or just decremented from
+    // its count of other arrays.
+    //
     // returns (arr, dom)
     // arr is this if it should be deleted, or nil.
     // dom is a domain that should be removed, or nil.
     pragma "dont disable remote value forwarding"
-    proc remove() {
+    proc remove(param rmFromList: bool) {
       var ret_arr = this; // this array is always deleted
-      var ret_dom:unmanaged BaseDom = nil;
+      var ret_dom:unmanaged BaseDom? = nil;
       var rm_dom = false;
 
       var dom = dsiGetBaseDom();
       // Remove the array from the domain
       // and find out if the domain should be removed.
-      rm_dom = dom.remove_arr(_to_unmanaged(this));
+      rm_dom = dom.remove_arr(_to_unmanaged(this), rmFromList);
 
       if rm_dom then
         ret_dom = dom;
@@ -992,10 +1018,12 @@ module ChapelDistribution {
 
     for e in lhs._arrs do {
       on e {
-        var eCast = e:arrType;
-        if eCast == nil then
+        var eCastQ = e:arrType?;
+        if eCastQ == nil then
           halt("internal error: ", t:string,
                " contains an bad array type ", arrType:string);
+
+        var eCast = eCastQ!;
 
         var inds = rhs.getIndices();
         var tmp:rank * range(idxType,BoundedRangeType.bounded,stridable);
@@ -1012,7 +1040,8 @@ module ChapelDistribution {
     }
     lhs.dsiSetIndices(rhs.getIndices());
     for e in lhs._arrs do {
-      var eCast = e:arrType;
+      var eCastQ = e:arrType?;
+      var eCast = eCastQ!;
       on e do eCast.dsiPostReallocate();
     }
 

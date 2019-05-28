@@ -208,9 +208,9 @@ module ChapelRange {
 
     var _low       : chpl__idxTypeToIntIdxType(idxType);  // lower bound
     var _high      : chpl__idxTypeToIntIdxType(idxType);  // upper bound
-    var _stride    : if stridable then chpl__rangeStrideType(idxType) else void; // signed stride
-    var _alignment : if stridable then chpl__idxTypeToIntIdxType(idxType) else void; // alignment
-    var _aligned   : if stridable then bool else void;
+    var _stride    : if stridable then chpl__rangeStrideType(idxType) else nothing; // signed stride
+    var _alignment : if stridable then chpl__idxTypeToIntIdxType(idxType) else nothing; // alignment
+    var _aligned   : if stridable then bool else nothing;
 
     proc strType type  return chpl__rangeStrideType(idxType);
 
@@ -260,9 +260,9 @@ module ChapelRange {
       assert(_stride == 1);
   }
 
-  private proc _isAnyVoid(args...) param : bool {
+  private proc _isAnyNothing(args...) param : bool {
     for param i in 1..args.size {
-      if isVoidType(args(i).type) then return true;
+      if isNothingType(args(i).type) then return true;
     }
     return false;
   }
@@ -276,7 +276,7 @@ module ChapelRange {
                   _stride,
                   _alignment,
                   _aligned)
-    where _isAnyVoid(_stride, _alignment, _aligned) {
+    where _isAnyNothing(_stride, _alignment, _aligned) {
 
     this.idxType     = idxType;
     this.boundedType = boundedType;
@@ -1613,10 +1613,9 @@ proc _cast(type t, r: range(?)) where isRangeType(t) {
                      stridable = r.stridable,
                      _low = r.chpl_intToIdx(lo),
                      _high = r.chpl_intToIdx(hi),
-                     _stride = if r.stridable then (r.stride: strType)
-                                            else _void,
-                     _alignment = if r.stridable then r.alignment else _void,
-                     _aligned = if r.stridable then r.aligned else _void);
+                     _stride = if r.stridable then r.stride: strType else none,
+                     _alignment = if r.stridable then r.alignment else none,
+                     _aligned = if r.stridable then r.aligned else none);
   }
 
   proc #(r:range(?i), count:chpl__rangeStrideType(i)) {
@@ -2445,20 +2444,12 @@ proc _cast(type t, r: range(?)) where isRangeType(t) {
   //
   // Return the number in the range 0 <= result < b that is congruent to a (mod b)
   //
-  proc chpl__mod(dividend:integral, in modulus:integral)
+  proc chpl__mod(dividend:integral, modulus:integral)
   {
-    type dType = dividend.type;
-    modulus = abs(modulus);
-    // modulus is positive, so this cast is OK unless it is very large
-    // and the dividend is signed.
-    var m = modulus : dType;
-    if dType != modulus.type {
-      if m : modulus.type != modulus then
-        HaltWrappers.safeCastCheckHalt("Modulus too large.");
-    }
+    const m = abs(modulus).safeCast(dividend.type);
 
     var tmp = dividend % m;
-    if isIntType(dividend.type) then
+    if isInt(dividend) then
       if tmp < 0 then tmp += m;
 
     return tmp;
@@ -2474,17 +2465,10 @@ proc _cast(type t, r: range(?)) where isRangeType(t) {
   //
   proc chpl__diffMod(minuend : integral,
                      subtrahend : integral,
-                     in modulus : integral) : minuend.type
+                     modulus : integral) : minuend.type
     where minuend.type == subtrahend.type
   {
-    type minType = minuend.type;
-
-    modulus = abs(modulus);
-    var m = modulus : minType;
-    if minType != modulus.type {
-      if m : modulus.type != modulus then
-        HaltWrappers.safeCastCheckHalt("Modulus too large.");
-    }
+    const m = abs(modulus).safeCast(minuend.type);
 
     var minMod = chpl__mod(minuend, m);
     var subMod = chpl__mod(subtrahend, m);
@@ -2496,7 +2480,7 @@ proc _cast(type t, r: range(?)) where isRangeType(t) {
 
   proc chpl__diffMod(minuend : integral,
                      subtrahend : integral,
-                     in modulus : integral)
+                     modulus : integral)
   {
     compilerError("chpl__diffMod -- Operand types must match.");
   }

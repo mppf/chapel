@@ -383,6 +383,13 @@ all:
   03/07/19:
     - text: chapcs rebooted
       config: chapcs
+  03/21/19:
+    - Stop throwing `--static` for performance testing (#12652)
+  04/24/19:
+    - Improve task placement for local bounded coforalls (#12868)
+  05/06/19:
+    - text: Enable the unordered compiler optimization by default (#12952)
+      config: 16 node XC
 
 
 AllCompTime:
@@ -567,6 +574,8 @@ create-views:
       config: chapcs
   11/10/18:
     - Improve timing and stability of the create-views performance test (#11609)
+  05/03/19:
+    - Govern slice expressions by slicing domain (#12931)
 
 cs-resize:
   03/05/19:
@@ -607,6 +616,10 @@ ep.ml-time:
 empty-chpl-barrier.ml-time:
   08/02/18:
     - Optimize the atomic barrier implementation for network atomics (#10633)
+
+exchange:
+  04/18/19:
+    - Enable bulk-transfer for BlockDist by default (#12797)
 
 fannkuch-redux:
   07/22/14:
@@ -662,6 +675,10 @@ fastaredux:
     - Disable enum->int casts for enums without values (#10114)
   07/14/18:
     - Optimize enum->int casts for concrete types (#10308)
+
+fft:
+  05/15/19:
+    - Optimize all gets out of each Cyclic forall loop / leverage DR iterators (#13020)
 
 fft-timecomp:
   <<: *timecomp-base
@@ -782,6 +799,8 @@ jacobi:
     - Allow underscores in the number when casting from string to integral (#11880)
   01/22/19:
     - Catch blocks catch owned, test code throws owned (#12090)
+  04/23/19:
+    - Denormalize the test in CondStmts (#12867)
 
 knucleotide:
   10/17/15:
@@ -1044,6 +1063,10 @@ memleaksfull:
     - Close a memory leak in linkedlist test (#12551)
     - Close leak in tdata-test (#12554)
     - Close leaks in CoMD (#12552)
+  04/16/19:
+    - Add VectorList collection (#12791)
+  04/17/19:
+    - Fix bugs in mason search and buildMason (#12785)
 
 meteor:
   12/18/13:
@@ -1098,6 +1121,8 @@ miniMD:
     - Use zero-arg initializer in BaseDom (#9250)
   04/24/18:
     - Update miniMD problem size (#9296)
+  04/18/19:
+    - Enable bulk-transfer for BlockDist by default (#12797)
 
 miniMD.ml-time:
   09/14/17:
@@ -1124,6 +1149,8 @@ nbody:
     - Use zero-arg initializer in BaseDom (#9250)
   08/31/18:
     - Refactor PRIM_NEW resolution to enable promotion (#10919)
+  05/03/19:
+    - Govern slice expressions by slicing domain (#12931)
 
 no-op:
   02/24/17:
@@ -1144,6 +1171,8 @@ pidigits: &pidigits-base
     - rearranged pidigits; release versions now use bigints (#4655) (#4656)
   05/01/18:
     - Move chplgmp.c out of runtime (#8944)
+  05/14/19:
+    - Fix build issue where GCC's GMP was used instead of Chapel's
 pidigits-submitted:
   <<: *pidigits-base
 
@@ -1469,6 +1498,8 @@ timeVectorArray:
     - Add a new dsiReallocate that is aware of allocated size (#10793)
   09/07/18:
     - Fix performance regression in pop_front/pop_back from PR 10793 (#11017)
+  04/23/19:
+    - Denormalize the test in CondStmts (#12867)
 
 views-forall-iter:
   10/12/17:
@@ -1493,6 +1524,10 @@ distAdaptativeWSv2:
     - Bring in upstream fixes for qthreads sleep interception bug (#5446)
   03/04/17:
     - Use Time.sleep so that these tests play nice with qthreads (#5483)
+
+getNextPerf:
+  05/16/19:
+    - Improve the speed of parallel safe random streams (#13013)
 
 guided:
   02/28/17:

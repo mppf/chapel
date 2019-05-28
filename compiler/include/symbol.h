@@ -732,19 +732,22 @@ extern Symbol *gLeaderTag, *gFollowerTag, *gStandaloneTag;
 extern Symbol *gModuleToken;
 extern Symbol *gNoInit;
 extern Symbol *gVoid;
+extern Symbol *gNone;
 extern Symbol *gStringC;
 extern Symbol *gOpaque;
 extern Symbol *gTimer;
 extern Symbol *gTaskID;
 extern VarSymbol *gTrue;
 extern VarSymbol *gFalse;
-extern VarSymbol *gTryToken; // try token for conditional function resolution
 extern VarSymbol *gBoundsChecking;
 extern VarSymbol *gCastChecking;
+extern VarSymbol *gNilChecking;
+extern VarSymbol *gLegacyNilClasses;
 extern VarSymbol *gDivZeroChecking;
 extern VarSymbol *gPrivatization;
 extern VarSymbol *gLocal;
-extern VarSymbol* gWarnUnstable;
+extern VarSymbol *gWarnUnstable;
+extern VarSymbol *gIteratorBreakToken;
 extern VarSymbol *gNodeID;
 extern VarSymbol *gModuleInitIndentLevel;
 extern VarSymbol *gInfinity;
@@ -798,5 +801,8 @@ void printLlvmIr(const char* name, llvm::Function *func, llvmStageNum_t numStage
 
 void preparePrintLlvmIrForCodegen();
 void completePrintLlvmIrStage(llvmStageNum_t numStage);
+
+const char* toString(ArgSymbol* arg);
+const char* toString(VarSymbol* var);
 
 #endif

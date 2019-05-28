@@ -19,6 +19,7 @@
 
 // DefaultAssociative.chpl
 //
+pragma "unsafe" // workaround for trying to default-initialize nil objects
 module DefaultAssociative {
 
   use DSIUtil;
@@ -958,7 +959,7 @@ module DefaultAssociative {
     for param i in 1..numFields(r.type) {
       if isParam(getField(r, i)) == false &&
          isType(getField(r, i)) == false &&
-         isVoidType(getField(r, i).type) == false {
+         isNothingType(getField(r, i).type) == false {
         const ref field = getField(r, i);
         const fieldHash = chpl__defaultHash(field);
         if i == 1 then

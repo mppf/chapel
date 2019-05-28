@@ -61,7 +61,7 @@ proc calculate(data : string, size : int) {
       // Assigning to an index in an associative array will create an
       // index/element pair if one does not already exist.
       //
-      privArr[hash(data[i..#size])] += 1;
+      privArr[hash(data[i:byteIndex..#size])] += 1;
     }
 
     lock$;                                  // read to acquire lock
@@ -85,8 +85,8 @@ proc write_frequencies(data : string, size : int) {
   for (s, e, f) in zip(sorted, freqs.domain, freqs) do
     s = (f, e);
 
-  // QuickSort will sort starting at the tuple's first element.
-  quickSort(sorted, comparator=reverseComparator);
+  // sort will sort starting at the tuple's first element.
+  sort(sorted, comparator=reverseComparator);
 
   const sum = data.length - size;
   for (f, e) in sorted do

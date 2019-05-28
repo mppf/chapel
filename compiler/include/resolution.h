@@ -43,8 +43,6 @@ extern SymbolMap                        paramMap;
 
 extern Vec<CallExpr*>                   callStack;
 
-extern bool                             tryFailure;
-
 extern Vec<BlockStmt*>                  standardModuleSet;
 
 extern char                             arrayUnrefName[];
@@ -107,6 +105,7 @@ bool isDispatchParent(Type* t, Type* pt);
 bool canCoerce(Type*     actualType,
                Symbol*   actualSym,
                Type*     formalType,
+               ArgSymbol* formalSym,
                FnSymbol* fn,
                bool*     promotes = NULL,
                bool*     paramNarrows = NULL);
@@ -114,6 +113,7 @@ bool canCoerce(Type*     actualType,
 bool canDispatch(Type*     actualType,
                  Symbol*   actualSym,
                  Type*     formalType,
+                 ArgSymbol* formalSym = NULL,
                  FnSymbol* fn          = NULL,
                  bool*     promotes    = NULL,
                  bool*     paramNarrows= NULL,
@@ -258,6 +258,14 @@ static inline bool isUnresolvedOrGenericReturnType(Type* retType) {
 }
 
 SymExpr* findSourceOfYield(CallExpr* yield);
+
+void expandInitFieldPrims();
+
+void removeCopyFns(Type* t);
+
+bool isUnusedClass(Type* t);
+
+void pruneResolvedTree();
 
 void resolveTypeWithInitializer(AggregateType* at, FnSymbol* fn);
 

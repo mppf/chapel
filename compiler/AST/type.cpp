@@ -26,6 +26,7 @@
 #include "astutil.h"
 #include "AstVisitor.h"
 #include "build.h"
+#include "DecoratedClassType.h"
 #include "docsDriver.h"
 #include "driver.h"
 #include "expr.h"
@@ -37,7 +38,6 @@
 #include "stlUtil.h"
 #include "stringutil.h"
 #include "symbol.h"
-#include "UnmanagedClassType.h"
 #include "vec.h"
 
 #include <cmath>
@@ -125,7 +125,7 @@ void Type::setDestructor(FnSymbol* fn) {
   destructor = fn;
 }
 
-const char* toString(Type* type) {
+const char* toString(Type* type, bool decorateAllClasses) {
   const char* retval = NULL;
 
   if (type != NULL) {
@@ -144,7 +144,8 @@ const char* toString(Type* type) {
           Type* eltType    = eltTypeField->type;
 
           if (domainType != dtUnknown && eltType != dtUnknown)
-            retval = astr("[", toString(domainType), "] ", toString(eltType));
+            retval = astr("[", toString(domainType,false), "] ",
+                          toString(eltType));
         }
 
       } else if (strncmp(at->symbol->name, drDomName, drDomNameLen) == 0) {
@@ -157,13 +158,50 @@ const char* toString(Type* type) {
           Type* implType = canonicalClassType(instanceField->type);
 
           if (implType != dtUnknown)
-            retval = toString(implType);
+            retval = toString(implType, false);
+          else if (at->symbol->hasFlag(FLAG_ARRAY))
+            retval = astr("[]");
         }
+      } else if (vt->symbol->hasFlag(FLAG_ITERATOR_RECORD)) {
+        if (developer == false)
+          retval = "iterator";
+      // TODO: add a case to handle sync, single, atomic
+      } else if (isManagedPtrType(vt)) {
+        Type* borrowType = getManagedPtrBorrowType(vt);
+        const char* borrowed = "borrowed ";
+        const char* borrowName = toString(borrowType, false);
+        if (startsWith(borrowName, borrowed)) {
+          borrowName = borrowName + strlen(borrowed);
+        }
+        if (startsWith(vt->symbol->name, "_owned("))
+          retval = astr("owned ", borrowName);
+        else if (0 == strcmp(vt->symbol->name, "_owned"))
+          retval = astr("owned");
+        else if (startsWith(vt->symbol->name, "_shared("))
+          retval = astr("shared ", borrowName);
+        else if (0 == strcmp(vt->symbol->name, "_shared"))
+          retval = astr("shared");
+
+      } else if (isClassLike(at) && isClass(at)) {
+        // It's an un-decorated class type
+        const char* borrowed = "borrowed ";
+        const char* useName = vt->symbol->name;
+        if (startsWith(useName, borrowed))
+          useName = useName + strlen(borrowed);
+
+        if (decorateAllClasses)
+          useName = astr("borrowed ", useName);
+
+        retval = useName;
       }
     }
 
     if (retval == NULL)
       retval = vt->symbol->name;
+    /* This can be helpful when debugging (and perhaps we should enable it
+       by default?): */
+//    if (developer)
+//      retval = vt->symbol->cname;
 
   } else {
     retval = "null type";
@@ -522,7 +560,8 @@ static VarSymbol*     createSymbol(PrimitiveType* primType, const char* name);
 // This should probably be renamed since it creates primitive types, as
 //  well as internal types and other types used in the generated code
 void initPrimitiveTypes() {
-  dtVoid                               = createInternalType ("void",     "void");
+  dtVoid                               = createInternalType("void", "void");
+  dtNothing                            = createInternalType ("nothing",  "nothing");
 
   dtBools[BOOL_SIZE_SYS]               = createPrimitiveType("bool",     "chpl_bool");
   dtInt[INT_SIZE_64]                   = createPrimitiveType("int",      "int64_t");
@@ -561,11 +600,6 @@ void initPrimitiveTypes() {
   uniqueConstantsHash.put(gFalse->immediate, gFalse);
   uniqueConstantsHash.put(gTrue->immediate,  gTrue);
 
-  gTryToken = new VarSymbol("chpl__tryToken", dtBool);
-
-  gTryToken->addFlag(FLAG_CONST);
-  rootModule->block->insertAtTail(new DefExpr(gTryToken));
-
   dtNil = createInternalType ("_nilType", "_nilType");
   CREATE_DEFAULT_SYMBOL (dtNil, gNil, "nil");
 
@@ -580,8 +614,14 @@ void initPrimitiveTypes() {
   gUnknown->addFlag(FLAG_TYPE_VARIABLE);
 
   CREATE_DEFAULT_SYMBOL (dtVoid, gVoid, "_void");
+  CREATE_DEFAULT_SYMBOL (dtNothing, gNone, "none");
 
   dtValue = createInternalType("value", "_chpl_value");
+
+  gIteratorBreakToken = new VarSymbol("_iteratorBreakToken", dtBool);
+  gIteratorBreakToken->addFlag(FLAG_CONST);
+  gIteratorBreakToken->addFlag(FLAG_NO_CODEGEN);
+  rootModule->block->insertAtTail(new DefExpr(gIteratorBreakToken));
 
   INIT_PRIM_BOOL("bool(1)", 1);
   INIT_PRIM_BOOL("bool(8)", 8);
@@ -691,8 +731,14 @@ void initPrimitiveTypes() {
   dtBorrowed = createInternalType("_borrowed", "_borrowed");
   dtBorrowed->symbol->addFlag(FLAG_GENERIC);
 
+  dtBorrowedNilable = createInternalType("_borrowedNilable", "_borrowedNilable");
+  dtBorrowedNilable->symbol->addFlag(FLAG_GENERIC);
+
   dtUnmanaged = createInternalType("_unmanaged", "_unmanaged");
   dtUnmanaged->symbol->addFlag(FLAG_GENERIC);
+
+  dtUnmanagedNilable = createInternalType("_unmanagedNilable", "_unmanagedNilable");
+  dtUnmanagedNilable->symbol->addFlag(FLAG_GENERIC);
 
   dtMethodToken = createInternalType ("_MT", "_MT");
   dtDummyRef = createInternalType ("_DummyRef", "_DummyRef");
@@ -787,6 +833,14 @@ void initCompilerGlobals() {
   gCastChecking->addFlag(FLAG_PARAM);
   setupBoolGlobal(gCastChecking, !fNoCastChecks);
 
+  gNilChecking = new VarSymbol("chpl_checkNilDereferences", dtBool);
+  gNilChecking->addFlag(FLAG_PARAM);
+  setupBoolGlobal(gNilChecking, !fNoNilChecks);
+
+  gLegacyNilClasses = new VarSymbol("chpl_legacyNilClasses", dtBool);
+  gLegacyNilClasses->addFlag(FLAG_PARAM);
+  setupBoolGlobal(gLegacyNilClasses, fLegacyNilableClasses);
+
   gDivZeroChecking = new VarSymbol("chpl_checkDivByZero", dtBool);
   gDivZeroChecking->addFlag(FLAG_PARAM);
   setupBoolGlobal(gDivZeroChecking, !fNoDivZeroChecks);
@@ -811,8 +865,8 @@ void initCompilerGlobals() {
   initForTaskIntents();
 }
 
-bool is_void_type(Type* t) {
-  return t == dtVoid;
+bool is_nothing_type(Type* t) {
+  return t == dtNothing;
 }
 
 bool is_bool_type(Type* t) {
@@ -974,7 +1028,19 @@ bool isClassOrNil(Type* t) {
 }
 
 bool isClassLike(Type* t) {
-  return isClass(t) || isUnmanagedClassType(t);
+  return isDecoratedClassType(t) ||
+         t == dtBorrowed ||
+         t == dtBorrowedNilable ||
+         t == dtUnmanaged ||
+         t == dtUnmanagedNilable ||
+         (isClass(t) && !(t->symbol->hasFlag(FLAG_C_PTR_CLASS) ||
+                          t->symbol->hasFlag(FLAG_DATA_CLASS) ||
+                          t->symbol->hasFlag(FLAG_REF)));
+}
+
+bool isClassLikeOrPtr(Type* t) {
+  return isClassLike(t) || (t->symbol->hasFlag(FLAG_C_PTR_CLASS) ||
+                            t->symbol->hasFlag(FLAG_DATA_CLASS));
 }
 
 bool isClassLikeOrNil(Type* t) {
@@ -1056,16 +1122,27 @@ bool isManagedPtrType(const Type* t) {
   return t && t->symbol->hasFlag(FLAG_MANAGED_POINTER);
 }
 
-Type* getManagedPtrBorrowType(const Type* t) {
-  INT_ASSERT(isManagedPtrType(t));
+Type* getManagedPtrBorrowType(const Type* managedPtrType) {
+  INT_ASSERT(isManagedPtrType(managedPtrType));
 
-  const AggregateType* at = toConstAggregateType(t);
+  const AggregateType* at = toConstAggregateType(managedPtrType);
 
   INT_ASSERT(at);
 
-  Type* ret = at->getField("chpl_t")->type;
-  Type* borrow = canonicalClassType(ret);
-  return borrow;
+  Type* borrowType = at->getField("chpl_t")->type;
+
+  ClassTypeDecorator decorator = CLASS_TYPE_BORROWED;
+
+  if (isNilableClassType(borrowType))
+    decorator = CLASS_TYPE_BORROWED_NILABLE;
+
+  borrowType = canonicalClassType(borrowType);
+
+  if (AggregateType* at = toAggregateType(borrowType))
+    if (isClass(at))
+      borrowType = at->getDecoratedClass(decorator);
+
+  return borrowType;
 }
 
 bool isSyncType(const Type* t) {
@@ -1248,7 +1325,7 @@ bool needsCapture(Type* t) {
       is_complex_type(t) ||
       is_enum_type(t) ||
       t == dtStringC ||
-      isClassLike(t) ||
+      isClassLikeOrPtr(t) ||
       isRecord(t) ||
       isUnion(t) ||
       t == dtTaskID || // false?
