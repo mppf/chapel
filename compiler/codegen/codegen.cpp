@@ -2461,7 +2461,7 @@ GenInfo::GenInfo()
 #ifdef HAVE_LLVM
              ,
              lvt(NULL), module(NULL), irBuilder(NULL), mdBuilder(NULL),
-             loopStack(),
+             loopStack(), currentStackVariables(),
              llvmContext(),
              tbaaRootNode(NULL),
              tbaaUnionsNode(NULL),
