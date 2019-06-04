@@ -37,6 +37,7 @@ static void checkPrivateDecls(DefExpr* def);
 static void checkParsedVar(VarSymbol* var);
 static void checkFunction(FnSymbol* fn);
 static void checkExportedNames();
+static void checkClassRecordNameStyle();
 static void nestedName(ModuleSymbol* mod);
 static void checkModule(ModuleSymbol* mod);
 static void checkRecordInheritance(AggregateType* at);
@@ -121,6 +122,8 @@ checkParsed() {
   checkExportedNames();
 
   checkDefersAfterParsing();
+
+  checkClassRecordNameStyle();
 }
 
 
@@ -428,5 +431,37 @@ checkExportedNames()
     if (names.get(name))
       USR_FATAL_CONT(fn, "The name %s cannot be exported twice from the same compilation unit.", name);
     names.put(name, true);
+  }
+}
+
+static void checkClassRecordNameStyle() {
+  forv_Vec(TypeSymbol, ts, gTypeSymbols) {
+    if (ModuleSymbol* mod = ts->defPoint->getModule()) {
+      bool fCheckClassRecordNameStyle = true; // TODO move
+      bool doCheck = mod->modTag == MOD_STANDARD ||
+                     mod->modTag == MOD_INTERNAL ||
+                     fCheckClassRecordNameStyle;
+      // TODO: move to scope resolve
+      // TODO: rule out reduction op classes
+      // TODO: ignore dtLocale
+      if (doCheck) {
+        if (isUserDefinedRecord(ts->type) && isupper(ts->name[0])) {
+          gdbShouldBreakHere();
+          USR_WARN(ts->defPoint,
+                   "record %s does not begin with a lower case letter",
+                   ts->name);
+          USR_WARN(ts->defPoint,
+                   "value type names should begin with a lower case letter");
+        }
+        if (isClass(ts->type) && islower(ts->name[0])) {
+          gdbShouldBreakHere();
+          USR_WARN(ts->defPoint,
+                   "class %s does not begin with an upper case letter",
+                   ts->name);
+          USR_WARN(ts->defPoint,
+                   "reference type names should begin with an upper case letter");
+        }
+      }
+    }
   }
 }
