@@ -107,9 +107,25 @@ void codegenLifetimeStart(llvm::Type *valType, llvm::Value *addr)
     sizeInBytes = dataLayout.getTypeStoreSize(valType);
 
   llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
-      llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
+    llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
 
   info->irBuilder->CreateLifetimeStart(addr, size);
+}
+
+static
+void codegenLifetimeEnd(llvm::Type *valType, llvm::Value *addr)
+{
+  GenInfo *info = gGenInfo;
+  const llvm::DataLayout& dataLayout = info->module->getDataLayout();
+
+  int64_t sizeInBytes = -1;
+  if (valType->isSized())
+    sizeInBytes = dataLayout.getTypeStoreSize(valType);
+
+  llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
+    llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
+
+  info->irBuilder->CreateLifetimeEnd(addr, size);
 }
 #endif
 
@@ -160,20 +176,45 @@ GenRet BlockStmt::codegen() {
 
     info->lvt->addLayer();
 
+    // Add a new variables set to the stack for lifetimes
+    info->currentStackVariables.emplace_back();
+
     for_alist(node, this->body) {
       // for LLVM, code generation will place
       // statements into the function with
       // the IRBuilder.
+      if (CallExpr* call = toCallExpr(node)) {
+        if (call->isPrimitive(PRIM_RETURN)) {
+          // Emit lifetime end for any variables from the current block
+          for_set(Symbol, var, info->currentStackVariables.back()) {
+            llvm::Value* declared = var->codegen().val;
+            llvm::Type* type = var->type->codegen().type;
+            codegenLifetimeEnd(type, declared);
+            if (0 == strcmp(var->defPoint->getFunction()->name, "mytest"))
+                printf("%s : %d\n", var->name, (int)info->currentStackVariables.size());
+          };
+        }
+      }
       node->codegen();
       if (DefExpr* def = toDefExpr(node)) {
-        if (def->sym->type != dtVoid && def->sym->type != dtNothing) {
-          llvm::Value* declared = def->sym->codegen().val;
-          if (declared && declared->getType()) {
-            codegenLifetimeStart(declared->getType(), declared);
+        Symbol* var = def->sym;
+        if (var->type && var->type != dtVoid && var->type != dtNothing) {
+          GenRet ret = var->codegen();
+          if (!isGlobal(var) && ret.isLVPtr == GEN_PTR) {
+            llvm::Value* declared = ret.val;
+            llvm::Type* type = var->type->codegen().type;
+            if (declared && type) {
+              codegenLifetimeStart(type, declared);
+              info->currentStackVariables.back().insert(var);
+              if (0 == strcmp(var->defPoint->getFunction()->name, "mytest"))
+                printf("%s : %d\n", var->name, (int)info->currentStackVariables.size());
+            }
           }
         }
       }
     }
+    // Remove the variables set from the stack for lifetimes
+    info->currentStackVariables.pop_back();
 
     info->lvt->removeLayer();
 
@@ -308,6 +349,20 @@ GenRet GotoStmt::codegen() {
   GenInfo* info = gGenInfo;
   FILE* outfile = info->cfile;
   GenRet ret;
+
+  // Handle stack of lifetime variables
+#ifdef HAVE_LLVM
+  if (gotoTag == GOTO_RETURN || gotoTag == GOTO_ERROR_HANDLING) {
+    for (auto& curSet: gGenInfo->currentStackVariables) {
+      for_set(Symbol, var, curSet) {
+        if (!var->hasEitherFlag(FLAG_RVV, FLAG_RETARG)) {
+          if (0 == strcmp(var->defPoint->getFunction()->name, "test"))
+            printf("lifetime ending from return for %i %s\n", var->id, var->cname);
+        }
+      }
+    }
+  }
+#endif
 
   codegenStmt(this);
   if( outfile ) {
