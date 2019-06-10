@@ -88,12 +88,12 @@ module UnorderedCopy {
     unorderedCopyPrim(dst, refSrc);
   }
 
-  inline proc unorderedCopy(ref dst:bool, const ref src:bool): void {
+  inline proc unorderedCopy(ref dst:bool(?), const ref src:bool(?)): void {
     unorderedCopyPrim(dst, src);
   }
 
   pragma "no doc"
-  inline proc unorderedCopy(ref dst:bool, param src:bool): void {
+  inline proc unorderedCopy(ref dst:bool(?), param src:bool(?)): void {
     const refSrc = src;
     unorderedCopyPrim(dst, refSrc);
   }
@@ -116,8 +116,8 @@ module UnorderedCopy {
    */
   inline proc unorderedCopyTaskFence(): void {
     if CHPL_COMM == 'ugni' {
-      extern proc chpl_comm_get_unordered_task_fence();
-      chpl_comm_get_unordered_task_fence();
+      extern proc chpl_comm_getput_unordered_task_fence();
+      chpl_comm_getput_unordered_task_fence();
     }
   }
 

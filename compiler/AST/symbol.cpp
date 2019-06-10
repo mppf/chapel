@@ -1642,14 +1642,12 @@ VarSymbol* new_BoolSymbol(bool b, IF1_bool_type size) {
   default:
     INT_FATAL( "unknown BOOL_SIZE");
 
-  case BOOL_SIZE_1  :
   case BOOL_SIZE_SYS:
   case BOOL_SIZE_8  :
   case BOOL_SIZE_16 :
   case BOOL_SIZE_32 :
   case BOOL_SIZE_64 :
     break;
-    // case BOOL_SIZE_128: imm.v_bool = b; break;
   }
   imm.v_bool = b;
   imm.const_kind = NUM_KIND_BOOL;
@@ -1990,6 +1988,7 @@ const char* astr_chpl_manager = NULL;
 const char* astr_forallexpr = NULL;
 const char* astr_forexpr = NULL;
 const char* astr_loopexpr_iter = NULL;
+const char* astrPostfixBang = NULL;
 
 void initAstrConsts() {
   astrSdot    = astr(".");
@@ -2014,6 +2013,8 @@ void initAstrConsts() {
   astr_forallexpr    = astr("chpl__forallexpr");
   astr_forexpr       = astr("chpl__forexpr");
   astr_loopexpr_iter = astr("chpl__loopexpr_iter");
+
+  astrPostfixBang = astr("postfix!");
 }
 
 /************************************* | **************************************
