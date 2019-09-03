@@ -591,6 +591,17 @@ static void checkCall(
           update(OUT, actualSym, nilAliasLocation(call));
         }
 
+        if (raiseErrors) {
+          Type* t = formal->getValType();
+          TypeSymbol* ts = toTypeSymbol(t->symbol);
+          if (ts->hasFlag(FLAG_NON_NILABLE_TYPE) &&
+              userCall->getModule()->modTag == MOD_USER) {
+            USR_WARN(userCall,
+                     "Ownership transfer leaves owned class storing nil");
+            USR_PRINT(userCall, "Please use owned class? instead");
+          }
+        }
+
       } else if (formal->intent == INTENT_REF &&
                  /* ignoring functions returning record by ref */
                  actual != initSe) {

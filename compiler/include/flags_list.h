@@ -246,6 +246,7 @@ symbolFlag( FLAG_NECESSARY_AUTO_COPY, npr, "necessary auto copy", "a variable co
 symbolFlag( FLAG_NEW_WRAPPER, npr, "_new wrapper", ncm)
 symbolFlag( FLAG_IGNORE_NOINIT, ypr, "ignore noinit", "this type must be initialized" )
 symbolFlag( FLAG_NON_BLOCKING , npr, "non blocking" , "with FLAG_ON/FLAG_ON_BLOCK, non-blocking on functions" )
+symbolFlag( FLAG_NON_NILABLE_TYPE , npr, "non-nilable type" , "non-nilable type" )
 symbolFlag( FLAG_NO_AUTO_DESTROY , ypr, "no auto destroy" , ncm )
 symbolFlag( FLAG_NO_FN_BODY , npr, "no fn body", "function has no body" )
 symbolFlag( FLAG_NO_BORROW_CONVERT , ypr, "no borrow convert", "arguments that are instantiated as owned/shared/etc do not need to convert to borrow" )

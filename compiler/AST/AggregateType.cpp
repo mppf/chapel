@@ -1692,6 +1692,10 @@ AggregateType* AggregateType::getNewInstantiation(Symbol* sym, Type* symType, Ex
 
   instantiations.push_back(retval);
 
+  if (isNonNilableClassType(retval)) {
+    retval->symbol->addFlag(FLAG_NON_NILABLE_TYPE);
+  }
+
   return retval;
 }
 
