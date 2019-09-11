@@ -384,6 +384,21 @@ all:
     - text: chapcs rebooted
       config: chapcs
 
+all-compilation:
+  07/24/19:
+    - Add two-array radix and sample sorts and a distributed sort (#13347)
+  07/29/19:
+    - Undecorated classes have generic management (#13447)
+  07/30/19:
+    - Add record _bytes to the internal modules (#13519)
+  08/24/19:
+    - Enable compile-time nil-checking for internal modules (#13843)
+  08/29/19:
+    - Add factory functions for string and bytes (#13914)
+  08/30/19:
+    - Require 'use' of top level modules rather than lexical scoping (#13930)
+  09/05/19:
+    - Turn "array-as-vec" deprecation warnings on (#13999)
 
 AllCompTime:
   11/09/14:
