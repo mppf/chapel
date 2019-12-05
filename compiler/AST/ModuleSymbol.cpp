@@ -36,6 +36,8 @@ ModuleSymbol*                      stringLiteralModule   = NULL;
 ModuleSymbol*                      standardModule        = NULL;
 ModuleSymbol*                      printModuleInitModule = NULL;
 ModuleSymbol*                      ioModule              = NULL;
+ModuleSymbol*                      sysCTypesModule       = NULL;
+ModuleSymbol*                      cPtrModule            = NULL;
 
 Vec<ModuleSymbol*>                 userModules; // Contains user + main modules
 Vec<ModuleSymbol*>                 allModules;  // Contains all modules except rootModule

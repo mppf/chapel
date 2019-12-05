@@ -124,6 +124,8 @@ extern ModuleSymbol*      stringLiteralModule;
 extern ModuleSymbol*      standardModule;
 extern ModuleSymbol*      printModuleInitModule;
 extern ModuleSymbol*      ioModule;
+extern ModuleSymbol*      sysCTypesModule;
+extern ModuleSymbol*      cPtrModule;
 
 extern Vec<ModuleSymbol*> allModules;
 extern Vec<ModuleSymbol*> userModules;

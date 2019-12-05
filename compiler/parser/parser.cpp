@@ -681,8 +681,14 @@ static ModuleSymbol* parseFile(const char* path,
             "ParseFile: Unable to open \"%s\" for reading\n",
             path);
   }
-  if (retval && strcmp(retval->name, "IO") == 0) {
-    ioModule = retval;
+  if (retval) {
+    if (strcmp(retval->name, "IO") == 0) {
+      ioModule = retval;
+    } else if (strcmp(retval->name, "SysCTypes") == 0) {
+      sysCTypesModule = retval;
+    } else if (strcmp(retval->name, "CPtr") == 0) {
+      cPtrModule = retval;
+    }
   }
 
   return retval;

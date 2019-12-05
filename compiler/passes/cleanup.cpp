@@ -115,6 +115,11 @@ static void cleanup(ModuleSymbol* module) {
       }
     } else if (CatchStmt* catchStmt = toCatchStmt(ast)) {
       catchStmt->cleanup();
+    } else if (ExternBlockStmt* ebStmt = toExternBlockStmt(ast)) {
+      BlockStmt* parent = toBlockStmt(ebStmt->parentExpr);
+      INT_ASSERT(parent);
+      parent->useListAdd(sysCTypesModule, true);
+      parent->useListAdd(cPtrModule, true);
     }
   }
 
