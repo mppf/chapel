@@ -157,6 +157,8 @@ bool AutoDestroyScope::handlingFormalTemps(const Expr* stmt) const {
 
 // If the refStmt is a goto then we need to recurse
 // to the block that contains the target of the goto
+//
+// adds autodestroys after refStmt
 void AutoDestroyScope::insertAutoDestroys(FnSymbol* fn, Expr* refStmt,
                                           const std::set<VarSymbol*>& ignored) {
   GotoStmt*               gotoStmt   = toGotoStmt(refStmt);
@@ -203,22 +205,27 @@ void AutoDestroyScope::insertAutoDestroys(FnSymbol* fn, Expr* refStmt,
   mLocalsHandled = true;
 }
 
-void AutoDestroyScope::destroyVariable(Expr* after, VarSymbol* var,
-                                       const std::set<VarSymbol*>& ignored) {
-  if (ignored.count(var) == 0) {
-    if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
-      SET_LINENO(var);
+static void deinitializeOrCopyElide(Expr* before, Expr* after, VarSymbol* var) {
+  if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
+    INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
 
-      INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
-
-      CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
-
+    SET_LINENO(var);
+    CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
+    if (before)
+      before->insertBefore(autoDestroy);
+    else
       after->insertAfter(autoDestroy);
-    }
   }
 }
 
-// Destroy outer variabls and add them to the ignored set
+void AutoDestroyScope::destroyVariable(Expr* after, VarSymbol* var,
+                                       const std::set<VarSymbol*>& ignored) {
+  if (ignored.count(var) == 0) {
+    deinitializeOrCopyElide(NULL, after, var);
+  }
+}
+
+// Destroy outer variables and add them to the ignored set
 void AutoDestroyScope::destroyOuterVariables(Expr* before,
                                              std::set<VarSymbol*>& ignored) const
 {
@@ -226,14 +233,8 @@ void AutoDestroyScope::destroyOuterVariables(Expr* before,
   for (size_t i = 1; i <= count; i++) {
     VarSymbol* var = mInitedOuterVars[count - i];
     if (ignored.count(var) == 0) {
-      if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
-        SET_LINENO(var);
-
-        INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
-        CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
-        before->insertBefore(autoDestroy);
-        ignored.insert(var);
-      }
+      deinitializeOrCopyElide(before, NULL, var);
+      ignored.insert(var);
     }
   }
 }
@@ -248,6 +249,7 @@ static BlockStmt* shadowVarsDeinitBlock(Expr* refStmt) {
   return NULL;
 }
 
+// add autoDestorys after refStmt
 void AutoDestroyScope::variablesDestroy(Expr*      refStmt,
                                         VarSymbol* excludeVar,
                                         const std::set<VarSymbol*>& ignored,
@@ -292,13 +294,8 @@ void AutoDestroyScope::variablesDestroy(Expr*      refStmt,
       INT_ASSERT(var || defer);
 
       if (var != NULL && var != excludeVar && ignored.count(var) == 0) {
-        if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
-          if (startingScope->isVariableInitialized(var)) {
-            SET_LINENO(var);
-            INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
-            CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
-            insertBeforeStmt->insertBefore(autoDestroy);
-          }
+        if (startingScope->isVariableInitialized(var)) {
+          deinitializeOrCopyElide(insertBeforeStmt, NULL, var);
         }
       }
 
@@ -322,6 +319,7 @@ void AutoDestroyScope::variablesDestroy(Expr*      refStmt,
     for (size_t i = 1; i <= count; i++) {
       VarSymbol* var = mFormalTemps[count - i];
 
+      // TODO: copy elide?
       if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
         SET_LINENO(var);
 
