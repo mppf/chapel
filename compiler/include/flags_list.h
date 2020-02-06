@@ -102,6 +102,8 @@ symbolFlag( FLAG_CONST_DUE_TO_TASK_FORALL_INTENT , npr, "const due to task or fo
 symbolFlag( FLAG_C_ARRAY , ypr, "c_array record" , "marks c_array record" )
 symbolFlag( FLAG_C_PTR_CLASS , ypr, "c_ptr class" , "marks c_ptr class" )
 symbolFlag( FLAG_COPY_MUTATES , ypr, "copy mutates" , "the initCopy function / copy initializer takes its argument by ref")
+// this has to do with expiring value opt / copy elision
+symbolFlag( FLAG_COPY_NO_ALIAS,  ypr, "copy no alias" , "init copy function and assign functions do not transfer aliases" )
 symbolFlag( FLAG_DATA_CLASS , ypr, "data class" , ncm )
 
 // Flag for temporaries created for default values

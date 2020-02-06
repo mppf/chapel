@@ -3123,10 +3123,14 @@ void GatherAliasesVisitor::expandAliasesForPossiblyReturned(
   // For copy-initialization of a managed pointer
   // from a managed pointer, don't consider it aliasing.
   // The managed pointer will handle it.
-  if (calledFn->name == astrInitEquals)
-    if (isManagedPtrType(call->get(1)->getValType()))
-      if (isManagedPtrType(lhsActual->getValType()))
-        return; // handled by e.g. owned init=
+  if (calledFn->name == astrInitEquals) {
+    Type* lhsT = lhsActual->getValType();
+    Type* rhsT = call->get(1)->getValType();
+    if ((isManagedPtrType(lhsT) && isManagedPtrType(rhsT)) ||
+        (lhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS) &&
+         rhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS)))
+      return; // handled by e.g. owned init=
+  }
 
   ArgSymbol* theOnlyOneThatMatters = NULL;
   if (calledFn->lifetimeConstraints) {
@@ -3254,9 +3258,11 @@ void MarkCapturesVisitor::markPotentiallyCaptured(Symbol* sym, Expr* ctx) {
     SymbolToCapturedMap::iterator it = varToPotentiallyCaptured.find(sym);
     if (it != varToPotentiallyCaptured.end()) {
       if (debuggingExpiringForFn(sym->defPoint->getFunction()) ||
-          debugExpiringForId == sym->id)
+          debugExpiringForId == sym->id) {
         fprintf(stderr, " %s (%i) potentially captured at %i\n",
                 sym->name, sym->id, ctx->id);
+        gdbShouldBreakHere();
+      }
 
       it->second = 1;
     }
@@ -3419,7 +3425,9 @@ bool MarkCapturesVisitor::enterCallExpr(CallExpr* call) {
         // class = other class
         SymExpr* rhsSe = toSymExpr(call->get(2));
         markAliasesAndSymPotentiallyCaptured(rhsSe->symbol(), call);
-      } else if (isManagedPtrType(lhsT) && isManagedPtrType(rhsT)) {
+      } else if ((isManagedPtrType(lhsT) && isManagedPtrType(rhsT)) ||
+                 (lhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS) &&
+                  rhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS))) {
         // managed pointer = do not capture an alias
         // (rather they transfer / share ownership)
       } else if (isRecord(lhsT) &&

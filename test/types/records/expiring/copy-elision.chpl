@@ -1,7 +1,7 @@
 class C {
   var xx: int = 0;
 }
-
+pragma "copy no alias"
 record R {
   var x: int = 0;
   var ptr: shared C = new shared C(0);
