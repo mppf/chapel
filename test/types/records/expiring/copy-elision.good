@@ -1,0 +1,247 @@
+Expiring values for function toString (copy-elision.chpl:26)
+  temp (copy-elision.chpl:27) expires at end of block
+  temp (copy-elision.chpl:27) expires at end of block
+  temp (copy-elision.chpl:27) expires at end of block
+  temp (copy-elision.chpl:27) expires at end of block
+  temp (copy-elision.chpl:27) expires at end of block
+  temp (copy-elision.chpl:27) expires at end of block
+Expiring values for function = (copy-elision.chpl:35)
+  temp (copy-elision.chpl:36) expires after last mention
+  temp (copy-elision.chpl:36) expires after last mention
+  temp (copy-elision.chpl:38) expires after last mention
+Expiring values for function set1f (copy-elision.chpl:41)
+  temp (copy-elision.chpl:42) expires after last mention
+Expiring values for function concatenate (copy-elision.chpl:46)
+  temp (copy-elision.chpl:47) expires at end of block
+  temp (copy-elision.chpl:47) expires at end of block
+  temp (copy-elision.chpl:47) expires at end of block
+  temp (copy-elision.chpl:47) expires at end of block
+Expiring values for function concatenate (copy-elision.chpl:54)
+  temp (copy-elision.chpl:55) expires at end of block
+  temp (copy-elision.chpl:55) expires at end of block
+  temp (copy-elision.chpl:55) expires at end of block
+  temp (copy-elision.chpl:55) expires at end of block
+Expiring values for function concatenate (copy-elision.chpl:58)
+  temp (copy-elision.chpl:59) expires at end of block
+  temp (copy-elision.chpl:59) expires at end of block
+  temp (copy-elision.chpl:59) expires at end of block
+  temp (copy-elision.chpl:59) expires at end of block
+Expiring values for function test1a (copy-elision.chpl:66)
+  x (copy-elision.chpl:68) expires at end of block
+    alias y (copy-elision.chpl:70)
+  temp (copy-elision.chpl:72) expires after last mention
+Expiring values for function test1b (copy-elision.chpl:76)
+  x (copy-elision.chpl:78) expires at end of block
+    alias y (copy-elision.chpl:80)
+Expiring values for function test1c (copy-elision.chpl:86)
+  x (copy-elision.chpl:88) expires at end of block
+    alias y (copy-elision.chpl:90)
+  temp (copy-elision.chpl:92) expires at end of block
+Expiring values for function test1d (copy-elision.chpl:96)
+  x (copy-elision.chpl:98) expires after last mention
+  temp (copy-elision.chpl:100) expires after last mention
+  temp (copy-elision.chpl:100) expires after last mention
+Expiring values for function test1e (copy-elision.chpl:105)
+  x (copy-elision.chpl:107) expires at end of block
+  temp (copy-elision.chpl:109) expires at end of block
+Expiring values for function test2a (copy-elision.chpl:113)
+  x (copy-elision.chpl:115) expires at end of block
+    alias y (copy-elision.chpl:118)
+  temp (copy-elision.chpl:120) expires after last mention
+  temp (copy-elision.chpl:120) expires after last mention
+Expiring values for function test2b (copy-elision.chpl:124)
+  x (copy-elision.chpl:126) expires at end of block
+    alias y (copy-elision.chpl:129)
+  temp (copy-elision.chpl:131) expires at end of block
+  temp (copy-elision.chpl:131) expires at end of block
+Expiring values for function test2c (copy-elision.chpl:135)
+  x (copy-elision.chpl:137) expires at end of block
+    alias y (copy-elision.chpl:140)
+  temp (copy-elision.chpl:142) expires after last mention
+Expiring values for function test2d (copy-elision.chpl:146)
+  x (copy-elision.chpl:148) expires at end of block
+    alias y (copy-elision.chpl:151)
+  temp (copy-elision.chpl:153) expires at end of block
+Expiring values for function test3a (copy-elision.chpl:158)
+  x (copy-elision.chpl:160) expires at end of block
+    alias y (copy-elision.chpl:164)
+  temp (copy-elision.chpl:165) expires after last mention
+Expiring values for function test3b (copy-elision.chpl:172)
+  x (copy-elision.chpl:174) expires at end of block
+    alias y (copy-elision.chpl:179)
+  temp (copy-elision.chpl:180) expires after last mention
+  chpl_sync_error (copy-elision.chpl:176) expires after last mention
+Expiring values for function test3c (copy-elision.chpl:188)
+  s (copy-elision.chpl:190) expires at end of block
+  x (copy-elision.chpl:191) expires at end of block
+    alias y (copy-elision.chpl:195)
+  temp (copy-elision.chpl:196) expires after last mention
+Expiring values for function test4a (copy-elision.chpl:204)
+  x (copy-elision.chpl:206) expires at end of block
+    alias y (copy-elision.chpl:211)
+  temp (copy-elision.chpl:212) expires after last mention
+  chpl_sync_error (copy-elision.chpl:208) expires after last mention
+Expiring values for function test5a (copy-elision.chpl:219)
+  x (copy-elision.chpl:221) expires after last mention
+  y (copy-elision.chpl:222) expires after last mention
+  temp (copy-elision.chpl:226) expires after last mention
+Expiring values for function test5b (copy-elision.chpl:230)
+  x (copy-elision.chpl:232) expires at end of block
+  temp (copy-elision.chpl:235) expires after last mention
+  temp (copy-elision.chpl:235) expires after last mention
+Expiring values for function test5c (copy-elision.chpl:239)
+  x (copy-elision.chpl:241) expires at end of block
+  temp (copy-elision.chpl:244) expires after last mention
+  temp (copy-elision.chpl:244) expires after last mention
+Expiring values for function chpl__init_copy-elision (copy-elision.chpl:1)
+  temp (copy-elision.chpl:84) expires after last mention
+  temp (copy-elision.chpl:84) expires after last mention
+  temp (copy-elision.chpl:94) expires after last mention
+  temp (copy-elision.chpl:94) expires after last mention
+  temp (copy-elision.chpl:111) expires after last mention
+  temp (copy-elision.chpl:111) expires after last mention
+  temp (copy-elision.chpl:133) expires after last mention
+  temp (copy-elision.chpl:155) expires after last mention
+  chpl_sync_error (copy-elision.chpl:202) expires after last mention
+Expiring values for function copy (copy-elision.chpl:62)
+  temp (copy-elision.chpl:62) expires after last mention
+test1a
+init 1 1
+test1a.a
+init= 1 1
+test1a.b
+(1 1)
+deinit 1 1
+deinit 1 1
+test1b
+init 1 1
+test1b.a
+init= 1 1
+test1b.b
+deinit 1 1
+(1 1)
+deinit 1 1
+test1c
+init 1 1
+test1c.a
+init= 1 1
+test1c.b
+init= 1 1
+deinit 1 1
+deinit 1 1
+(1 1)
+deinit 1 1
+test1d
+init 1 1
+test1d.a
+init= 1 1
+(1 1)
+deinit 1 1
+deinit 1 1
+test1a.b
+test1e
+init 1 1
+test1e.a
+init= 1 1
+deinit 1 1
+(1 1)
+deinit 1 1
+test2a
+init 1 1
+test2a.a
+init= 1 1
+test2a.b
+init= 1 1
+(1 1) (1 1)
+deinit 1 1
+deinit 1 1
+deinit 1 1
+test2b
+init 1 1
+test2b.a
+init= 1 1
+test2b.b
+init= 1 1
+deinit 1 1
+deinit 1 1
+deinit 1 1
+(1 1) (1 1)
+test2c
+init 1 1
+test2c.a
+init= 1 1
+test2c.b
+init= 1 1
+deinit 1 1
+(1 1) (1 1)
+deinit 1 1
+deinit 1 1
+test2d
+init 1 1
+test2d.a
+init= 1 1
+test2d.b
+init= 1 1
+deinit 1 1
+deinit 1 1
+deinit 1 1
+(1 1) (1 1)
+test3a
+init 1 1
+test3a.a
+test3a.b
+init= 1 1
+(1 1) stored on 0 0
+deinit 1 1
+test3a.c
+deinit 1 1
+test3b
+init 1 1
+test3b.a
+test3b.b
+init= 1 1
+(1 1) stored on 0 0
+deinit 1 1
+test3b.c
+deinit 1 1
+test3c
+init 1 1
+test3c.a
+test3c.b
+init= 1 1
+(1 1) stored on 0 0
+deinit 1 1
+deinit 1 1
+test4a
+init 1 1
+test4a.a
+test4a.b
+init= 1 1
+(1 1)
+deinit 1 1
+test4a.c
+deinit 1 1
+test5a
+init 1 1
+init 0 0
+test5a.a
+lhs(0 0) = rhs(1 1)
+deinit 1 1
+test5a.b
+(1 1)
+deinit 1 1
+test5b
+init 1 1
+test5b.a
+init= 1 1
+(1 1) 1
+deinit 1 1
+deinit 1 1
+test5c
+init 1 1
+test5c.a
+init= 1 1
+(1 1) 1
+deinit 1 1
+deinit 1 1
+end
