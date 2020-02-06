@@ -274,6 +274,7 @@ void addTupleCoercion(AggregateType* fromT, AggregateType* toT, Symbol* fromSym,
 bool evaluateWhereClause(FnSymbol* fn);
 
 bool isAutoDestroyedVariable(Symbol* sym);
+bool shouldDestroyOnLastMention(VarSymbol* var);
 
 static inline bool isUnresolvedOrGenericReturnType(Type* retType) {
   return retType == dtUnknown || retType->symbol->hasFlag(FLAG_GENERIC);

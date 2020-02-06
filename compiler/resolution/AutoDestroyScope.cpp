@@ -205,16 +205,110 @@ void AutoDestroyScope::insertAutoDestroys(FnSymbol* fn, Expr* refStmt,
   mLocalsHandled = true;
 }
 
+static void findCopy(CallExpr* call, VarSymbol* var,
+                     CallExpr** copyToElide, Symbol** copyToLhs)
+{
+  if (call->isNamedAstr(astrInitEquals)) {
+    if (call->numActuals() >= 2) {
+      if (SymExpr* lhsSe = toSymExpr(call->get(1))) {
+        if (SymExpr* rhsSe = toSymExpr(call->get(2))) {
+          if (lhsSe->getValType() == rhsSe->getValType()) {
+            if (rhsSe->symbol() == var) {
+              *copyToElide = call;
+              *copyToLhs = lhsSe->symbol();
+            }
+          }
+        }
+      }
+    }
+  } else if (call->isPrimitive(PRIM_MOVE) || call->isPrimitive(PRIM_ASSIGN)) {
+    if (SymExpr* lhsSe = toSymExpr(call->get(1))) {
+      if (CallExpr* rhsCall = toCallExpr(call->get(2))) {
+        if (rhsCall->isNamed("chpl__initCopy") ||
+            rhsCall->isNamed("chpl__autoCopy")) {
+          if (rhsCall->numActuals() >= 1) {
+            if (SymExpr* rhsSe = toSymExpr(rhsCall->get(1))) {
+              if (lhsSe->getValType() == rhsSe->getValType()) {
+                if (rhsSe->symbol() == var) {
+                  *copyToElide = call;
+                  *copyToLhs = lhsSe->symbol();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } else if (call->isNamed("chpl__initCopy")||call->isNamed("chpl__autoCopy")) {
+    if (call->numActuals() >= 2) {
+      if (SymExpr* rhsSe = toSymExpr(call->get(1))) {
+        if (SymExpr* lhsSe = toSymExpr(call->get(2))) {
+          if (lhsSe->getValType() == rhsSe->getValType()) {
+            if (rhsSe->symbol() == var) {
+              *copyToElide = call;
+              *copyToLhs = lhsSe->symbol();
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 static void deinitializeOrCopyElide(Expr* before, Expr* after, VarSymbol* var) {
   if (FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type)) {
     INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
 
-    SET_LINENO(var);
-    CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
-    if (before)
-      before->insertBefore(autoDestroy);
-    else
-      after->insertAfter(autoDestroy);
+    CallExpr* copyToElide = NULL;
+    Symbol* copyToLhs = NULL;
+
+    // Check to see if copy-elision is possible.
+    if (shouldDestroyOnLastMention(var)) {
+      // variable is dead at last mention.
+      // is copy-initialization the last mention of this variable?
+      // (Don't consider the end-of-statement marker for the copy-init itself)
+
+      std::vector<SymExpr*> symExprs;
+
+      // Scroll backwards finding uses of the variable.
+      Expr* cur = NULL;
+      if (after != NULL) cur = after;
+      if (before != NULL) cur = before->prev;
+
+      // Back up past an end-of-statement if starting on one
+      if (cur != NULL)
+        if (CallExpr* call = toCallExpr(cur))
+          if (call->isPrimitive(PRIM_END_OF_STATEMENT))
+            cur = cur->prev;
+
+      while (cur != NULL) {
+        symExprs.clear();
+        if (CallExpr* call = toCallExpr(cur)) {
+          collectSymExprsFor(cur, var, symExprs);
+          if (symExprs.size() > 0) {
+            // Found a mention.
+            findCopy(call, var, &copyToElide, &copyToLhs);
+
+            // stop the search if we found a mention.
+            break;
+          }
+        }
+        cur = cur->prev;
+      }
+    }
+
+    if (copyToElide == NULL) {
+      SET_LINENO(var);
+      CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
+      if (before)
+        before->insertBefore(autoDestroy);
+      else
+        after->insertAfter(autoDestroy);
+    } else {
+      SET_LINENO(copyToElide);
+      // Change the copy into a move and don't destroy the variable.
+      copyToElide->replace(new CallExpr(PRIM_ASSIGN, copyToLhs, var));
+    }
   }
 }
 

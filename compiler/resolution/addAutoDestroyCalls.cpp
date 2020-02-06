@@ -666,7 +666,7 @@ static void computeLastMentionPoints(LastMentionMap& lmm, FnSymbol* fn) {
   }
 }
 
-static bool shouldDestroyOnLastMention(VarSymbol* var) {
+bool shouldDestroyOnLastMention(VarSymbol* var) {
   return var->hasFlag(FLAG_DEAD_LAST_MENTION) && // dead at last mention
          isAutoDestroyedVariable(var) &&
          // forall statement exception avoids certain variables
