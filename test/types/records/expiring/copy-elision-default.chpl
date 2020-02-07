@@ -1,10 +1,19 @@
+// Similar to copy-elision but uses a record
+// with default init= and =
+
 config param printInitDeinit = true;
 
 class C {
   var xx: int = 0;
+  proc init(arg: int) {
+    this.xx = arg;
+    if printInitDeinit then writeln("C.init ", arg);
+  }
+  proc deinit() {
+    if printInitDeinit then writeln("C.deinit ", xx);
+  }
 }
 
-pragma "copy no alias"
 record R {
   var x: int = 0;
   var ptr: shared C = new shared C(0);
@@ -18,11 +27,6 @@ record R {
     this.ptr = new shared C(arg);
     if printInitDeinit then writeln("init ", arg, " ", arg);
   }
-  proc init=(other: R) {
-    this.x = other.x;
-    this.ptr = new shared C(other.ptr.xx);
-    if printInitDeinit then writeln("init= ", other.x, " ", other.ptr.xx);
-  }
   proc deinit() {
     if printInitDeinit then writeln("deinit ", x, " ", ptr.xx);
   }
@@ -34,11 +38,6 @@ record R {
     this.ptr.xx = 1;
     return this;
   }
-}
-proc =(ref lhs:R, rhs:R) {
-  if printInitDeinit then writeln("lhs", lhs.toString(), " = rhs", rhs.toString());
-  lhs.x = rhs.x;
-  lhs.ptr = new shared C(rhs.ptr.xx);
 }
 
 proc set1f(ref arg: R) ref {
@@ -252,5 +251,3 @@ proc test5c() {
 test5c();
 
 writeln("end");
-
-// TODO: array tests
