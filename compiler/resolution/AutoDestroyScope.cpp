@@ -294,6 +294,9 @@ static void deinitializeOrCopyElide(Expr* before, Expr* after, VarSymbol* var) {
             // stop the search if we found a mention.
             break;
           }
+        } else {
+          // stop the search if it was a nested block
+          break;
         }
         cur = cur->prev;
       }
