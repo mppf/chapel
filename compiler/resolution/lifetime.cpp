@@ -1547,7 +1547,8 @@ bool GatherTempsVisitor::enterCallExpr(CallExpr* call) {
   return false;
 }
 
-static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOrCtor, LifetimeState* lifetimes) {
+static bool isRecordInitOrReturn(CallExpr* call,
+                                 Symbol*& lhs, CallExpr*& initOrCtor) {
 
   if (call->isPrimitive(PRIM_MOVE) ||
       call->isPrimitive(PRIM_ASSIGN)) {
@@ -1557,7 +1558,7 @@ static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOr
           if (isRecord(at)) {
             SymExpr* se = toSymExpr(call->get(1));
             INT_ASSERT(se);
-            lhs = lifetimes->getCanonicalSymbol(se->symbol());
+            lhs = se->symbol();
             initOrCtor = rhsCallExpr;
             return true;
           }
@@ -1573,7 +1574,7 @@ static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOr
       INT_ASSERT(se);
       Symbol* sym = se->symbol();
       if (isRecord(sym->type)) {
-        lhs = lifetimes->getCanonicalSymbol(sym);
+        lhs = sym;
         initOrCtor = call;
         return true;
       }
@@ -1584,7 +1585,7 @@ static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOr
             SymExpr* se = toSymExpr(actual);
             INT_ASSERT(se);
             Symbol* sym = se->symbol();
-            lhs = lifetimes->getCanonicalSymbol(sym);
+            lhs = sym;
             initOrCtor = call;
             return true;
           }
@@ -1596,6 +1597,13 @@ static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOr
   lhs = NULL;
   initOrCtor = NULL;
   return false;
+}
+
+static bool isRecordInitOrReturn(CallExpr* call, Symbol*& lhs, CallExpr*& initOrCtor, LifetimeState* lifetimes) {
+  Symbol* gotLhs = NULL;
+  bool got = isRecordInitOrReturn(call, gotLhs, initOrCtor);
+  lhs = lifetimes->getCanonicalSymbol(gotLhs);
+  return got;
 }
 
 bool IntrinsicLifetimesVisitor::enterDefExpr(DefExpr* def) {
@@ -3000,9 +3008,12 @@ capturing.
 
 */
 
-static bool typeCanAlias(Type* t) {
-  if (isClassLikeOrPtr(t) || isManagedPtrType(t))
-    return true; // classes, ptrs of any flavor can alias other things
+static bool typeCanAlias(Type* t, bool ignoreManaged) {
+  if (isManagedPtrType(t))
+    return !ignoreManaged;
+
+  if (isClassLikeOrPtr(t))
+    return true; // e.g. borrowed, unmanaged, c_ptr
 
   else if (AggregateType* at = toAggregateType(t)) {
     // Does it contain any pointer fields, recursively?
@@ -3012,7 +3023,7 @@ static bool typeCanAlias(Type* t) {
         if (field->isRef())
           canAlias = true;
         else
-          canAlias = canAlias || typeCanAlias(field->type);
+          canAlias = canAlias || typeCanAlias(field->type, ignoreManaged);
       }
       return canAlias;
     }
@@ -3022,7 +3033,59 @@ static bool typeCanAlias(Type* t) {
   return false;
 }
 static bool typeCannotAlias(Type* t) {
-  return !typeCanAlias(t);
+  return !typeCanAlias(t, false);
+}
+
+static bool isNoAliasInitCopy(Type* t, FnSymbol* calledFn) {
+  if (calledFn->name == astrInitEquals ||
+      calledFn->hasFlag(FLAG_INIT_COPY_FN) ||
+      calledFn->hasFlag(FLAG_AUTO_COPY_FN)) {
+
+    if (isManagedPtrType(t))
+      return true; // owned/shared init= not considered aliasing
+    if (t->symbol->hasFlag(FLAG_COPY_NO_ALIAS))
+      return true;
+
+    // Delve into autoCopy, initCopy, or compiler generated init=
+    if (calledFn->hasFlag(FLAG_COMPILER_GENERATED) ||
+        calledFn->name != astrInitEquals) {
+      if (AggregateType* at = toAggregateType(t)) {
+        if (isRecord(at)) {
+          // Check for borrowed fields etc
+          bool noAlias = true;
+          for_fields(field, at) {
+            Type* ft = field->type;
+            if (field->isRef())
+              noAlias = false;
+            else if (isClassLikeOrPtr(ft) && !isManagedPtrType(ft))
+              noAlias = false;
+          }
+
+          // Now check contained records by finding their init=
+          for_alist(expr, calledFn->body->body) {
+            if (CallExpr* call = toCallExpr(expr)) {
+              Symbol* lhs = NULL;
+              CallExpr* initOrCtor = NULL;
+              if (isRecordInitOrReturn(call, lhs, initOrCtor)) {
+                if (FnSymbol* fn = initOrCtor->resolvedOrVirtualFunction()) {
+                  if (fn->name == astrInitEquals ||
+                      fn->hasFlag(FLAG_INIT_COPY_FN) ||
+                      fn->hasFlag(FLAG_AUTO_COPY_FN)) {
+                    Type* lhsType = lhs->getValType();
+                    noAlias = noAlias && isNoAliasInitCopy(lhsType, fn);
+                  }
+                }
+              }
+            }
+          }
+
+          return noAlias;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 // Joins alias groups (if necessary)
@@ -3122,15 +3185,10 @@ void GatherAliasesVisitor::expandAliasesForPossiblyReturned(
 
   // For copy-initialization of a managed pointer
   // from a managed pointer, don't consider it aliasing.
-  // The managed pointer will handle it.
-  if (calledFn->name == astrInitEquals) {
-    Type* lhsT = lhsActual->getValType();
-    Type* rhsT = call->get(1)->getValType();
-    if ((isManagedPtrType(lhsT) && isManagedPtrType(rhsT)) ||
-        (lhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS) &&
-         rhsT->symbol->hasFlag(FLAG_COPY_NO_ALIAS)))
-      return; // handled by e.g. owned init=
-  }
+  // The managed pointer will handle it. Ditto records consisting
+  // of such.
+  if (isNoAliasInitCopy(lhsActual->getValType(), calledFn))
+    return; // handled by e.g. owned init=
 
   ArgSymbol* theOnlyOneThatMatters = NULL;
   if (calledFn->lifetimeConstraints) {
@@ -3431,7 +3489,7 @@ bool MarkCapturesVisitor::enterCallExpr(CallExpr* call) {
         // managed pointer = do not capture an alias
         // (rather they transfer / share ownership)
       } else if (isRecord(lhsT) &&
-                 typeCanAlias(lhsT) &&
+                 typeCanAlias(lhsT, true) &&
                  calledFn->hasFlag(FLAG_COMPILER_GENERATED)) {
         // compiler-generated record =
         SymExpr* rhsSe = toSymExpr(call->get(2));
