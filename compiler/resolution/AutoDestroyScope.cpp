@@ -285,15 +285,21 @@ static void deinitializeOrCopyElide(Expr* before, Expr* after, VarSymbol* var) {
 
       while (cur != NULL) {
         symExprs.clear();
-        if (CallExpr* call = toCallExpr(cur)) {
+        if (isCallExpr(cur) || isDefExpr(cur)) {
+          CallExpr* call = toCallExpr(cur);
+
+          if (call && call->isPrimitive(PRIM_END_OF_STATEMENT))
+            break; // stop if we found the previous statement
+
           collectSymExprsFor(cur, var, symExprs);
           if (symExprs.size() > 0) {
             // Found a mention.
-            findCopy(call, var, &copyToElide, &copyToLhs);
+            if (call) findCopy(call, var, &copyToElide, &copyToLhs);
 
             // stop the search if we found a mention.
             break;
           }
+
         } else {
           // stop the search if it was a nested block
           break;

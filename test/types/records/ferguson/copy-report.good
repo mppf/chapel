@@ -128,7 +128,6 @@ FIELD INITIALIZATION
  field initialization / in arg
    default constructor
     R.init=(R)
-    R.init=(R)
  field initialization / inout arg
    default constructor
     R.init=(R)
