@@ -7,6 +7,8 @@ use IO;
 record R { proc deinit() { } }
 class C { var x: int; }
 
+proc f(arg) { }
+
 proc setit(ref lhs, rhs) lifetime lhs < rhs {
   lhs = rhs;
 }
@@ -14,30 +16,35 @@ proc setit(ref lhs, rhs) lifetime lhs < rhs {
 proc refExample1EOB() {
   var rec = new R();
   ref rf  = rec;
+  f(rf);
 }
 refExample1EOB();
 
 proc refExample2EOB() {
   var rec = new R();
   const ref rf  = rec;
+  f(rf);
 }
 refExample2EOB();
 
 proc borrowExample1EOB() {
   var c = new owned C();
   var b = c.borrow();
+  f(b);
 }
 borrowExample1EOB();
 
 proc borrowExample2EOB() {
   var c = new owned C();
   var b:borrowed C = c;
+  f(b);
 }
 borrowExample2EOB();
 
 proc borrowExample3EOB() {
   var c = new owned C();
   var b:borrowed C? = c;
+  f(b);
 }
 borrowExample3EOB();
 
@@ -173,6 +180,7 @@ ownedExample7LM();
 proc ownedExample8EOB() {
   var x = new owned C(1);
   var y: borrowed C = x;
+  f(y);
 }
 ownedExample8EOB();
 
@@ -240,6 +248,7 @@ sharedExample0LM();
 proc sharedExample1LM() {
   var c = new shared C();
   var d = c;
+  f(d);
 }
 sharedExample1LM();
 
@@ -247,6 +256,7 @@ proc sharedExample2LM() {
   var c = new shared C();
   var d = new shared C();
   c = d;
+  f(c);
 }
 sharedExample2LM();
 
@@ -274,6 +284,7 @@ sharedExample5LMEOB();
 proc sharedExample6EOB() {
   var c = new shared C();
   var d: borrowed C = c;
+  f(d);
 }
 sharedExample6EOB();
 
@@ -292,6 +303,7 @@ proc forall1EOB() {
     if i == 1 then
       b = o.borrow();
   }
+  f(b);
 }
 forall1EOB();
 
@@ -302,6 +314,7 @@ proc forall2EOB() {
     if i == 1 then
       b = o.borrow();
   }
+  f(b);
 }
 forall2EOB();
 
@@ -312,6 +325,7 @@ proc coforall1EOB() {
     if i == 1 then
       b = o.borrow();
   }
+  f(b);
 }
 coforall1EOB();
 
@@ -322,6 +336,7 @@ proc coforall2EOB() {
     if i == 1 then
       b = o.borrow();
   }
+  f(b);
 }
 coforall2EOB();
 
@@ -332,22 +347,26 @@ proc forEOB() {
     if i == 1 then
       b = o.borrow();
   }
+  f(b);
 }
 forEOB();
 
 proc refIfExpr1EOB() {
   const ref left = if true then makeR() else makeR();
+  f(left);
 }
 refIfExpr1EOB();
 
 config const option = true;
 proc refIfExpr2EOB() {
   const ref left = if option then makeR() else makeR();
+  f(left);
 }
 refIfExpr2EOB();
 
 proc refIfExpr3EOB() {
   const ref left = if option then makeR() else makeR();
+  f(left);
 }
 refIfExpr3EOB();
 
