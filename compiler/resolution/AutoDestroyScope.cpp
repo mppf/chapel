@@ -264,8 +264,7 @@ static void deinitializeOrCopyElide(Expr* before, Expr* after, VarSymbol* var) {
     Symbol* copyToLhs = NULL;
 
     // Check to see if copy-elision is possible.
-    if (fNoCopyElision == false &&
-        shouldDestroyOnLastMention(var)) {
+    if (fNoCopyElision == false) {
       // variable is dead at last mention.
       // is copy-initialization the last mention of this variable?
       // (Don't consider the end-of-statement marker for the copy-init itself)
