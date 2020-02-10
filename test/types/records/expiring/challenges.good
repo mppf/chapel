@@ -14,4 +14,4 @@ Expiring values for function cAssignFieldEOB (challenges.chpl:101)
 Expiring values for function aliasesGlobal1 (challenges.chpl:123)
   r (challenges.chpl:124) expires after last mention
 Expiring values for function foo (challenges.chpl:127)
-  temp (challenges.chpl:127) expires after last mention
+  temp (challenges.chpl:127) expires at end of block

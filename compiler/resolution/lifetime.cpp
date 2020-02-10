@@ -275,12 +275,30 @@ namespace {
   // group.
   typedef std::set<Symbol*> AliasesGroup;
   typedef std::map<Symbol*, AliasesGroup*> AliasesMap;
+  typedef std::map<Symbol*, int> LastMentionPositionMap;
+
+  class GatherLastMentionsVisitor : public AstVisitorTraverse {
+    public:
+      LifetimeState* lifetimes;
+      LastMentionPositionMap* lastPos;
+      int count;
+
+      GatherLastMentionsVisitor()
+        : lifetimes(NULL), lastPos(NULL), count(0) { }
+
+      virtual bool enterCallExpr(CallExpr* call);
+      virtual void visitSymExpr (SymExpr* se);
+  };
 
   class GatherAliasesVisitor : public AstVisitorTraverse {
     public:
-      AliasesMap *aliases;
+      AliasesMap* aliases;
       LifetimeState* lifetimes;
       bool changed;
+
+      GatherAliasesVisitor()
+        : aliases(NULL), lifetimes(NULL), changed(false) { }
+
       void ensureSameAliasesGroup(Symbol* a, Symbol* b);
       void expandAliasesForPossiblyReturned(CallExpr* call, Symbol* lhsActual);
       virtual bool enterCallExpr(CallExpr* call);
@@ -292,8 +310,12 @@ namespace {
     public:
       AliasesMap *aliases;
       LifetimeState* lifetimes;
+      LastMentionPositionMap* lastPos;
+      LastMentionPositionMap* lastPosAnyAlias;
 
-      MarkCapturesVisitor() : aliases(NULL), lifetimes(NULL) { }
+      MarkCapturesVisitor()
+        : aliases(NULL), lifetimes(NULL),
+          lastPos(NULL), lastPosAnyAlias(NULL) { }
 
       // only local variables being considered are added to this map
       // symbol -> 1 if potentially captured, 0 if not captured
@@ -305,6 +327,7 @@ namespace {
 
       virtual bool enterDefExpr(DefExpr* def);
       virtual bool enterDeferStmt(DeferStmt* defer);
+      //bool isCapturingVariable(Symbol* var);
       virtual bool enterCallExpr(CallExpr* call);
   };
 
@@ -3088,6 +3111,24 @@ static bool isNoAliasInitCopy(Type* t, FnSymbol* calledFn) {
   return false;
 }
 
+void GatherLastMentionsVisitor::visitSymExpr(SymExpr* se) {
+  count++;
+  // TODO: filter out variables not defined in this function
+  Symbol* sym = lifetimes->getCanonicalSymbol(se->symbol());
+  (*lastPos)[sym] = count;
+}
+
+bool GatherLastMentionsVisitor::enterCallExpr(CallExpr* call) {
+  // 0: Descend into task functions
+  if (FnSymbol* calledFn = call->resolvedOrVirtualFunction()) {
+    if (isTaskFun(calledFn)) {
+      calledFn->body->accept(this);
+      return false;
+    }
+  }
+  return true;
+}
+
 // Joins alias groups (if necessary)
 void GatherAliasesVisitor::ensureSameAliasesGroup(Symbol* a, Symbol* b) {
 
@@ -3383,10 +3424,17 @@ bool MarkCapturesVisitor::enterDeferStmt(DeferStmt* defer) {
 
 // user variables "capture" aliases, so do runtime type variables
 // (TODO: Should this include iterator records as well?)
-static bool isCapturingVariable(Symbol* var) {
-  return !var->hasFlag(FLAG_TEMP) ||
-         var->type->symbol->hasFlag(FLAG_RUNTIME_TYPE_VALUE);
-}
+//bool MarkCapturesVisitor::isCapturingVariable(Symbol* var) {
+  /*if (var->type->symbol->hasFlag(FLAG_RUNTIME_TYPE_VALUE))
+    return true; // TODO: revisit this
+
+  if (var->hasFlag(FLAG_TEMP))
+    return false; // TODO: revisit this too?
+   */
+
+//  Symbol* v = lifetimes->getCanonicalSymbol(var);
+//  return ((*lastPosAnyAlias)[v] > (*lastPos)[v]);
+//}
 
 static bool inSyncBlock(Expr* e, DefExpr* def) {
 
@@ -3499,35 +3547,6 @@ bool MarkCapturesVisitor::enterCallExpr(CallExpr* call) {
     }
   }
 
-  // 2: check for storing it into a user variable
-  //  2a: PRIM_MOVE pattern
-  if (call->isPrimitive(PRIM_MOVE) ||
-      call->isPrimitive(PRIM_ASSIGN)) {
-    SymExpr* lhsSe = toSymExpr(call->get(1));
-    Symbol* lhs = lhsSe->symbol();
-
-    if (isCapturingVariable(lhs)) {
-      // Check for storing an alias into a user variable
-      // Alias set should already include lhs, so mark captured other aliases
-      markAliasesPotentiallyCaptured(lhs, call);
-      return false;
-    }
-  }
-
-  //  2a: ret-arg pattern
-  {
-    Symbol* lhs = NULL;
-    CallExpr* initOrCtor = NULL;
-    if (isRecordInitOrReturn(call, lhs, initOrCtor, lifetimes)) {
-      if (isCapturingVariable(lhs)) {
-        // Check for storing an alias into a user variable
-        // Alias set should already include lhs, so mark captured other aliases
-        markAliasesPotentiallyCaptured(lhs, call);
-        return false;
-      }
-    }
-  }
-
   return true;
 }
 
@@ -3635,6 +3654,15 @@ static void markLocalVariableExpiryInFn(FnSymbol* fn, LifetimeState* state) {
     nprint_view(fn);
 
   AliasesMap aliases; // potential aliases for each symbol
+  LastMentionPositionMap lastPos; // last mention as integer (for comparing)
+
+  {
+    // Compute the last mention of each symbol
+    GatherLastMentionsVisitor visitor;
+    visitor.lifetimes = state;
+    visitor.lastPos = &lastPos;
+    fn->accept(&visitor);
+  }
 
   {
     // Develop the set of potential aliases
@@ -3650,6 +3678,42 @@ static void markLocalVariableExpiryInFn(FnSymbol* fn, LifetimeState* state) {
         gdbShouldBreakHere();
       fn->accept(&visitor);
     } while (visitor.changed);
+  }
+
+  // Create last mention of any alias
+  LastMentionPositionMap lastPosAnyAlias = lastPos;
+  {
+    std::set<AliasesGroup*> handled;
+    for (AliasesMap::iterator mapIt = aliases.begin();
+         mapIt != aliases.end();
+         ++mapIt) {
+      Symbol* mapSym = mapIt->first;
+      AliasesGroup* group = mapIt->second;
+      if (handled.count(group) == 0) {
+        handled.insert(group);
+
+        // compute the maximum last mention position
+        int maxPos = lastPos[mapSym];
+        for (AliasesGroup::iterator it = group->begin();
+             it != group->end();
+             ++it) {
+          Symbol* sym = *it;
+
+          int otherPos = lastPos[sym];
+          if (otherPos > maxPos)
+            maxPos = otherPos;
+        }
+
+        // set all aliases to the maximum last mention position
+        for (AliasesGroup::iterator it = group->begin();
+             it != group->end();
+             ++it) {
+          Symbol* sym = *it;
+
+          lastPosAnyAlias[sym] = maxPos;
+        }
+      }
+    }
   }
 
   if (debuggingExpiringForFn(fn)) {
@@ -3673,6 +3737,17 @@ static void markLocalVariableExpiryInFn(FnSymbol* fn, LifetimeState* state) {
         }
       }
     }
+
+    fprintf(stdout, "last mention positions for function %s\n", fn->name);
+    for (LastMentionPositionMap::iterator it = lastPos.begin();
+         it != lastPos.end();
+         ++it) {
+      Symbol* sym = it->first;
+      DefExpr* def = sym->defPoint;
+      fprintf(stdout, "    %s (%i) (at %s:%i) last pos %i last alias pos %i\n",
+              sym->name, sym->id, def->fname(), def->linenum(),
+              lastPos[sym], lastPosAnyAlias[sym]);
+    }
   }
 
   {
@@ -3684,6 +3759,8 @@ static void markLocalVariableExpiryInFn(FnSymbol* fn, LifetimeState* state) {
     MarkCapturesVisitor visitor;
     visitor.aliases = &aliases;
     visitor.lifetimes = state;
+    visitor.lastPos = &lastPos;
+    visitor.lastPosAnyAlias = &lastPosAnyAlias;
     fn->accept(&visitor);
 
     // set the flags according to varToPotentiallyCaptured
@@ -3693,7 +3770,12 @@ static void markLocalVariableExpiryInFn(FnSymbol* fn, LifetimeState* state) {
          ++it) {
       Symbol* key = it->first;
       char value = it->second;
+
+      // also check last position of any alias
+      Symbol* v = state->getCanonicalSymbol(key);
       if (value != 0) {
+        key->addFlag(FLAG_DEAD_END_OF_BLOCK);
+      } else if (lastPosAnyAlias[v] > lastPos[v]) {
         key->addFlag(FLAG_DEAD_END_OF_BLOCK);
       } else {
         key->addFlag(FLAG_DEAD_LAST_MENTION);

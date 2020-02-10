@@ -6,8 +6,8 @@ Expiring values for function toString (copy-elision.chpl:29)
   temp (copy-elision.chpl:30) expires at end of block
   temp (copy-elision.chpl:30) expires at end of block
 Expiring values for function = (copy-elision.chpl:38)
-  temp (copy-elision.chpl:39) expires after last mention
-  temp (copy-elision.chpl:39) expires after last mention
+  temp (copy-elision.chpl:39) expires at end of block
+  temp (copy-elision.chpl:39) expires at end of block
   temp (copy-elision.chpl:41) expires after last mention
 Expiring values for function concatenate (copy-elision.chpl:49)
   temp (copy-elision.chpl:50) expires at end of block
@@ -27,7 +27,7 @@ Expiring values for function concatenate (copy-elision.chpl:61)
 Expiring values for function test1a (copy-elision.chpl:69)
   x (copy-elision.chpl:71) expires after last mention
   y (copy-elision.chpl:73) expires after last mention
-  temp (copy-elision.chpl:75) expires after last mention
+  temp (copy-elision.chpl:75) expires at end of block
 Expiring values for function test1b (copy-elision.chpl:79)
   x (copy-elision.chpl:81) expires after last mention
   y (copy-elision.chpl:83) expires at end of block
@@ -37,7 +37,7 @@ Expiring values for function test1c (copy-elision.chpl:89)
   temp (copy-elision.chpl:95) expires at end of block
 Expiring values for function test1d (copy-elision.chpl:99)
   x (copy-elision.chpl:101) expires after last mention
-  temp (copy-elision.chpl:103) expires after last mention
+  temp (copy-elision.chpl:103) expires at end of block
   temp (copy-elision.chpl:103) expires after last mention
 Expiring values for function test1e (copy-elision.chpl:108)
   x (copy-elision.chpl:110) expires after last mention
@@ -45,7 +45,7 @@ Expiring values for function test1e (copy-elision.chpl:108)
 Expiring values for function test2a (copy-elision.chpl:116)
   x (copy-elision.chpl:118) expires at end of block
     alias y (copy-elision.chpl:121)
-  temp (copy-elision.chpl:123) expires after last mention
+  temp (copy-elision.chpl:123) expires at end of block
 Expiring values for function test2b (copy-elision.chpl:127)
   x (copy-elision.chpl:129) expires at end of block
     alias y (copy-elision.chpl:132)
@@ -53,7 +53,7 @@ Expiring values for function test2b (copy-elision.chpl:127)
 Expiring values for function test2c (copy-elision.chpl:138)
   x (copy-elision.chpl:140) expires at end of block
     alias y (copy-elision.chpl:143)
-  temp (copy-elision.chpl:145) expires after last mention
+  temp (copy-elision.chpl:145) expires at end of block
 Expiring values for function test2d (copy-elision.chpl:149)
   x (copy-elision.chpl:151) expires at end of block
     alias y (copy-elision.chpl:154)
@@ -61,46 +61,46 @@ Expiring values for function test2d (copy-elision.chpl:149)
 Expiring values for function test3a (copy-elision.chpl:161)
   x (copy-elision.chpl:163) expires after last mention
   y (copy-elision.chpl:167) expires after last mention
-  temp (copy-elision.chpl:168) expires after last mention
+  temp (copy-elision.chpl:168) expires at end of block
 Expiring values for function test3b (copy-elision.chpl:176)
   x (copy-elision.chpl:178) expires after last mention
   y (copy-elision.chpl:183) expires after last mention
-  temp (copy-elision.chpl:184) expires after last mention
+  temp (copy-elision.chpl:184) expires at end of block
   chpl_sync_error (copy-elision.chpl:180) expires after last mention
 Expiring values for function test3c (copy-elision.chpl:193)
   s (copy-elision.chpl:195) expires at end of block
   x (copy-elision.chpl:196) expires at end of block
   y (copy-elision.chpl:200) expires after last mention
-  temp (copy-elision.chpl:201) expires after last mention
+  temp (copy-elision.chpl:201) expires at end of block
 Expiring values for function test4a (copy-elision.chpl:210)
   x (copy-elision.chpl:212) expires after last mention
   y (copy-elision.chpl:217) expires after last mention
-  temp (copy-elision.chpl:218) expires after last mention
+  temp (copy-elision.chpl:218) expires at end of block
   chpl_sync_error (copy-elision.chpl:214) expires after last mention
 Expiring values for function test5a (copy-elision.chpl:225)
   x (copy-elision.chpl:227) expires after last mention
   y (copy-elision.chpl:228) expires after last mention
-  temp (copy-elision.chpl:232) expires after last mention
+  temp (copy-elision.chpl:232) expires at end of block
 Expiring values for function test5b (copy-elision.chpl:236)
   x (copy-elision.chpl:238) expires at end of block
-  temp (copy-elision.chpl:241) expires after last mention
-  temp (copy-elision.chpl:241) expires after last mention
+  temp (copy-elision.chpl:241) expires at end of block
+  temp (copy-elision.chpl:241) expires at end of block
 Expiring values for function test5c (copy-elision.chpl:245)
   x (copy-elision.chpl:247) expires at end of block
-  temp (copy-elision.chpl:250) expires after last mention
+  temp (copy-elision.chpl:250) expires at end of block
   temp (copy-elision.chpl:250) expires after last mention
 Expiring values for function chpl__init_copy-elision (copy-elision.chpl:1)
+  temp (copy-elision.chpl:87) expires at end of block
   temp (copy-elision.chpl:87) expires after last mention
-  temp (copy-elision.chpl:87) expires after last mention
+  temp (copy-elision.chpl:97) expires at end of block
   temp (copy-elision.chpl:97) expires after last mention
-  temp (copy-elision.chpl:97) expires after last mention
-  temp (copy-elision.chpl:114) expires after last mention
+  temp (copy-elision.chpl:114) expires at end of block
   temp (copy-elision.chpl:114) expires after last mention
   temp (copy-elision.chpl:136) expires after last mention
   temp (copy-elision.chpl:158) expires after last mention
   chpl_sync_error (copy-elision.chpl:208) expires after last mention
 Expiring values for function copy (copy-elision.chpl:65)
-  temp (copy-elision.chpl:65) expires after last mention
+  temp (copy-elision.chpl:65) expires at end of block
 test1a
 init 1 1
 test1a.a
@@ -123,8 +123,8 @@ test1d
 init 1 1
 test1d.a
 (1 1)
-deinit 1 1
 test1d.b
+deinit 1 1
 test1e
 init 1 1
 test1e.a

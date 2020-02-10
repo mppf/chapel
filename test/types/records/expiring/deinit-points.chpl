@@ -139,6 +139,7 @@ proc t10b() {
     writeln("end loop iter");
   }
   writeln(r);
+  writeln(rr);
   writeln("end outer");
 }
 t10b();
@@ -398,7 +399,7 @@ proc t23() {
     writeln("begin inner");
     var r: R;
     ref rr = r;
-    writeln("end inner");
+    writeln("end inner ", rr);
   }
   writeln("end outer");
 }
@@ -411,7 +412,7 @@ proc t24() {
       writeln("begin inner");
       var r: R;
       ref rr = r;
-      writeln("end inner");
+      writeln("end inner ", rr);
     }
   }
   writeln("end outer");
