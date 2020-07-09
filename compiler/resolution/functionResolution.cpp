@@ -2504,6 +2504,7 @@ void resolveCall(CallExpr* call) {
       break;
 
     case PRIM_DEFAULT_INIT_VAR:
+    case PRIM_NOINIT_INIT_VAR:
     case PRIM_INIT_VAR_SPLIT_DECL:
       resolveGenericActuals(call);
       resolvePrimInit(call);
@@ -9938,7 +9939,8 @@ static void replaceRuntimeTypePrims(std::vector<BaseAST*>& asts) {
         continue;
       }
 
-      if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR)) {
+      if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
+          call->isPrimitive(PRIM_NOINIT_INIT_VAR)) {
         replaceRuntimeTypeDefaultInit(call);
       } else if (call->isPrimitive(PRIM_GET_RUNTIME_TYPE_FIELD)) {
         replaceRuntimeTypeGetField(call);
@@ -10018,6 +10020,7 @@ static void resolvePrimInit(CallExpr* call) {
   Expr* typeExpr = NULL;
 
   INT_ASSERT(call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
+             call->isPrimitive(PRIM_NOINIT_INIT_VAR) ||
              call->isPrimitive(PRIM_INIT_VAR_SPLIT_DECL));
 
   valExpr = call->get(1);
@@ -10025,7 +10028,8 @@ static void resolvePrimInit(CallExpr* call) {
   if (call->numActuals() >= 2)
     typeExpr = call->get(2);
 
-  if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR))
+  if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
+      call->isPrimitive(PRIM_NOINIT_INIT_VAR))
     INT_ASSERT(valExpr && typeExpr);
 
   if (call->isPrimitive(PRIM_INIT_VAR_SPLIT_DECL) && typeExpr == NULL)
@@ -10073,7 +10077,8 @@ static void resolvePrimInit(CallExpr* call, Symbol* val, Type* type) {
 
   // These are handled in replaceRuntimeTypePrims().
   if (type->symbol->hasFlag(FLAG_HAS_RUNTIME_TYPE) == true) {
-    if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR))
+    if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
+        call->isPrimitive(PRIM_NOINIT_INIT_VAR))
       errorInvalidParamInit(call, val, at);
 
   // Shouldn't be default-initializing iterator records here
@@ -10138,6 +10143,10 @@ static void resolvePrimInit(CallExpr* call, Symbol* val, Type* type) {
 
     if (call->numActuals() >= 2)
       call->get(2)->replace(new SymExpr(type->symbol));
+
+    // Lower no-init inits now because these aren't candidates for split-init.
+    if (call->isPrimitive(PRIM_NOINIT_INIT_VAR))
+      lowerPrimInit(call, NULL);
   }
 }
 
@@ -10335,7 +10344,8 @@ static void lowerPrimInit(CallExpr* call, Symbol* val, Type* type,
 
   // These are handled in replaceRuntimeTypePrims().
   if (type->symbol->hasFlag(FLAG_HAS_RUNTIME_TYPE) == true) {
-    if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR))
+    if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
+        call->isPrimitive(PRIM_NOINIT_INIT_VAR))
       errorInvalidParamInit(call, val, at);
 
   // Shouldn't be default-initializing iterator records here
@@ -10400,7 +10410,6 @@ static void lowerPrimInit(CallExpr* call, Symbol* val, Type* type,
   } else if (at                                           != NULL &&
              at->instantiatedFrom                         == NULL &&
              isNonGenericRecordWithInitializers(at)       == true) {
-
 
     errorInvalidParamInit(call, val, at);
     if (!val->hasFlag(FLAG_NO_INIT) &&
@@ -10518,7 +10527,9 @@ static void lowerPrimInitNonGenericRecordVar(CallExpr* call,
   // This code not intended to handle _array etc (but these are generic, right?)
   INT_ASSERT(isRecordWrappedType(at->getValType()) == false);
 
-  CallExpr* callInit = new CallExpr("init", gMethodToken, val);
+  bool isNoinit = call->isPrimitive(PRIM_NOINIT_INIT_VAR);
+  const char* name = isNoinit?"noinit":"init";
+  CallExpr* callInit = new CallExpr(name, gMethodToken, val);
 
   // This juggling is required by use of
   // for_exprs_postorder() in resolveBlockStmt
@@ -10529,7 +10540,7 @@ static void lowerPrimInitNonGenericRecordVar(CallExpr* call,
 
   resolveCallAndCallee(callInit);
 
-  if (isRecord(at) && at->hasPostInitializer()) {
+  if (isNoinit == false && isRecord(at) && at->hasPostInitializer()) {
     CallExpr* postinit = new CallExpr("postinit", gMethodToken, val);
     call->insertBefore(postinit);
     resolveCallAndCallee(postinit);
