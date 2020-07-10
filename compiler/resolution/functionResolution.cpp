@@ -196,8 +196,8 @@ static void ensureAndResolveInitStringLiterals();
 static void handleRuntimeTypes();
 static void buildRuntimeTypeInitFns();
 static void buildRuntimeTypeInitFn(FnSymbol* fn, Type* runtimeType);
-static void replaceValuesWithRuntimeTypes();
-static void replaceReturnedValuesWithRuntimeTypes();
+static void replaceTypeFormalsWithRuntimeTypes();
+static void replaceReturnedTypesWithRuntimeTypes();
 static void replaceRuntimeTypeVariableTypes();
 static void replaceRuntimeTypePrims();
 static FnSymbol* findGenMainFn();
@@ -9512,8 +9512,8 @@ static void handleRuntimeTypes()
   // record R { var A: [1..1][1..1] real; }
   populateRuntimeTypeMap();
   buildRuntimeTypeInitFns();
-  replaceValuesWithRuntimeTypes();
-  replaceReturnedValuesWithRuntimeTypes();
+  replaceTypeFormalsWithRuntimeTypes();
+  replaceReturnedTypesWithRuntimeTypes();
   replaceRuntimeTypeVariableTypes();
   replaceRuntimeTypePrims();
 }
@@ -9830,7 +9830,7 @@ static void buildRuntimeTypeInitFn(FnSymbol* fn, Type* runtimeType)
   fn->replaceBodyStmtsWithStmts(block);
 }
 
-static void replaceValuesWithRuntimeTypes()
+static void replaceTypeFormalsWithRuntimeTypes()
 {
   for_alive_in_Vec(FnSymbol, fn, gFnSymbols) {
       for_formals(formal, fn) {
@@ -9848,7 +9848,7 @@ static void replaceValuesWithRuntimeTypes()
   }
 }
 
-static void replaceReturnedValuesWithRuntimeTypes()
+static void replaceReturnedTypesWithRuntimeTypes()
 {
   for_alive_in_Vec(FnSymbol, fn, gFnSymbols) {
       if (fn->retTag == RET_TYPE) {
@@ -10335,7 +10335,6 @@ static void lowerPrimInit(CallExpr* call, Symbol* val, Type* type,
   SET_LINENO(call);
 
   if (type->symbol->hasFlag(FLAG_HAS_RUNTIME_TYPE) == true) {
-    // These are handled in replaceRuntimeTypePrims().
     if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
         call->isPrimitive(PRIM_NOINIT_INIT_VAR)) {
       errorInvalidParamInit(call, val, at);
