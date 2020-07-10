@@ -2948,7 +2948,11 @@ static void normVarTypeWithInit(DefExpr* defExpr) {
 }
 
 static void normVarNoinit(DefExpr* defExpr) {
-  normVarTypeWoutInit(defExpr, true);
+  // TODO: remove this code to implement noinit support
+  USR_WARN(defExpr, "noinit is currently ignored");
+  defExpr->init->remove();
+
+  //normVarTypeWoutInit(defExpr, true);
 }
 
 //
