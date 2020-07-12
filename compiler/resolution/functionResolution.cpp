@@ -9868,7 +9868,10 @@ static void replaceReturnedTypesWithRuntimeTypes()
   }
 }
 
-static void lowerRuntimeTypeInit(CallExpr* call, Symbol* var, AggregateType* at)
+static void lowerRuntimeTypeInit(CallExpr* call,
+                                 Symbol* var,
+                                 AggregateType* at,
+                                 bool noinit)
 {
   INT_ASSERT(at->symbol->hasFlag(FLAG_HAS_RUNTIME_TYPE));
 
@@ -9889,7 +9892,7 @@ static void lowerRuntimeTypeInit(CallExpr* call, Symbol* var, AggregateType* at)
   //
   // (var _rtt_1)
   // ('move' _rtt_1 ('.v' foo "field1"))
-  // (var _rtt_2)
+  // (var _rtt_2)lowerRuntimeTypeInit
   // ('move' _rtt_2 ('.v' foo "field2"))
   // ('move' x chpl__convertRuntimeTypeToValue _rtt_1 _rtt_2 ... )
   SET_LINENO(call);
@@ -9911,6 +9914,10 @@ static void lowerRuntimeTypeInit(CallExpr* call, Symbol* var, AggregateType* at)
       runtimeTypeToValueCall->insertAtTail(sub);
     }
   }
+
+  // Add the argument indicating if this is a noinit
+  Symbol* isNoInit = noinit ? gTrue : gFalse;
+  runtimeTypeToValueCall->insertAtTail(isNoInit);
 
   call->replace(new CallExpr(PRIM_MOVE, var, runtimeTypeToValueCall));
 
@@ -10307,11 +10314,17 @@ static void lowerPrimInit(CallExpr* call, Symbol* val, Type* type,
 
   SET_LINENO(call);
 
+  // Mark variables initialized with PRIM_NOINIT_INIT_VAR
+  // as not to be destroyed.
+  if (call->isPrimitive(PRIM_NOINIT_INIT_VAR))
+    val->addFlag(FLAG_NO_AUTO_DESTROY);
+
   if (type->symbol->hasFlag(FLAG_HAS_RUNTIME_TYPE) == true) {
     if (call->isPrimitive(PRIM_DEFAULT_INIT_VAR) ||
         call->isPrimitive(PRIM_NOINIT_INIT_VAR)) {
       errorInvalidParamInit(call, val, at);
-      lowerRuntimeTypeInit(call, val, at);
+      lowerRuntimeTypeInit(call, val, at,
+                           call->isPrimitive(PRIM_NOINIT_INIT_VAR));
     }
 
   // Shouldn't be default-initializing iterator records here
