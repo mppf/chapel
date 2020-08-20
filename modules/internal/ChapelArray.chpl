@@ -5219,6 +5219,7 @@ module ChapelArray {
         _ddata_allocate_postalloc(data, size);
 
       // Now construct a DefaultRectangular array using the data
+      pragma "no copy"
       var A = D.buildArrayWith(data[0].type, data, size:int);
 
       // Normally, the sub-arrays share a domain with the
@@ -5241,6 +5242,7 @@ module ChapelArray {
       if callPostAlloc then
         _ddata_allocate_postalloc(data, size);
 
+      pragma "no copy"
       var A = D.buildArrayWith(elemType, data, size:int);
 
       return A;
