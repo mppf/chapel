@@ -302,6 +302,8 @@ void pruneResolvedTree();
 
 void resolveTypeWithInitializer(AggregateType* at, FnSymbol* fn);
 
+CallExpr* buildInitCall(CallExpr* newExpr, AggregateType* at, BlockStmt* block);
+
 void resolvePromotionType(AggregateType* at);
 
 void resolveDestructor(AggregateType* at);

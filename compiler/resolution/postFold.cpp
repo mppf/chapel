@@ -294,6 +294,41 @@ static Expr* postFoldPrimop(CallExpr* call) {
       }
     }
 
+  } else if (call->isPrimitive(PRIM_CALL_INIT) == true) {
+    SymExpr* se = toSymExpr(call->get(1));
+    Symbol* obj = se->symbol();
+    AggregateType* at = toAggregateType(canonicalClassType(obj->getValType()));
+
+    // Add a block to store the calls
+    BlockStmt* block = new BlockStmt();
+    call->insertBefore(block);
+
+    // Create a new expression
+    CallExpr* newCall = new CallExpr(PRIM_NEW, at->symbol);
+
+    for (int i = 2; i <= call->numActuals(); i++) {
+      newCall->insertAtTail(call->get(i)->copy());
+    }
+
+    // add a dummy newCall to the AST in the block
+    block->insertAtTail(newCall);
+
+    // Adds the init call to the end of the block
+    CallExpr* initCall = buildInitCall(newCall, at, block);
+
+    // Set the initTmp used in the init call to the object argument
+    NamedExpr* ne = toNamedExpr(initCall->get(2));
+    SymExpr* tmpSe = toSymExpr(ne->actual);
+    tmpSe->setSymbol(obj);
+
+    // remove the dummy newCall
+    newCall->remove();
+
+    // remove the original call
+    call->remove();
+
+  // TODO: PRIM_CALL_POSTINIT
+
   } else if (call->isPrimitive(PRIM_IS_SUBTYPE) ||
              call->isPrimitive(PRIM_IS_INSTANTIATION_ALLOW_VALUES) ||
              call->isPrimitive(PRIM_IS_PROPER_SUBTYPE) ||

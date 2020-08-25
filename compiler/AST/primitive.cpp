@@ -938,6 +938,9 @@ initPrimitive() {
   // call destructor on type (do not free)
   prim_def(PRIM_CALL_DESTRUCTOR, "call destructor", returnInfoVoid, true);
 
+  prim_def(PRIM_CALL_INIT, "call init", returnInfoVoid, true);
+  //prim_def(PRIM_CALL_POSTINIT, "call postinit", returnInfoVoid, true);
+
   // Help fold logical && and ||
   prim_def(PRIM_LOGICAL_FOLDER, "_paramFoldLogical", returnInfoBool);
 

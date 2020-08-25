@@ -238,9 +238,9 @@ static void insertNamedInstantiationInfo(CallExpr* newExpr,
 //
 // Note: Modifies 'newExpr'
 //
-static CallExpr* buildInitCall(CallExpr* newExpr,
-                               AggregateType* at,
-                               BlockStmt* block) {
+CallExpr* buildInitCall(CallExpr* newExpr,
+                       AggregateType* at,
+                       BlockStmt* block) {
   AggregateType* rootType = at->getRootInstantiation();
 
   Expr* modToken = NULL;
