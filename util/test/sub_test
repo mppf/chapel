@@ -138,7 +138,7 @@ import operator
 import select, fcntl
 import fnmatch, time
 import re
-import shlex
+import shlex, shutil
 import datetime
 import errno
 
@@ -304,6 +304,16 @@ def DiffFiles(f1, f2):
     if p.returncode != 0:
         sys.stdout.write(trim_output(myoutput))
     return p.returncode
+
+def AcceptOutput(goodfile, output):
+    sys.stdout.write('[Accepting %s as %s]\n'%(output, goodfile))
+    try:
+        shutil.copy(src=output, dst=goodfile)
+        return 0
+    except OSError as e:
+        sys.stdout.write('[Error copying $s to %s: %s]\n'%(output, goodfile,
+                                                           str(e)))
+        return 1
 
 def DiffBinaryFiles(f1, f2):
     sys.stdout.write('[Executing binary diff %s %s]\n'%(f1, f2))
@@ -776,6 +786,7 @@ chpllm=os.getenv('CHPL_LOCALE_MODEL','flat').strip()
 chpllmstr='.lm-'+chpllm
 #sys.stdout.write('lm=%s\n'%(chpllm))
 
+chpltestaccept = os.getenv('CHPL_TEST_ACCEPT') == 'true'
 #
 # Test options for all tests in this directory
 #
@@ -1701,9 +1712,11 @@ for testname in testsrc:
             else:
                 sys.stdout.write('%s[Error '%(futuretest))
             sys.stdout.write('matching compiler output for %s/%s'%
-                                 (localdir, test_filename))
+                             (localdir, test_filename))
             printTestVariation(compoptsnum, compoptslist);
             sys.stdout.write(']\n')
+            if chpltestaccept and result != 0 and futuretest == '':
+                AcceptOutput(goodfile, complog)
 
             # If there was a prediff it may have hidden the compilation
             # failure, so print out the full log. Note that we don't check
@@ -1727,6 +1740,8 @@ for testname in testsrc:
                     sys.stdout.write('for %s/%s'%(localdir, test_filename))
                     printTestVariation(compoptsnum, compoptslist);
                     sys.stdout.write(']\n');
+                    if chpltestaccept and badresult != 0:
+                        AcceptOutput(badfile, complog)
 
             cleanup(execname)
             cleanup(printpassesfile)
@@ -2201,6 +2216,7 @@ for testname in testsrc:
 
                             continue # on to next execopts
 
+                        extra_msg = ''
                         result = DiffFiles(execgoodfile, execlog)
                         if result==0:
                             os.unlink(execlog)
@@ -2215,6 +2231,9 @@ for testname in testsrc:
                             printTestVariation(compoptsnum, compoptslist,
                                                execoptsnum, execoptslist);
                         sys.stdout.write(']\n')
+                        if chpltestaccept and result != 0:
+                            if futuretest == '' and extra_msg == '':
+                                AcceptOutput(execgoodfile, execlog)
 
                         if (result != 0 and futuretest != ''):
                             badfile=test_filename+'.bad'
@@ -2229,6 +2248,8 @@ for testname in testsrc:
                                 sys.stdout.write('for %s/%s'%(localdir, test_filename))
                                 printTestVariation(compoptsnum, compoptslist);
                                 sys.stdout.write(']\n');
+                                if chpltestaccept and badresult != 0:
+                                    AcceptOutput(badfile, execlog)
 
 
                 if perftest:

@@ -730,6 +730,11 @@ def set_up_environment():
     if args.junit_xml_file:
         args.junit_xml = True
 
+    # good file manipulation leak
+    if args.accept:
+        os.environ["CHPL_TEST_ACCEPT"] = "true"
+
+
 
 def set_up_logger():
     # log_file
@@ -1438,6 +1443,11 @@ def parser_setup():
     parser.add_argument("-junit-remove-prefix", "--junit-remove-prefix",
             action="store", dest="junit_remove_prefix", metavar="<prefix>",
             help=help_all("<prefix> to remove from tests in jUnit report"))
+
+    # good file manipulation
+    parser.add_argument("-accept", "--accept", action="store_true",
+            dest="accept", help="just copy output to good/bad file")
+
     # extra help
     parser.add_argument("-help", action="help", help=argparse.SUPPRESS)
     parser.add_argument("--help-all", action="help",
