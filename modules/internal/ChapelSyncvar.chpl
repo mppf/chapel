@@ -118,31 +118,12 @@ module ChapelSyncvar {
     type valType;                              // The compiler knows this name
 
     var  wrapped : getSyncClassType(valType);
-    var  isOwned : bool                      = true;
 
     pragma "dont disable remote value forwarding"
     proc init(type valType) {
       ensureFEType(valType);
       this.valType = valType;
       this.wrapped = new (getSyncClassType(valType))();
-    }
-
-    //
-    // This is technically a copy-initializer, but it's only called through
-    // chpl__autoCopy.
-    //
-    // Also note that syncs **need** to use chpl__initCopy in order to return
-    // a different type. For example:
-    //
-    //   var a = x$;
-    //
-    // ``a`` needs to be a ``valType``, not a sync.
-    //
-    pragma "dont disable remote value forwarding"
-    proc init(const ref other : _syncvar) {
-      this.valType = other.valType;
-      this.wrapped = other.wrapped;
-      this.isOwned = false;
     }
 
     proc init=(const ref other : _syncvar) {
@@ -167,8 +148,7 @@ module ChapelSyncvar {
 
     pragma "dont disable remote value forwarding"
     proc deinit() {
-      if isOwned == true then
-        delete wrapped;
+      delete wrapped;
     }
 
     // Do not allow implicit reads of sync vars.
@@ -335,9 +315,9 @@ module ChapelSyncvar {
   pragma "auto copy fn"
   pragma "no doc"
   proc chpl__autoCopy(const ref rhs : _syncvar, definedConst: bool) {
-    // Does it make sense to have a const sync? If so, can we make use of that
-    // information here?
-    return new _syncvar(rhs);
+    halt("Cannot return an implicit copy of a sync variable");
+    var x: rhs.type = rhs.readXX();
+    return x;
   }
 
   // Be explicit about whether syncs are auto-destroyed.
@@ -345,8 +325,7 @@ module ChapelSyncvar {
 
   // This version has to be available to take precedence
   inline proc chpl__autoDestroy(x : _syncvar(?)) {
-    if x.isOwned == true then
-      delete x.wrapped;
+    delete x.wrapped;
   }
 
   pragma "no doc"
@@ -661,30 +640,11 @@ module ChapelSyncvar {
     type valType;                              // The compiler knows this name
 
     var  wrapped : unmanaged _singlecls(valType);
-    var  isOwned : bool                = true;
 
     proc init(type valType) {
       ensureFEType(valType);
       this.valType = valType;
       wrapped = new unmanaged _singlecls(valType);
-    }
-
-    //
-    // This is technically a copy-initializer, but it's only called through
-    // chpl__autoCopy.
-    //
-    // Also note that singles **need** to use chpl__initCopy in order to return
-    // a different type. For example:
-    //
-    //   var a = x$;
-    //
-    // ``a`` needs to be a ``valType``, not a single.
-    //
-    pragma "dont disable remote value forwarding"
-    proc init(const ref other : _singlevar) {
-      this.valType = other.valType;
-      wrapped = other.wrapped;
-      isOwned = false;
     }
 
     proc init=(const ref other : _singlevar) {
@@ -708,8 +668,7 @@ module ChapelSyncvar {
 
     pragma "dont disable remote value forwarding"
     proc deinit() {
-      if isOwned == true then
-        delete wrapped;
+      delete wrapped;
     }
 
     // Do not allow implicit reads of single vars.
@@ -794,7 +753,9 @@ module ChapelSyncvar {
   pragma "auto copy fn"
   pragma "no doc"
   proc chpl__autoCopy(const ref rhs : _singlevar, definedConst: bool) {
-    return new _singlevar(rhs);
+    halt("Cannot return an implicit copy of a single variable");
+    var x: rhs.type = rhs.readXX();
+    return x;
   }
 
   // Be explicit about whether singles are auto-destroyed.
@@ -802,8 +763,7 @@ module ChapelSyncvar {
 
   // This version has to be available to take precedence
   inline proc chpl__autoDestroy(x : _singlevar(?)) {
-    if x.isOwned == true then
-      delete x.wrapped;
+    delete x.wrapped;
   }
 
   pragma "no doc"

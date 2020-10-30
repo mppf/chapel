@@ -1,0 +1,1 @@
+sync-autocopy-memory-error.chpl:4: error: halt reached - Cannot return an implicit copy of a sync variable
