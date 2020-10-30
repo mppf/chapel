@@ -2394,7 +2394,8 @@ void AggregateType::fieldToArg(FnSymbol*              fn,
 }
 
 void AggregateType::fieldToArgType(DefExpr* fieldDef, ArgSymbol* arg) {
-  BlockStmt* exprType = new BlockStmt(fieldDef->exprType->copy(), BLOCK_TYPE);
+  Expr* useType = new CallExpr("_desync", fieldDef->exprType->copy());
+  BlockStmt* exprType = new BlockStmt(useType, BLOCK_TYPE);
 
   // If the type is simple, just set the argument's type directly.
   // Otherwise, give it the block we just created.
