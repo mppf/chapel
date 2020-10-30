@@ -2381,6 +2381,8 @@ void AggregateType::fieldToArg(FnSymbol*              fn,
 
         fn->insertFormalAtTail(arg);
 
+        // Call = function which will generally be replaced by
+        // something else in preNormalizeInitMethod.
         fn->insertAtTail(new CallExpr("=",
                                       new CallExpr(".",
                                                    fn->_this,

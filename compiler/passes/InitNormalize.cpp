@@ -411,14 +411,14 @@ Expr* InitNormalize::genericFieldInitTypeInference(Expr*    insertBefore,
   //   var x = <immediate>;
   //   var y = <identifier>;
   if (isSymExpr(initExpr)) {
-    if (mFn->isDefaultInit()) {
+    /*if (mFn->isDefaultInit()) {
       Symbol*    name     = new_CStringSymbol(field->sym->name);
       Symbol*    _this    = mFn->_this;
       CallExpr*  fieldSet = new CallExpr(PRIM_INIT_FIELD, _this, name, initExpr);
 
       insertBefore->insertBefore(fieldSet);
 
-    } else {
+    } else */{
       VarSymbol* tmp      = newTemp("tmp");
       DefExpr*   tmpDefn  = new DefExpr(tmp);
       PrimitiveTag tag    = isTypeVar ? PRIM_MOVE : PRIM_INIT_VAR;
@@ -512,7 +512,7 @@ Expr* InitNormalize::fieldInitTypeWoutInit(Expr*    insertBefore,
 
   Symbol*    _this    = mFn->_this;
   Symbol*    name     = new_CStringSymbol(field->sym->name);
-  CallExpr*  fieldSet = new CallExpr(PRIM_SET_MEMBER, _this, name, tmp);
+  CallExpr*  fieldSet = new CallExpr(PRIM_INIT_FIELD, _this, name, tmp);
 
   insertBefore->insertBefore(tmpDefn);
   insertBefore->insertBefore(tmpInit);
@@ -534,7 +534,7 @@ Expr* InitNormalize::fieldInitTypeWithInit(Expr*    insertBefore,
 
   Type* type = field->sym->type;
 
-  if (mFn->isDefaultInit()) {
+  /*if (mFn->isDefaultInit()) {
     // For default-initializers, copy happens at the callsite
     Symbol* _this = mFn->_this;
     Symbol* name = new_CStringSymbol(field->sym->name);
@@ -544,7 +544,7 @@ Expr* InitNormalize::fieldInitTypeWithInit(Expr*    insertBefore,
 
     return initExpr;
 
-  } else {
+  } else*/ {
     // Do not set type of 'tmp' so that resolution will infer it later
     VarSymbol* tmp       = newTemp("tmp");
     DefExpr*   tmpDefn   = new DefExpr(tmp);
@@ -595,21 +595,21 @@ Expr* InitNormalize::fieldInitTypeInference(Expr*    insertBefore,
                                             Expr*    initExpr) const {
   SET_LINENO(insertBefore);
 
-  if (mFn->isDefaultInit()) {
+  /*if (mFn->isDefaultInit()) {
     Symbol* _this = mFn->_this;
     Symbol* name = new_CStringSymbol(field->sym->name);
     CallExpr* fieldSet = new CallExpr(PRIM_SET_MEMBER, _this, name, initExpr);
 
     insertBefore->insertBefore(fieldSet);
 
-  } else {
+  } else */{
     VarSymbol* tmp      = newTemp("tmp");
     DefExpr*   tmpDefn  = new DefExpr(tmp);
     CallExpr*  tmpInit  = new CallExpr(PRIM_INIT_VAR, tmp, initExpr);
 
     Symbol*    _this    = mFn->_this;
     Symbol*    name     = new_CStringSymbol(field->sym->name);
-    CallExpr*  fieldSet = new CallExpr(PRIM_SET_MEMBER, _this, name, tmp);
+    CallExpr*  fieldSet = new CallExpr(PRIM_INIT_FIELD, _this, name, tmp);
 
     insertBefore->insertBefore(tmpDefn);
     insertBefore->insertBefore(tmpInit);
