@@ -2532,27 +2532,6 @@ void cache_get(struct rdcache_s* cache,
       page = allocate_page(cache);
     }
 
-    // Now we need to start a get into page.
-    // If we don't have entry set, we will also need to plumb
-    // it into the tree while we are awaiting our get.
-    // We'll get within ra_page from ra_line to ra_line_end.
-    INFO_PRINT(("%i chpl_comm_start_get(%p, %i, %p, %i)\n",
-                 (int) chpl_nodeID, page+(ra_line-ra_page), node, (void*) ra_line,
-                 (int) (ra_line_end - ra_line)));
-
-#ifdef TIME
-    clock_gettime(CLOCK_REALTIME, &start_get1);
-#endif
-    // Note: chpl_comm_get_nb could cause a different task body to run.
-    handle = 
-      chpl_comm_get_nb(page+(ra_line-ra_page), /*local addr*/
-                       node, (void*) ra_line,
-                       ra_line_end - ra_line /*size*/,
-                       commID, ln, fn);
-#ifdef TIME
-    clock_gettime(CLOCK_REALTIME, &start_get2);
-#endif
-
     // Now, while that get is going, plumb into the tree.
 
     if( entry ) {
@@ -2615,6 +2594,27 @@ void cache_get(struct rdcache_s* cache,
       cache->last_cache_miss_read_node = node;
       cache->last_cache_miss_read_addr = ra_line;
     }
+
+    // Now we need to start a get into page.
+    // If we don't have entry set, we will also need to plumb
+    // it into the tree while we are awaiting our get.
+    // We'll get within ra_page from ra_line to ra_line_end.
+    INFO_PRINT(("%i chpl_comm_start_get(%p, %i, %p, %i)\n",
+                 (int) chpl_nodeID, page+(ra_line-ra_page), node, (void*) ra_line,
+                 (int) (ra_line_end - ra_line)));
+
+#ifdef TIME
+    clock_gettime(CLOCK_REALTIME, &start_get1);
+#endif
+    // Note: chpl_comm_get_nb could cause a different task body to run.
+    handle = 
+      chpl_comm_get_nb(page+(ra_line-ra_page), /*local addr*/
+                       node, (void*) ra_line,
+                       ra_line_end - ra_line /*size*/,
+                       commID, ln, fn);
+#ifdef TIME
+    clock_gettime(CLOCK_REALTIME, &start_get2);
+#endif
 
     // Make sure that there is an available page for next time,
     // but do it without evicting entry (that we are working with).
