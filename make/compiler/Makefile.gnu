@@ -162,6 +162,10 @@ WARN_CFLAGS = $(WARN_COMMONFLAGS) -Wmissing-prototypes -Wstrict-prototypes -Wmis
 WARN_GEN_CFLAGS = $(WARN_CFLAGS)
 SQUASH_WARN_GEN_CFLAGS = -Wno-unused -Wno-uninitialized
 
+ifeq ($(shell test $(GNU_GPP_MAJOR_VERSION) -gt 5; echo "$$?"),0)
+WARN_CXXFLAGS += -Wsuggest-override
+endif
+
 #
 # Don't warn for signed pointer issues (ex. c_ptr(c_char) )
 #

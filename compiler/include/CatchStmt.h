@@ -68,15 +68,17 @@ public:
 
   bool        isCatchall() const;
 
-  void                accept(AstVisitor* visitor);
-  void                replaceChild(Expr* old_ast, Expr* new_ast);
-  Expr*               getFirstExpr();
-  Expr*               getNextExpr(Expr* expr);
-  void                verify();
+  void                accept(AstVisitor* visitor) override;
+  void                replaceChild(Expr* old_ast, Expr* new_ast) override;
+  Expr*               getFirstExpr() override;
+  Expr*               getNextExpr(Expr* expr) override;
+  void                verify() override;
+
   void                cleanup();
 
-  GenRet              codegen();
+  GenRet              codegen() override;
   DECLARE_COPY(CatchStmt);
+  CatchStmt* copyInner(SymbolMap* map) override;
 
   const char* _name;
   Expr*       _type;

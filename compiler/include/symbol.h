@@ -146,10 +146,10 @@ enum ShadowVarPrefix {
 class Symbol : public BaseAST {
 public:
   // Interface for BaseAST
-  virtual GenRet     codegen();
-          bool       inTree();
-  virtual QualifiedType qualType();
-  virtual void       verify();
+  virtual GenRet     codegen() override;
+          bool       inTree() override;
+  virtual QualifiedType qualType() override;
+  virtual void       verify() override;
 
   // Note: copy may add copied Symbols to the supplied map
   virtual Symbol*    copy(SymbolMap* map      = NULL,
@@ -238,6 +238,8 @@ private:
                      Symbol();
 
   virtual void       codegenPrototype(); // ie type decl
+  virtual Symbol*    copyInner(SymbolMap* map) = 0;
+
 
   SymExpr*           symExprsHead;
   SymExpr*           symExprsTail;
@@ -309,23 +311,25 @@ public:
   VarSymbol(const char* init_name, QualifiedType qType);
   virtual ~VarSymbol();
 
-  void verify();
-  virtual void    accept(AstVisitor* visitor);
+  void verify() override;
+  virtual void       accept(AstVisitor* visitor) override;
   DECLARE_SYMBOL_COPY(VarSymbol);
-  void replaceChild(BaseAST* old_ast, BaseAST* new_ast);
+  virtual VarSymbol* copyInner(SymbolMap* map) override;
 
-  virtual bool       isConstant()                              const;
-  virtual bool       isConstValWillNotChange();
-  virtual bool       isImmediate()                             const;
-  virtual bool       isParameter()                             const;
-  virtual bool       isType()                                  const;
+  void replaceChild(BaseAST* old_ast, BaseAST* new_ast) override;
+
+  virtual bool       isConstant()                              const override;
+  virtual bool       isConstValWillNotChange() override;
+  virtual bool       isImmediate()                             const override;
+  virtual bool       isParameter()                             const override;
+  virtual bool       isType()                                           const;
 
   const char* doc;
 
   GenRet codegenVarSymbol(bool lhsInSetReference=false);
-  GenRet codegen();
+  GenRet codegen() override;
   void codegenDefC(bool global = false, bool isHeader = false);
-  void codegenDef();
+  void codegenDef() override;
   // global vars are different ...
   void codegenGlobalDef(bool isHeader);
 
@@ -358,7 +362,7 @@ public:
 *                                                                             *
 ************************************** | *************************************/
 
-class ArgSymbol : public LcnSymbol {
+class ArgSymbol final : public LcnSymbol {
 public:
   ArgSymbol(IntentTag   iIntent,
             const char* iName,
@@ -369,22 +373,24 @@ public:
 
 
   // Interface for BaseAST
-  virtual GenRet  codegen();
+  GenRet  codegen() override;
 
-  virtual void    verify();
-  virtual void    accept(AstVisitor* visitor);
+  void    verify() override;
+  void    accept(AstVisitor* visitor) override;
   DECLARE_SYMBOL_COPY(ArgSymbol);
+  ArgSymbol* copyInner(SymbolMap* map) override;
+
 
   // Interface for Symbol
-  virtual void    replaceChild(BaseAST* oldAst, BaseAST* newAst);
+  void    replaceChild(BaseAST* oldAst, BaseAST* newAst) override;
 
 
   // New interface
-  virtual bool    isConstant()                              const;
-  virtual bool    isConstValWillNotChange();
-  virtual bool    isParameter()                             const;
+  virtual bool    isConstant()                              const override;
+  virtual bool    isConstValWillNotChange() override;
+  virtual bool    isParameter()                             const override;
 
-  virtual bool    isVisible(BaseAST* scope)                 const;
+  virtual bool    isVisible(BaseAST* scope)                 const override;
 
   bool            requiresCPtr();
   const char*     intentDescrString() const;
@@ -423,20 +429,22 @@ public:
 *                                                                             *
 ************************************** | *************************************/
 
-class ShadowVarSymbol : public VarSymbol {
+class ShadowVarSymbol final : public VarSymbol {
 public:
   ShadowVarSymbol(ForallIntentTag iIntent,
                   const char* iName,
                   SymExpr* outerVar,
                   Expr* iSpec = NULL);
 
-  virtual void    verify();
-  virtual void    accept(AstVisitor* visitor);
+  void    verify() override;
+  void    accept(AstVisitor* visitor) override;
   DECLARE_SYMBOL_COPY(ShadowVarSymbol);
+  ShadowVarSymbol* copyInner(SymbolMap* map) override;
 
-  virtual void    replaceChild(BaseAST* oldAst, BaseAST* newAst);
-  virtual bool    isConstant()                              const;
-  virtual bool    isConstValWillNotChange();
+
+  void    replaceChild(BaseAST* oldAst, BaseAST* newAst) override;
+  bool    isConstant()                              const override;
+  bool    isConstValWillNotChange() override;
 
   const char* intentDescrString() const;
   bool        isReduce()          const { return intent == TFI_REDUCE;       }
@@ -490,7 +498,7 @@ public:
 *                                                                   *
 ********************************* | ********************************/
 
-class TypeSymbol : public Symbol {
+class TypeSymbol final : public Symbol {
  public:
   // We need to know whether or not the definition
   // for this type has already been codegen'd
@@ -522,14 +530,18 @@ class TypeSymbol : public Symbol {
 #endif
 
   TypeSymbol(const char* init_name, Type* init_type);
-  void verify();
-  virtual void    accept(AstVisitor* visitor);
+  void verify() override;
+  void    accept(AstVisitor* visitor) override;
   DECLARE_SYMBOL_COPY(TypeSymbol);
-  void replaceChild(BaseAST* old_ast, BaseAST* new_ast);
+  TypeSymbol* copyInner(SymbolMap* map) override;
 
-  GenRet codegen();
-  void codegenDef();
-  void codegenPrototype();
+  void replaceChild(BaseAST* old_ast, BaseAST* new_ast) override;
+
+  GenRet codegen() override;
+
+  void codegenDef() override;
+  void codegenPrototype() override;
+
   // This function is used to code generate the LLVM TBAA metadata
   // after all of the types have been defined.
   void codegenMetadata();
@@ -558,19 +570,20 @@ class TypeSymbol : public Symbol {
 *                                                                             *
 ************************************** | *************************************/
 
-class EnumSymbol : public Symbol {
+class EnumSymbol final : public Symbol {
 public:
                   EnumSymbol(const char* initName);
 
-  virtual void    verify();
-  virtual void    accept(AstVisitor* visitor);
+  void    verify() override;
+  void    accept(AstVisitor* visitor) override;
 
   DECLARE_SYMBOL_COPY(EnumSymbol);
+  EnumSymbol* copyInner(SymbolMap* map) override;
 
-  virtual void    replaceChild(BaseAST* oldAst, BaseAST* newAst);
-  virtual void    codegenDef();
+  void    replaceChild(BaseAST* oldAst, BaseAST* newAst) override;
+  void    codegenDef() override;
 
-  virtual bool    isParameter()                             const;
+  bool    isParameter()                             const override;
 
   Immediate*      getImmediate();
 };
@@ -589,15 +602,17 @@ public:
 *                                                                             *
 ************************************** | *************************************/
 
-class LabelSymbol : public Symbol {
+class LabelSymbol final : public Symbol {
 public:
   GotoStmt* iterResumeGoto;
   LabelSymbol(const char* init_name);
-  void verify();
-  virtual void    accept(AstVisitor* visitor);
+  void verify() override;
+  void    accept(AstVisitor* visitor) override;
   DECLARE_SYMBOL_COPY(LabelSymbol);
-  void replaceChild(BaseAST* old_ast, BaseAST* new_ast);
-  void codegenDef();
+  LabelSymbol* copyInner(SymbolMap* map) override;
+
+  void replaceChild(BaseAST* old_ast, BaseAST* new_ast) override;
+  void codegenDef() override;
 };
 
 /************************************* | **************************************

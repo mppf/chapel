@@ -38,25 +38,24 @@ protected:
 
   virtual               ~WhileStmt();
 
-  void                   copyShare(const WhileStmt& ref,
-                                   SymbolMap*       mapRef,
-                                   bool             internal);
+  void                   copyInnerShare(const WhileStmt& ref,
+                                        SymbolMap*       map);
 
   // Interface to BaseAST
-  virtual void           verify();
+  virtual void           verify()                                 override;
 
   // Interface to Expr
-  virtual void           replaceChild(Expr* oldAst, Expr* newAst);
+  virtual void           replaceChild(Expr* oldAst, Expr* newAst) override;
 
   // New interface
-  virtual bool           isWhileStmt()                                const;
+  virtual bool           isWhileStmt()                      const override;
 
-  virtual void           checkConstLoops();
+  virtual void           checkConstLoops()                        override;
 
-  virtual bool           deadBlockCleanup();
+  virtual bool           deadBlockCleanup()                       override;
 
-  virtual CallExpr*      blockInfoGet()                               const;
-  virtual CallExpr*      blockInfoSet(CallExpr* expr);
+  virtual CallExpr*      blockInfoGet()                     const override;
+  virtual CallExpr*      blockInfoSet(CallExpr* expr)             override;
 
 private:
                          WhileStmt();

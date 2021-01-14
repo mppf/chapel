@@ -54,11 +54,13 @@ public:
                                              ClassTypeDecorator d);
                           ~DecoratedClassType();
 
-  void                    accept(AstVisitor* visitor);
-  void                    replaceChild(BaseAST* oldAst, BaseAST* newAst);
-  void                    verify();
-  GenRet                  codegen();
+  void                    accept(AstVisitor* visitor) override;
+  void              replaceChild(BaseAST* oldAst, BaseAST* newAst) override;
+  void                    verify() override;
+  GenRet                  codegen() override;
   DECLARE_COPY(DecoratedClassType);
+  DecoratedClassType* copyInner(SymbolMap* map) override;
+
 
   AggregateType*          getCanonicalClass() const;
 

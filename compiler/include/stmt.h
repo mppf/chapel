@@ -49,7 +49,7 @@ public:
   virtual       ~Stmt();
 
   // Interface to Expr
-  virtual bool   isStmt()                                      const;
+  virtual bool   isStmt()                                      const override;
 };
 
 /************************************* | **************************************
@@ -58,7 +58,8 @@ public:
 ************************************** | *************************************/
 class ResolveScope;
 
-class VisibilityStmt: public Stmt {
+// parent base class for UseStmt and ImportStmt
+class VisibilityStmt : public Stmt {
  public:
   VisibilityStmt(AstTag astTag);
 
@@ -112,6 +113,7 @@ enum BlockTag {
   BLOCK_EXTERN_TYPE = BLOCK_EXTERN    | BLOCK_TYPE
 };
 
+// Parent class for LoopStmt and various loops as well
 class BlockStmt : public Stmt {
 public:
                       BlockStmt(Expr*    initBody     = NULL,
@@ -119,16 +121,17 @@ public:
                       BlockStmt(BlockTag initBlockTag);
 
   DECLARE_COPY(BlockStmt);
+  BlockStmt* copyInner(SymbolMap* map) override;
 
   // Interface to BaseAST
-  virtual GenRet      codegen();
-  virtual void        verify();
-  virtual void        accept(AstVisitor* visitor);
+  virtual GenRet      codegen() override;
+  virtual void        verify() override;
+  virtual void        accept(AstVisitor* visitor) override;
 
   // Interface to Expr
-  virtual void        replaceChild(Expr* oldAst, Expr* newAst);
-  virtual Expr*       getFirstExpr();
-  virtual Expr*       getNextExpr(Expr* expr);
+  virtual void        replaceChild(Expr* oldAst, Expr* newAst) override;
+  virtual Expr*       getFirstExpr() override;
+  virtual Expr*       getNextExpr(Expr* expr) override;
 
   // New interface
   virtual bool        isLoopStmt()                                 const;
@@ -195,7 +198,7 @@ private:
 *                                                                             *
 ************************************** | *************************************/
 
-class CondStmt : public Stmt {
+class CondStmt final : public Stmt {
 public:
                       CondStmt(Expr*    iCondExpr,
                                BaseAST* iThenStmt,
@@ -203,14 +206,15 @@ public:
                                bool     isIfExpr = false);
 
                       DECLARE_COPY(CondStmt);
+  CondStmt*           copyInner(SymbolMap* map) override;
 
-  virtual GenRet      codegen();
-  virtual void        replaceChild(Expr* oldAst, Expr* newAst);
-  virtual void        verify();
-  virtual void        accept(AstVisitor* visitor);
+  GenRet              codegen() override;
+  void                replaceChild(Expr* oldAst, Expr* newAst) override;
+  void                verify() override;
+  void                accept(AstVisitor* visitor) override;
 
-  virtual Expr*       getFirstExpr();
-  virtual Expr*       getNextExpr(Expr* expr);
+  Expr*               getFirstExpr() override;
+  Expr*               getNextExpr(Expr* expr) override;
 
   CallExpr*           foldConstantCondition(bool addEndOfStatement);
 
@@ -243,7 +247,7 @@ enum GotoTag {
 };
 
 
-class GotoStmt : public Stmt {
+class GotoStmt final : public Stmt {
  public:
   GotoTag gotoTag;
   Expr* label;
@@ -252,15 +256,16 @@ class GotoStmt : public Stmt {
   GotoStmt(GotoTag init_gotoTag, Symbol* init_label);
   GotoStmt(GotoTag init_gotoTag, Expr* init_label);
 
-  virtual GenRet      codegen();
+  GenRet      codegen() override;
 
   DECLARE_COPY(GotoStmt);
+  GotoStmt* copyInner(SymbolMap* map) override;
 
-  virtual void        replaceChild(Expr* old_ast, Expr* new_ast);
-  virtual void        verify();
-  virtual void        accept(AstVisitor* visitor);
+  void        replaceChild(Expr* old_ast, Expr* new_ast) override;
+  void        verify() override;
+  void        accept(AstVisitor* visitor) override;
 
-  virtual Expr*       getFirstExpr();
+  Expr*       getFirstExpr() override;
 
   const char*         getName();
 
@@ -274,20 +279,22 @@ class GotoStmt : public Stmt {
 *                                                                             *
 ************************************** | *************************************/
 
-class ExternBlockStmt : public Stmt {
+class ExternBlockStmt final : public Stmt {
 public:
                       ExternBlockStmt(const char* c_code);
 
   // Interface to BaseAST
-  virtual GenRet      codegen();
-  virtual void        verify();
-  virtual void        accept(AstVisitor* visitor);
+  GenRet              codegen() override;
+  void                verify() override;
+  void                accept(AstVisitor* visitor) override;
 
   DECLARE_COPY(ExternBlockStmt);
+  ExternBlockStmt*    copyInner(SymbolMap* map) override;
+
 
   // Interface to Expr
-  virtual void        replaceChild(Expr* oldAst, Expr* newAst);
-  virtual Expr*       getFirstExpr();
+  void                replaceChild(Expr* oldAst, Expr* newAst) override;
+  Expr*               getFirstExpr() override;
 
   // Local interface
   const char*         c_code;
@@ -299,7 +306,7 @@ public:
 *                                                                             *
 ************************************** | *************************************/
 
-class ForwardingStmt : public Stmt {
+class ForwardingStmt final : public Stmt {
 public:
                       ForwardingStmt(DefExpr* toFnDef);
                       ForwardingStmt(DefExpr* toFnDef,
@@ -308,15 +315,16 @@ public:
                                    std::map<const char*, const char*>* renames);
 
   // Interface to BaseAST
-  virtual GenRet      codegen();
-  virtual void        verify();
-  virtual void        accept(AstVisitor* visitor);
+  GenRet              codegen() override;
+  void                verify() override;
+  void                accept(AstVisitor* visitor) override;
 
   DECLARE_COPY(ForwardingStmt);
+  ForwardingStmt* copyInner(SymbolMap* map) override;
 
   // Interface to Expr
-  virtual void        replaceChild(Expr* oldAst, Expr* newAst);
-  virtual Expr*       getFirstExpr();
+  void                replaceChild(Expr* oldAst, Expr* newAst) override;
+  Expr*               getFirstExpr() override;
 
   // forwarding function - contains forwarding expression; used during parsing
   DefExpr*            toFnDef;

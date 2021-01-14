@@ -38,13 +38,15 @@ public:
                       DeferStmt(CallExpr* call);
                       ~DeferStmt();
 
-  void                accept(AstVisitor* visitor);
-  void                replaceChild(Expr* old_ast, Expr* new_ast);
-  Expr*               getFirstExpr();
-  Expr*               getNextExpr(Expr* expr);
-  void                verify();
-  GenRet              codegen();
+  void                accept(AstVisitor* visitor) override;
+  void                replaceChild(Expr* old_ast, Expr* new_ast) override;
+  Expr*               getFirstExpr() override;
+  Expr*               getNextExpr(Expr* expr) override;
+  void                verify() override;
+  GenRet              codegen() override;
   DECLARE_COPY(DeferStmt);
+  DeferStmt* copyInner(SymbolMap* map) override;
+
 private:
   static BlockStmt*   buildChplStmt(Expr* expr);
                       DeferStmt();

@@ -327,7 +327,7 @@ static void expandForall(ExpandVisitor* EV, ForallStmt* fs);
 
 /////////// ExpandVisitor visitor ///////////
 
-class ExpandVisitor : public AstVisitorTraverse {
+class ExpandVisitor final : public AstVisitorTraverse {
 public:
   ForallStmt* const forall;
   SymbolMap& svar2clonevar;
@@ -337,7 +337,7 @@ public:
   ExpandVisitor(ExpandVisitor* parentEV, SymbolMap& map);
   ~ExpandVisitor();
 
-  virtual bool enterCallExpr(CallExpr* node) {
+  bool enterCallExpr(CallExpr* node) override {
     if (node->isPrimitive(PRIM_YIELD)) {
       expandYield(this, node);
     }
@@ -353,7 +353,7 @@ public:
     return false;
   }
 
-  virtual bool enterForallStmt(ForallStmt* node) {
+  bool enterForallStmt(ForallStmt* node) override {
 
     if (forall->hasVectorizationHazard()) {
       node->setHasVectorizationHazard(true);
@@ -364,13 +364,13 @@ public:
     return false;
   }
 
-  virtual bool enterCForLoop(CForLoop* node) {
+  bool enterCForLoop(CForLoop* node) override {
     if (forall->hasVectorizationHazard()) {
       node->setHasVectorizationHazard(true);
     }
     return true;
   }
-  virtual bool enterForLoop(ForLoop* node) {
+  bool enterForLoop(ForLoop* node) override {
     if (forall->hasVectorizationHazard()) {
       node->setHasVectorizationHazard(true);
     }

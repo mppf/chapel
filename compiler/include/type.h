@@ -63,10 +63,10 @@ public:
                               bool       internal = false)                 = 0;
 
   // Interface for BaseAST
-  virtual GenRet         codegen();
-          bool           inTree();
-  virtual QualifiedType  qualType();
-  virtual void           verify();
+  virtual GenRet         codegen() override;
+          bool           inTree() override;
+  virtual QualifiedType  qualType() override;
+  virtual void           verify() override;
 
   virtual void           codegenDef();
   virtual void           codegenPrototype();
@@ -113,6 +113,7 @@ protected:
 
 private:
   virtual void     replaceChild(BaseAST* old_ast, BaseAST* new_ast) = 0;
+  virtual Type* copyInner(SymbolMap* map) = 0;
 
   FnSymbol*        destructor;
 };
@@ -302,7 +303,7 @@ private:
 *                                                                             *
 ************************************** | *************************************/
 
-class EnumType : public Type {
+class EnumType final : public Type {
  public:
   AList constants; // EnumSymbols
 
@@ -316,21 +317,24 @@ class EnumType : public Type {
 
   EnumType();
   ~EnumType();
-  void verify();
-  virtual void    accept(AstVisitor* visitor);
-  DECLARE_COPY(EnumType);
-  void replaceChild(BaseAST* old_ast, BaseAST* new_ast);
 
-  void codegenDef();
+  void verify() override;
+  void accept(AstVisitor* visitor) override;
+  DECLARE_COPY(EnumType);
+  EnumType* copyInner(SymbolMap* map) override;
+
+  void replaceChild(BaseAST* old_ast, BaseAST* new_ast) override;
+
+  void codegenDef() override;
 
   bool isAbstract();  // is the enum abstract?  (has no associated values)
   bool isConcrete();  // is the enum concrete?  (all have associated values)
   PrimitiveType* getIntegerType();
 
-  virtual void printDocs(std::ostream *file, unsigned int tabs);
+  void printDocs(std::ostream *file, unsigned int tabs);
 
 private:
-  virtual std::string docsDirective();
+  std::string docsDirective();
 };
 
 
@@ -348,19 +352,21 @@ private:
 *                                                                             *
 ************************************** | *************************************/
 
-class PrimitiveType : public Type {
+class PrimitiveType final : public Type {
  public:
   PrimitiveType(Symbol *init_defaultVal = NULL, bool internalType=false);
-  void verify();
-  virtual void    accept(AstVisitor* visitor);
+  void verify() override;
+  void accept(AstVisitor* visitor) override;
   DECLARE_COPY(PrimitiveType);
-  void replaceChild(BaseAST* old_ast, BaseAST* new_ast);
-  void codegenDef();
+  PrimitiveType* copyInner(SymbolMap* map) override;
 
-  virtual void printDocs(std::ostream *file, unsigned int tabs);
+  void replaceChild(BaseAST* old_ast, BaseAST* new_ast) override;
+  void codegenDef() override;
+
+  void printDocs(std::ostream *file, unsigned int tabs);
 
 private:
-  virtual std::string docsDirective();
+  std::string docsDirective();
 };
 
 
