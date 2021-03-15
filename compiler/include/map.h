@@ -52,6 +52,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _map_H_
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <cassert>
 #include "vec.h"
@@ -524,6 +525,9 @@ ChainHashMap<K, AHashFns, C>::get_values(Vec<C> &values) {
 
 inline char *
 StringChainHash::canonicalize(char *s, char *e) {
+
+  printf("IN CANONICALIZE\n");
+
   unsigned int h = 0;
   char *a = s;
   // 31 changed to 27, to avoid prime2 in vec.cpp

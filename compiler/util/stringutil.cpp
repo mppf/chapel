@@ -28,15 +28,160 @@
 #include "map.h"
 #include "misc.h"
 #include "symbol.h"
+#include "stlUtil.h"
 
 #include <algorithm>
 #include <climits>
 #include <functional>
 #include <sstream>
+#include <map>
+#include <unordered_map>
+#include <chrono>
 
 #include <inttypes.h>
 
 static ChainHashMap<const char*, StringHashFns, const char*> chapelStringsTable;
+
+struct MyCompare {
+  bool operator()(const char* lhs, const char* rhs) const {
+    return strcmp(lhs, rhs) < 0;
+  }
+};
+
+struct MyEqual {
+  bool operator()(const char* lhs, const char* rhs) const {
+    return strcmp(lhs, rhs) == 0;
+  }
+};
+
+
+struct MyHash : StringHashFns {
+  std::size_t operator()(const char* k) const {
+    return hash(k);
+  }
+};
+
+void testStringsMap() {
+  int ntries = 10;
+
+  std::vector<const char*> strings;
+  {
+    Vec<const char*> v;
+    chapelStringsTable.get_keys(v);
+    forv_Vec(const char, s, v) {
+      if (s[0] != '\0')
+        strings.push_back(s);
+    }
+  }
+  std::cout << "Accumulated " << strings.size() << "strings\n";
+
+  {
+    ChainHashMap<const char*, StringHashFns, const char*> customTable;
+    {
+      auto start = std::chrono::steady_clock::now();
+      for_vector(const char, s, strings) {
+        const char* ss = customTable.get(s);
+        if (!ss) {
+          customTable.put(s, s);
+          ss = s;
+        }
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "Custom build elapsed time: " << elapsed.count() << " s\n";
+    }
+
+    {
+      auto start = std::chrono::steady_clock::now();
+      for (int i = 0; i < ntries; i++) {
+        for_vector(const char, s, strings) {
+          const char* ss = customTable.get(s);
+          INT_ASSERT(ss);
+        }
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "Custom search elapsed time: " << elapsed.count() / ntries << " s\n";
+    }
+  }
+  
+  {
+    std::map<const char*, const char*, MyCompare> myMap;
+    {
+      auto start = std::chrono::steady_clock::now();
+      for_vector(const char, s, strings) {
+        const char* ss = NULL;
+        auto search = myMap.find(s);
+        if (search != myMap.end()) {
+          ss = search->second;
+        } else {
+          myMap.insert(search, {s, s});
+          ss = s;
+        }
+        INT_ASSERT(ss);
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "map build elapsed time: " << elapsed.count() << " s\n";
+    }
+
+    {
+      auto start = std::chrono::steady_clock::now();
+      for (int i = 0; i < ntries; i++) {
+        for_vector(const char, s, strings) {
+          const char* ss = NULL;
+          auto search = myMap.find(s);
+          if (search != myMap.end()) {
+            ss = search->second;
+          }
+          INT_ASSERT(ss);
+        }
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "map search elapsed time: " << elapsed.count() / ntries << " s\n";
+    }
+  }
+
+  {
+    std::unordered_map<const char*, const char*, MyHash, MyEqual> myMap;
+    {
+      auto start = std::chrono::steady_clock::now();
+      for_vector(const char, s, strings) {
+        const char* ss = NULL;
+        auto search = myMap.find(s);
+        if (search != myMap.end()) {
+          ss = search->second;
+        } else {
+          myMap.insert(search, {s, s});
+          ss = s;
+        }
+        INT_ASSERT(ss);
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "unordered map build elapsed time: " << elapsed.count() << " s\n";
+    }
+    {
+      auto start = std::chrono::steady_clock::now();
+      for (int i = 0; i < ntries; i++) {
+        for_vector(const char, s, strings) {
+          const char* ss = NULL;
+          auto search = myMap.find(s);
+          if (search != myMap.end()) {
+            ss = search->second;
+          }
+          INT_ASSERT(ss);
+        }
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "unordered map search elapsed time: " << elapsed.count() / ntries << " s\n";
+    }
+  }
+
+
+}
 
 static const char*
 canonicalize_string(const char *s) {

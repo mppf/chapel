@@ -59,6 +59,7 @@ void cleanup() {
   for_vector(ModuleSymbol, mod, mods) {
     cleanup(mod);
   }
+  
 }
 
 /************************************* | **************************************

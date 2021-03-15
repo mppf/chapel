@@ -260,6 +260,8 @@ void normalize() {
   }
 
   find_printModuleInit_stuff();
+
+  testStringsMap();
 }
 
 /************************************* | **************************************
