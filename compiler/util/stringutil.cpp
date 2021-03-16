@@ -40,6 +40,8 @@
 
 #include <inttypes.h>
 
+#include "llvm/ADT/StringMap.h"
+
 static ChainHashMap<const char*, StringHashFns, const char*> chapelStringsTable;
 
 struct MyCompare {
@@ -73,7 +75,7 @@ void testStringsMap() {
         strings.push_back(s);
     }
   }
-  std::cout << "Accumulated " << strings.size() << "strings\n";
+  std::cout << "Accumulated " << strings.size() << " strings\n";
 
   {
     ChainHashMap<const char*, StringHashFns, const char*> customTable;
@@ -177,6 +179,43 @@ void testStringsMap() {
       auto finish = std::chrono::steady_clock::now();
       std::chrono::duration<double> elapsed = finish - start;
       std::cout << "unordered map search elapsed time: " << elapsed.count() / ntries << " s\n";
+    }
+  }
+
+  {
+    llvm::StringMap<const char*> myMap;
+    {
+      auto start = std::chrono::steady_clock::now();
+      for_vector(const char, s, strings) {
+        const char* ss = NULL;
+        auto search = myMap.find(s);
+        if (search != myMap.end()) {
+          ss = search->second;
+        } else {
+          myMap.insert({s, s});
+          ss = s;
+        }
+        INT_ASSERT(ss);
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "llvm StringMap build elapsed time: " << elapsed.count() << " s\n";
+    }
+    {
+      auto start = std::chrono::steady_clock::now();
+      for (int i = 0; i < ntries; i++) {
+        for_vector(const char, s, strings) {
+          const char* ss = NULL;
+          auto search = myMap.find(s);
+          if (search != myMap.end()) {
+            ss = search->second;
+          }
+          INT_ASSERT(ss);
+        }
+      }
+      auto finish = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed = finish - start;
+      std::cout << "llvm StringMap search elapsed time: " << elapsed.count() / ntries << " s\n";
     }
   }
 
