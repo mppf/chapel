@@ -22,6 +22,7 @@
 //
 pragma "unsafe" // workaround for trying to default-initialize nil objects
 module DefaultAssociative {
+  import HaltWrappers;
 
   use DSIUtil;
   use ChapelDistribution, ChapelRange, SysBasic, ChapelArray;
@@ -180,8 +181,98 @@ module DefaultAssociative {
     // Standard user domain interface
     //
 
-    proc dsiAssignDomain(rhs: domain, lhsPrivate:bool) {
-      chpl_assignDomainWithIndsIterSafeForRemoving(this, rhs);
+    proc helpAddEltsLocal(const ref rhs: domain,
+                          const rhsSize: int) {
+      // this routine assumes it is running 'on this'.
+
+      if rhsSize == 0 {
+        // nothing needs to be added
+        return;
+      }
+
+      if rhs.locale.id == here.id {
+        // if the domain is local, just call dsiAdd
+        for idx in rhs {
+          this.dsiAdd(idx);
+        }
+      } else {
+        // otherwise, copy the elements locally and then add them
+
+        // TODO: this could work with a chunk at a time from
+        // the ddata, copying it locally, instead
+        // of doubling the memory requirement
+        var ToBuf:[0..<rhsSize] rhs.idxType;
+        on rhs {
+          var FromBuf:[0..<rhsSize] rhs.idxType;
+          for (idx, count) in zip(rhs, 0..) {
+            FromBuf[count] = idx;
+          }
+          // Do the bulk transfer
+          ToBuf = FromBuf;
+        }
+
+        // now, add the elements in ToBuf
+        for idx in ToBuf {
+          this.dsiAdd(idx);
+        }
+      }
+    }
+
+    proc dsiAssignDomain(rhs: domain, const lhsPrivate:bool) {
+      const rhsSize = rhs.sizeAs(int);
+      on this {
+        if lhsPrivate {
+          // the domain being set is empty, has no arrays, and doesn't need lock
+          helpAddEltsLocal(rhs, rhsSize);
+        } else {
+          // take the lock for this block
+          lockTable();
+          defer {
+            unlockTable();
+          }
+
+          // otherwise, consider the size of the intersection.
+          // if it is zero, we can remove all elements and then add new elts.
+          var thisSize = this.dsiNumIndices;
+
+          if thisSize == 0 || rhsSize == 0 {
+            // the intersection is the empty set, so clear and then add
+            doClearLockedAndLocal();
+            helpAddEltsLocal(rhs, rhsSize);
+          } else {
+            // handle assignment in a way that preserves array elements
+            // where the domains intersect
+
+            // first, remove elements in lhs but not rhs, but wait
+            // to resize / rehash until all are removed.
+            {
+              table.postponeResize = true;
+              defer {
+                table.postponeResize = false;
+                table.maybeShrinkAfterRemove();
+              }
+
+              for i in this.these() {
+                // TODO: rhs is remote at this point so this could be slow
+                if !rhs.contains(i) {
+                  this.dsiRemove(i);
+                }
+              }
+              // now do the resizing (per defer block)
+            }
+
+            // second, add elements not already in lhs from rhs
+            for i in rhs {
+              // TODO: rhs is remote at this point so this could be slow
+              if !this.dsiMember(i) {
+                this.dsiAdd(i);
+              }
+            }
+          }
+
+          // unlock table (per defer)
+        }
+      }
     }
 
     inline proc dsiNumIndices {
@@ -272,25 +363,31 @@ module DefaultAssociative {
       return dist;
     }
 
+    proc doClearLockedAndLocal() {
+      for slot in table.allSlots() {
+        ref aSlot = table.table[slot];
+        if aSlot.isFull() {
+          var tmpKey: idxType;
+          var tmpVal: nothing;
+          table.clearSlot(aSlot, tmpKey, tmpVal);
+          // deinit any array entries
+          for arr in _arrs {
+            arr._deinitSlot(slot);
+          }
+        }
+        table.table[slot].status = chpl__hash_status.empty;
+      }
+      numEntries.write(0);
+      table.maybeShrinkAfterRemove();
+    }
+
     override proc dsiClear() {
       on this {
         lockTable();
-        for slot in table.allSlots() {
-          ref aSlot = table.table[slot];
-          if aSlot.isFull() {
-            var tmpKey: idxType;
-            var tmpVal: nothing;
-            table.clearSlot(aSlot, tmpKey, tmpVal);
-            // deinit any array entries
-            for arr in _arrs {
-              arr._deinitSlot(slot);
-            }
-          }
-          table.table[slot].status = chpl__hash_status.empty;
+        defer {
+          unlockTable();
         }
-        numEntries.write(0);
-        table.maybeShrinkAfterRemove();
-        unlockTable();
+        doClearLockedAndLocal();
       }
     }
 
@@ -847,7 +944,63 @@ module DefaultAssociative {
       }
       this.eltsNeedDeinit = false;
     }
+
+    proc doiBulkTransferToKnown(srcDom,
+                                destClass: DefaultAssociativeArr,
+                                destDom) : bool {
+      return transferHelper(destClass, destDom, this, srcDom);
+    }
+    proc doiBulkTransferFromKnown(destDom,
+                                  srcClass: DefaultAssociativeArr,
+                                  srcDom) : bool {
+      return transferHelper(this, destDom, srcClass, srcDom);
+    }
   }
+
+  proc transferHelper(ToArray: borrowed DefaultAssociativeArr,
+                      ToDom,
+                      FromArray: borrowed DefaultAssociativeArr,
+                      FromDom) : bool {
+
+    // don't use bulk transfer logic if it's on the same locale
+    // because the bulk transfer logic uses more memory
+    if ToArray.locale == FromArray.locale {
+      return false;
+    }
+
+    on ToArray {
+      // TODO: this could transfer chunks at a time instead of
+      // increasing the memory footprint so much
+      var toSize = ToDom.dsiNumIndices;
+      var ToBuf:[0..<toSize] (ToDom.idxType, ToArray.eltType);
+
+      on FromArray {
+        var fromSize = FromDom.dsiNumIndices;
+        if boundsChecking {
+          if toSize != fromSize {
+            HaltWrappers.boundsCheckHalt("size mismatch in associative array assignment");
+          }
+        }
+
+        var FromBuf:[0..<fromSize] (FromDom.idxType, FromArray.eltType);
+        // TODO: could/should this be parallel?
+        for (idx, elt, count) in zip(FromDom, FromArray, 0..) {
+          FromBuf[count] = (idx, elt);
+        }
+
+        // Do the bulk transfer
+        ToBuf = FromBuf;
+      }
+
+      // TODO: could/should this be parallel?
+      for (idx, elt) in ToBuf {
+        ToArray.dsiLocalAccess(idx) = elt;
+      }
+    }
+
+    return true;
+  }
+
 
   proc chpl_serialReadWriteAssociativeHelper(f, arr, dom) throws {
     var binary = f.binary();
