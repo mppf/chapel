@@ -181,8 +181,8 @@ module DefaultAssociative {
     // Standard user domain interface
     //
 
-    proc helpAddEltsLocal(const ref rhs: domain,
-                          const rhsSize: int) {
+    proc helpAddEltsLockedLocal(const ref rhs: domain,
+                                const rhsSize: int) {
       // this routine assumes it is running 'on this'.
 
       if rhsSize == 0 {
@@ -190,12 +190,12 @@ module DefaultAssociative {
         return;
       }
 
-      if rhs.locale.id == here.id {
+      /*if rhs.locale.id == here.id {*/
         // if the domain is local, just call dsiAdd
         for idx in rhs {
-          this.dsiAdd(idx);
+          this.helpAddLockedLocal(idx);
         }
-      } else {
+      /*} else {
         // otherwise, copy the elements locally and then add them
 
         // TODO: this could work with a chunk at a time from
@@ -215,7 +215,7 @@ module DefaultAssociative {
         for idx in ToBuf {
           this.dsiAdd(idx);
         }
-      }
+      }*/
     }
 
     proc dsiAssignDomain(rhs: domain, const lhsPrivate:bool) {
@@ -223,7 +223,7 @@ module DefaultAssociative {
       on this {
         if lhsPrivate {
           // the domain being set is empty, has no arrays, and doesn't need lock
-          helpAddEltsLocal(rhs, rhsSize);
+          helpAddEltsLockedLocal(rhs, rhsSize);
         } else {
           // take the lock for this block
           lockTable();
@@ -238,7 +238,7 @@ module DefaultAssociative {
           if thisSize == 0 || rhsSize == 0 {
             // the intersection is the empty set, so clear and then add
             doClearLockedAndLocal();
-            helpAddEltsLocal(rhs, rhsSize);
+            helpAddEltsLockedLocal(rhs, rhsSize);
           } else {
             // handle assignment in a way that preserves array elements
             // where the domains intersect
@@ -255,7 +255,7 @@ module DefaultAssociative {
               for i in this.these() {
                 // TODO: rhs is remote at this point so this could be slow
                 if !rhs.contains(i) {
-                  this.dsiRemove(i);
+                  helpRemoveLockedLocal(i);
                 }
               }
               // now do the resizing (per defer block)
@@ -264,8 +264,9 @@ module DefaultAssociative {
             // second, add elements not already in lhs from rhs
             for i in rhs {
               // TODO: rhs is remote at this point so this could be slow
-              if !this.dsiMember(i) {
-                this.dsiAdd(i);
+              var (foundFullSlot, slotNum) = table.findFullSlot(i);
+              if !foundFullSlot {
+                this.helpAddLockedLocal(i);
               }
             }
           }
@@ -426,13 +427,13 @@ module DefaultAssociative {
           unlockTable();
         }
 
-        (slotNum, retVal) = _add(idx);
+        (slotNum, retVal) = helpAddLockedLocal(idx);
       }
 
       return (slotNum, retVal);
     }
 
-    proc _add(in idx: idxType) {
+    proc helpAddLockedLocal(in idx: idxType) {
       var foundFullSlot = false;
       var slotNum = -1;
       (foundFullSlot, slotNum) = table.findAvailableSlot(idx);
@@ -452,6 +453,27 @@ module DefaultAssociative {
       }
     }
 
+    proc helpRemoveLockedLocal(idx: idxType) {
+      var retval: int;
+      const (foundSlot, slotNum) = table.findFullSlot(idx);
+      if foundSlot {
+        var tmpIdx: idxType;
+        var tmpVal: nothing;
+        table.clearSlot(slotNum, tmpIdx, tmpVal);
+        numEntries.sub(1);
+
+        // deinit any array entries
+        for arr in _arrs {
+          arr._deinitSlot(slotNum);
+        }
+        retval = 1;
+      } else {
+        retval = 0;
+      }
+      table.maybeShrinkAfterRemove();
+      return retval;
+    }
+
     // returns the number of indices removed
     proc dsiRemove(idx: idxType) {
       var retval: int;
@@ -461,23 +483,7 @@ module DefaultAssociative {
         defer {
           unlockTable();
         }
-
-        const (foundSlot, slotNum) = table.findFullSlot(idx);
-        if foundSlot {
-          var tmpIdx: idxType;
-          var tmpVal: nothing;
-          table.clearSlot(slotNum, tmpIdx, tmpVal);
-          numEntries.sub(1);
-
-          // deinit any array entries
-          for arr in _arrs {
-            arr._deinitSlot(slotNum);
-          }
-          retval = 1;
-        } else {
-          retval = 0;
-        }
-        table.maybeShrinkAfterRemove();
+        retval = helpRemoveLockedLocal(idx);
       }
       return retval;
     }
@@ -945,6 +951,7 @@ module DefaultAssociative {
       this.eltsNeedDeinit = false;
     }
 
+    /*
     proc doiBulkTransferToKnown(srcDom,
                                 destClass: DefaultAssociativeArr,
                                 destDom) : bool {
@@ -954,10 +961,10 @@ module DefaultAssociative {
                                   srcClass: DefaultAssociativeArr,
                                   srcDom) : bool {
       return transferHelper(this, destDom, srcClass, srcDom);
-    }
+    }*/
   }
 
-  proc transferHelper(ToArray: borrowed DefaultAssociativeArr,
+  /*proc transferHelper(ToArray: borrowed DefaultAssociativeArr,
                       ToDom,
                       FromArray: borrowed DefaultAssociativeArr,
                       FromDom) : bool {
@@ -971,11 +978,11 @@ module DefaultAssociative {
     on ToArray {
       // TODO: this could transfer chunks at a time instead of
       // increasing the memory footprint so much
-      var toSize = ToDom.dsiNumIndices;
+      const toSize = ToDom.dsiNumIndices;
       var ToBuf:[0..<toSize] (ToDom.idxType, ToArray.eltType);
 
       on FromArray {
-        var fromSize = FromDom.dsiNumIndices;
+        const fromSize = FromDom.dsiNumIndices;
         if boundsChecking {
           if toSize != fromSize {
             HaltWrappers.boundsCheckHalt("size mismatch in associative array assignment");
@@ -999,7 +1006,7 @@ module DefaultAssociative {
     }
 
     return true;
-  }
+  }*/
 
 
   proc chpl_serialReadWriteAssociativeHelper(f, arr, dom) throws {
