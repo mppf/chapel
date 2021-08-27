@@ -190,32 +190,10 @@ module DefaultAssociative {
         return;
       }
 
-      /*if rhs.locale.id == here.id {*/
-        // if the domain is local, just call dsiAdd
-        for idx in rhs {
-          this.helpAddLockedLocal(idx);
-        }
-      /*} else {
-        // otherwise, copy the elements locally and then add them
-
-        // TODO: this could work with a chunk at a time from
-        // the ddata, copying it locally, instead
-        // of doubling the memory requirement
-        var ToBuf:[0..<rhsSize] rhs.idxType;
-        on rhs {
-          var FromBuf:[0..<rhsSize] rhs.idxType;
-          for (idx, count) in zip(rhs, 0..) {
-            FromBuf[count] = idx;
-          }
-          // Do the bulk transfer
-          ToBuf = FromBuf;
-        }
-
-        // now, add the elements in ToBuf
-        for idx in ToBuf {
-          this.dsiAdd(idx);
-        }
-      }*/
+      // TODO: communication optimization if rhs is not local
+      for idx in rhs {
+        this.helpAddLockedLocal(idx);
+      }
     }
 
     proc dsiAssignDomain(rhs: domain, const lhsPrivate:bool) {
@@ -226,6 +204,8 @@ module DefaultAssociative {
           helpAddEltsLockedLocal(rhs, rhsSize);
         } else {
           // take the lock for this block
+          // TODO: should we also lock rhs?
+
           lockTable();
           defer {
             unlockTable();
@@ -950,64 +930,7 @@ module DefaultAssociative {
       }
       this.eltsNeedDeinit = false;
     }
-
-    /*
-    proc doiBulkTransferToKnown(srcDom,
-                                destClass: DefaultAssociativeArr,
-                                destDom) : bool {
-      return transferHelper(destClass, destDom, this, srcDom);
-    }
-    proc doiBulkTransferFromKnown(destDom,
-                                  srcClass: DefaultAssociativeArr,
-                                  srcDom) : bool {
-      return transferHelper(this, destDom, srcClass, srcDom);
-    }*/
   }
-
-  /*proc transferHelper(ToArray: borrowed DefaultAssociativeArr,
-                      ToDom,
-                      FromArray: borrowed DefaultAssociativeArr,
-                      FromDom) : bool {
-
-    // don't use bulk transfer logic if it's on the same locale
-    // because the bulk transfer logic uses more memory
-    if ToArray.locale == FromArray.locale {
-      return false;
-    }
-
-    on ToArray {
-      // TODO: this could transfer chunks at a time instead of
-      // increasing the memory footprint so much
-      const toSize = ToDom.dsiNumIndices;
-      var ToBuf:[0..<toSize] (ToDom.idxType, ToArray.eltType);
-
-      on FromArray {
-        const fromSize = FromDom.dsiNumIndices;
-        if boundsChecking {
-          if toSize != fromSize {
-            HaltWrappers.boundsCheckHalt("size mismatch in associative array assignment");
-          }
-        }
-
-        var FromBuf:[0..<fromSize] (FromDom.idxType, FromArray.eltType);
-        // TODO: could/should this be parallel?
-        for (idx, elt, count) in zip(FromDom, FromArray, 0..) {
-          FromBuf[count] = (idx, elt);
-        }
-
-        // Do the bulk transfer
-        ToBuf = FromBuf;
-      }
-
-      // TODO: could/should this be parallel?
-      for (idx, elt) in ToBuf {
-        ToArray.dsiLocalAccess(idx) = elt;
-      }
-    }
-
-    return true;
-  }*/
-
 
   proc chpl_serialReadWriteAssociativeHelper(f, arr, dom) throws {
     var binary = f.binary();
