@@ -33,8 +33,6 @@ about your environment for using Chapel:
 
   * Building GMP requires an M4 macro processor.
 
-  * Building LLVM requires cmake version 3.13.4 or later.
-
   * If you wish to use chpldoc or Chapel's test system, Python 3.6 or
     newer is required and the ``python3`` and ``pip3`` commands must be
     available. The ``venv`` Python package must be available (note that
@@ -51,7 +49,10 @@ about your environment for using Chapel:
     a system-wide installation of LLVM. Only LLVM 11 is currently
     supported. If a system-wide installation of LLVM 11 is not available,
     you can use the bundled LLVM or disable LLVM support (see
-    :ref:`readme-chplenv.CHPL_LLVM`).
+    :ref:`readme-chplenv.CHPL_LLVM`). Please note that build LLVM
+    requires cmake version 3.4.3 or later (and upcoming versions will
+    require 3.13.4);
+
 
 .. _readme-prereqs-installation:
 
@@ -62,7 +63,7 @@ We have used the following commands to install the above prerequisites:
 
   * CentOS, Fedora::
 
-      sudo dnf install gcc gcc-c++ m4 perl python3 python3-devel bash make gawk git
+      sudo dnf install gcc gcc-c++ m4 perl python3 python3-devel bash make gawk git llvm-devel clang clang-devel
 
   * Debian, Ubuntu::
 
@@ -70,4 +71,4 @@ We have used the following commands to install the above prerequisites:
 
   * FreeBSD::
 
-     sudo pkg install gcc m4 perl5 python3 py37-pip bash gmake gawk git pkgconf
+     sudo pkg install gcc m4 perl5 python3 py37-pip bash gmake gawk git pkgconf llvm11
