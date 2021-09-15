@@ -50,6 +50,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CHPL_SMOKE_SKIP_MAKE_MASON: false
+      # To try to keep this config from running the longest,
+      # use a simpler configuration
+      CHPL_TASKS: fifo
+      CHPL_MEM: cstdlib
+      CHPL_GMP: none
+      CHPL_RE2: bundled
     steps:
     - uses: actions/checkout@v2
     - name: install deps
