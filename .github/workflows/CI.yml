@@ -32,11 +32,19 @@ jobs:
   make_doc:
     runs-on: ubuntu-latest
     env:
+      # To try to keep this config from running the longest,
+      # use a simpler configuration
+      CHPL_TASKS: fifo
+      CHPL_MEM: cstdlib
+      CHPL_GMP: none
+      CHPL_RE2: bundled
+      CHPL_LLVM: none
+      # check that the docs build
       CHPL_SMOKE_SKIP_DOC: false
     steps:
     - uses: actions/checkout@v2
     - name: install deps
-      run: sudo apt-get install $CHPL_APT_DEPS
+      run: sudo apt-get install cmake doxygen
     - name: make libchplcomp-docs
       run: |
         make libchplcomp-docs
