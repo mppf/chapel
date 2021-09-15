@@ -56,10 +56,11 @@ jobs:
       CHPL_MEM: cstdlib
       CHPL_GMP: none
       CHPL_RE2: bundled
+      CHPL_LLVM: none
     steps:
     - uses: actions/checkout@v2
-    - name: install deps
-      run: sudo apt-get install $CHPL_APT_DEPS
+      #    - name: install deps
+      #run: sudo apt-get install $CHPL_APT_DEPS
     - name: make mason
       run: |
         ./util/buildRelease/smokeTest
