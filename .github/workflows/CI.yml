@@ -49,7 +49,6 @@ jobs:
   make_mason:
     runs-on: ubuntu-latest
     env:
-      CHPL_SMOKE_SKIP_MAKE_MASON: false
       # To try to keep this config from running the longest,
       # use a simpler configuration
       CHPL_TASKS: fifo
@@ -57,6 +56,12 @@ jobs:
       CHPL_GMP: none
       CHPL_RE2: bundled
       CHPL_LLVM: none
+      # check that mason builds
+      CHPL_SMOKE_SKIP_MAKE_MASON: false
+      # run make check in this config too
+      # to get more coverage for quickstart and because it's
+      # not the slowest config
+      CHPL_SMOKE_SKIP_MAKE_CHECK: false
     steps:
     - uses: actions/checkout@v2
       #    - name: install deps
