@@ -13,6 +13,8 @@ env:
   CHPL_SMOKE_SKIP_MAKE_CHECK: true
   CHPL_SMOKE_SKIP_MAKE_MASON: true
   CHPL_SMOKE_SKIP_DOC: true
+  # store the dependencies in one place
+  CHPL_APT_DEPS: gcc g++ m4 perl python3 python3-pip python3-venv python3-dev bash make mawk git pkg-config cmake llvm-11-dev llvm-11 llvm-11-tools clang-11 libclang-11-dev libedit-dev
 
 jobs:
   make_check:
@@ -21,9 +23,11 @@ jobs:
       CHPL_SMOKE_SKIP_MAKE_CHECK: false
     steps:
     - uses: actions/checkout@v2
+    - name: install deps
+      run: sudo apt-get install $CHPL_APT_DEPS
     - name: make check
       run: |
-        CHPL_LLVM=none ./util/buildRelease/smokeTest
+        ./util/buildRelease/smokeTest
 
   make_doc:
     runs-on: ubuntu-latest
@@ -31,9 +35,11 @@ jobs:
       CHPL_SMOKE_SKIP_DOC: false
     steps:
     - uses: actions/checkout@v2
+    - name: install deps
+      run: sudo apt-get install $CHPL_APT_DEPS
     - name: make check-chpldoc && make docs
       run: |
-        CHPL_LLVM=none ./util/buildRelease/smokeTest
+        ./util/buildRelease/smokeTest
     - name: upload docs
       uses: actions/upload-artifact@v2
       with:
@@ -46,6 +52,8 @@ jobs:
       CHPL_SMOKE_SKIP_MAKE_MASON: false
     steps:
     - uses: actions/checkout@v2
+    - name: install deps
+      run: sudo apt-get install $CHPL_APT_DEPS
     - name: make mason
       run: |
         CHPL_LLVM=none ./util/buildRelease/smokeTest
