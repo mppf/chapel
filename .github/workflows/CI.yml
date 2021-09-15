@@ -89,7 +89,7 @@ jobs:
       run: sudo apt-get install $CHPL_APT_DEPS
     - name: make test-libchplcomp
       run: |
-        make test-libchplcomp
+        make test-libchplcomp -j`util/buildRelease/chpl-make-cpu_count`
 
   check_annotations_rt_calls:
     runs-on: ubuntu-latest
