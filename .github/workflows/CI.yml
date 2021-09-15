@@ -56,7 +56,7 @@ jobs:
       run: sudo apt-get install $CHPL_APT_DEPS
     - name: make mason
       run: |
-        CHPL_LLVM=none ./util/buildRelease/smokeTest
+        ./util/buildRelease/smokeTest
 
   check_annotations:
     runs-on: ubuntu-latest
