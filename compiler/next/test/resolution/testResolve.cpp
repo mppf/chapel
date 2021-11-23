@@ -161,7 +161,7 @@ static void test2() {
   }
 }
 
-void test3() {
+static void test3() {
   printf("test3\n");
   Context ctx;
   Context* context = &ctx;

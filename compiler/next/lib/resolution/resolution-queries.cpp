@@ -497,7 +497,8 @@ struct Resolver {
 
           if (inferFromInit) {
             // Infer the param value from the initialization expr
-            if (initType.kind() == QualifiedType::PARAM) {
+            if (qtKind == QualifiedType::PARAM &&
+                initType.kind() == QualifiedType::PARAM) {
               paramPtr = initType.param();
             }
             // Infer the type from the initialization expr
@@ -644,10 +645,7 @@ resolveFields(Context* context, ID id, bool useGenericFormalDefaults) {
     assert(false && "case not handled");
   }
 
-  // take the value out of the partial result in order to return it
-  ResolutionResultByPostorderID result;
-  result.swap(partialResult);
-  return QUERY_END(result);
+  return QUERY_END_CURRENT_RESULT();
 }
 
 
@@ -666,10 +664,7 @@ const ResolutionResultByPostorderID& resolveModule(Context* context, ID id) {
     assert(false && "case not handled");
   }
 
-  // take the value out of the partial result in order to return it
-  ResolutionResultByPostorderID result;
-  result.swap(partialResult);
-  return QUERY_END(result);
+  return QUERY_END_CURRENT_RESULT();
 }
 
 static

@@ -34,14 +34,14 @@ using namespace parsing;
 using namespace resolution;
 using namespace uast;
 
-const Module* oneModule(const ModuleVec& vec) {
+static const Module* oneModule(const ModuleVec& vec) {
   assert(vec.size() == 1);
   return vec[0];
 }
 
 // TODO maybe we want to support something like this
 std::vector<ErrorMessage> errors;
-void collectErrors(const ErrorMessage& err) { errors.push_back(err); }
+static void collectErrors(const ErrorMessage& err) { errors.push_back(err); }
 
 static void test1() {
   Context ctx;
@@ -61,9 +61,7 @@ static void test1() {
       ASTNode::dump(mod);
     }
     const Module* m = oneModule(vec);
-    const Expression *e = m->stmt(0);
-    const ResolutionResultByPostorderID& rr = resolveModule(context, m->id());
-    auto re = rr.byAst(e);
+    resolveModule(context, m->id());
 
     assert(errors.size() == 1);
     assert(errors[0].location().firstLine() == 1);
@@ -79,9 +77,7 @@ static void test1() {
       ASTNode::dump(mod);
     }
     const Module* m = oneModule(vec);
-    const Expression *e = m->stmt(0);
-    const ResolutionResultByPostorderID& rr = resolveModule(context, m->id());
-    auto re = rr.byAst(e);
+    resolveModule(context, m->id());
 
     assert(errors.size() == 1);
     assert(errors[0].location().firstLine() == 3);
