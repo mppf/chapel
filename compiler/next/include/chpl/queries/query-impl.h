@@ -215,6 +215,14 @@ Context::queryUseSaved(
   const void* queryFuncV = (const void*) queryFunction;
   bool useSaved = queryCanUseSavedResultAndPushIfNot(queryFuncV, r);
 
+  // If we're not using the saved result, clear it by swapping
+  // with an empty ResultType
+  if (!useSaved) {
+    ResultType empty;
+    chpl::update<ResultType> updater;
+    updater(r->result, empty);
+  }
+
   if (enableDebugTracing) {
     if (useSaved) {
       printf("QUERY END       %s (...) REUSING BASED ON DEPS %p\n",
