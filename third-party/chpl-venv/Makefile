@@ -37,6 +37,8 @@ $(CHPL_VENV_VIRTUALENV_DIR_OK):
           wheel && \
 	$(PIP) install --upgrade $(CHPL_PIP_INSTALL_PARAMS) $(LOCAL_PIP_FLAGS) \
 	  -r $(CHPL_VENV_CHPLDOC_REQUIREMENTS_FILE1) && \
+	$(PIP) install --upgrade $(CHPL_PIP_INSTALL_PARAMS) $(LOCAL_PIP_FLAGS) \
+	  -r $(CHPL_VENV_CHPLDOC_REQUIREMENTS_FILE2) && \
 	touch $(CHPL_VENV_VIRTUALENV_DIR_OK)
 
 # Phony convenience target for creating virtualenv.
