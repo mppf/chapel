@@ -1728,12 +1728,6 @@ struct Converter {
     }
 
     RetTag retTag = convertRetTag(node->returnIntent());
-    // TODO:
-    // either put type on this function in the source code, or
-    // do this in the uAST
-    if (fn->hasFlag(FLAG_RUNTIME_TYPE_INIT_FN)) {
-      retTag = RET_TYPE;
-    }
 
     if (node->kind() == uast::Function::ITER) {
 
