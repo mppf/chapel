@@ -957,6 +957,15 @@ static ModuleSymbol* uASTParseFile(const char* fileName,
     chpl::uast::ASTNode::dump(mod);
 #endif
 
+    // these are set in parseFile
+    currentFileNamedOnCommandLine = namedOnCommandLine;
+    currentModuleName             = filenameToModulename(fileName);
+    currentModuleType = modTag;
+
+    yyfilename                    = fileName;
+    yystartlineno                 = 1;
+    chplLineno                    = 1;
+
     // Only converts the module, does not add to done list.
     ModuleSymbol* got = convertToplevelModule(gContext, mod);
     INT_ASSERT(got);
