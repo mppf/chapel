@@ -61,7 +61,7 @@ static void test0(Parser* parser) {
 
   // Make sure the statements iterator works as expected.
   {
-    std::array<ASTTag, 2> stmtList = {
+    ASTTag stmtList[] = {
       asttags::Comment,
       asttags::FnCall
     };
@@ -99,7 +99,7 @@ static void test1(Parser* parser) {
 
   // Make sure the statements iterator works as expected.
   {
-    std::array<ASTTag, 3> stmtList = {
+    ASTTag stmtList[] = {
       asttags::Comment,
       asttags::FnCall,
       asttags::Comment
