@@ -1747,6 +1747,28 @@ void checkConflictingSymbols(std::vector<Symbol *>& symbols,
   }
 }
 
+static void eliminateLastResortSyms(std::vector<Symbol*>& symbols) {
+  bool anyLastResort = false;
+  bool anyNotLastResort = false;
+  for (auto sym : symbols) {
+    if (sym->hasFlag(FLAG_LAST_RESORT))
+      anyLastResort = true;
+    else
+      anyNotLastResort = true;
+  }
+
+  if (anyLastResort && anyNotLastResort) {
+    // Gather the not-last-resort symbols into tmp and swap
+    std::vector<Symbol*> tmp;
+    for (auto sym : symbols) {
+      if (!sym->hasFlag(FLAG_LAST_RESORT))
+        tmp.push_back(sym);
+    }
+    symbols.swap(tmp);
+  }
+}
+
+
 // Given a name and a calling context, determine the symbol referred to
 // by that name in the context of that call
 Symbol* lookupAndCount(const char*           name,
@@ -1764,6 +1786,10 @@ Symbol* lookupAndCount(const char*           name,
   lookup(name, context, symbols, renameLocs, reexportPts, storeRenames);
 
   nSymbolsFound = symbols.size();
+
+  // if there were multiple symbols found, and some are last resort,
+  // and others are not, eliminate the last resort ones.
+  eliminateLastResortSyms(symbols);
 
   if (symbols.size() == 0) {
     retval = NULL;
@@ -2022,11 +2048,29 @@ static void lookupUseImport(const char*           name,
         moduleUses = moduleUsesCache[block];
       }
 
+      // after a NULL is found, the rest of the
+      // scopes are from a transitive use/import
+      bool foundNull = false;
+
+      if (name == astr("exxy"))
+        gdbShouldBreakHere();
+
       forv_Vec(Stmt, stmt, *moduleUses) {
+        if (stmt == nullptr) {
+          printf("Found NULL\n");
+          foundNull = true;
+          continue;
+        }
+
         bool checkThisInShadowScope = false;
-        if (UseStmt* use = toUseStmt(stmt)) {
-          if (use->isPrivate)
-            checkThisInShadowScope = true;
+        if (foundNull) {
+          // all the scopes are transitive uses, so don't consider
+          // any shadow scopes.
+        } else {
+          if (UseStmt* use = toUseStmt(stmt)) {
+            if (use->isPrivate)
+              checkThisInShadowScope = true;
+          }
         }
 
         // Skip for now things that don't match the request
@@ -2034,6 +2078,9 @@ static void lookupUseImport(const char*           name,
         // (these will be handled in a different call to this function)
         if (forShadowScope != checkThisInShadowScope)
           continue;
+
+        //if (name == astr("x") && context->getModule()->modTag == MOD_USER)
+        //  gdbShouldBreakHere();
 
         if (UseStmt* use = toUseStmt(stmt)) {
           // Check to see if the module name matches what is use'd
@@ -2108,9 +2155,9 @@ static void lookupUseImport(const char*           name,
           }
         } else {
           // break on each new depth if a symbol has been found
-          if (symbols.size() > 0) {
-            break;
-          }
+          //if (symbols.size() > 0) {
+          //  break;
+          //}
         }
       }
 
@@ -2133,6 +2180,8 @@ static void lookupUseImport(const char*           name,
           }
         }
       } else {
+        // TODO: remove this block
+
         // we haven't found a match yet, so as a last resort, let's
         // check the names of the modules in the 'use'/'import' statements
         // themselves...  This effectively places the module names at
@@ -2313,7 +2362,7 @@ static void buildBreadthFirstModuleList(
                Vec<VisibilityStmt*>*                             modules,
                Vec<VisibilityStmt*>*                             current,
                std::map<Symbol*, std::vector<VisibilityStmt*> >* alreadySeen) {
- // use NULL as a sentinel to identify modules of equal depth
+  // use NULL as a sentinel to identify modules of equal depth
   modules->add(NULL);
 
   Vec<VisibilityStmt*> next;
