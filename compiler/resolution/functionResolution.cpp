@@ -5612,6 +5612,13 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
   int nPromotes = 0;
   for (int i = 0; i < n; i++) {
     ResolutionCandidate* candidate = candidates.v[i];
+
+    EXPLAIN("##########################\n");
+    EXPLAIN("# Considering function %d #\n", i);
+    EXPLAIN("##########################\n\n");
+
+    EXPLAIN("%s\n\n", toString(candidate->fn));
+
     if (candidate->paramOnly)
       nParamOnly++;
     if (candidate->anyPromotes)
@@ -5627,6 +5634,7 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
     for (int i = 0; i < n; i++) {
       ResolutionCandidate* candidate = candidates.v[i];
       if (candidate->paramOnly == false) {
+        EXPLAIN("Discarding function %d for not all param\n", i);
         notBest[i] = true;
       }
     }
@@ -5640,29 +5648,73 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
     for (int i = 0; i < n; i++) {
       ResolutionCandidate* candidate = candidates.v[i];
       if (candidate->anyPromotes) {
+        EXPLAIN("Discarding function %d for promoting\n", i);
         notBest[i] = true;
       }
     }
   }
 
+  /*
+   if any candidate is more visible than any other candidate, remove all
+   candidates that are less visible than another candidate
+   */
+  // ignore candidates in internal modules for this check
+  // TODO: something to do for class methods here?
   for (int i = 0; i < n; i++) {
-    EXPLAIN("##########################\n");
-    EXPLAIN("# Considering function %d #\n", i);
-    EXPLAIN("##########################\n\n");
+    ResolutionCandidate* candidate1         = candidates.v[i];
 
+    if (notBest[i]) {
+      continue;
+    }
+
+    // ignore candidates in internal modules for this check
+    if (candidate1->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
+      continue;
+
+    for (int j = i+1; j < n; j++) {
+      if (notBest[j]) {
+        continue;
+      }
+
+      ResolutionCandidate* candidate2 = candidates.v[j];
+
+      // ignore candidates in internal modules for this check
+      if (candidate2->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
+        continue;
+
+      auto v = isMoreVisible(DC.scope, candidate1->fn, candidate2->fn);
+      if (v == FOUND_F1_FIRST) {
+        EXPLAIN("Discarding fn %i as less visible than %i\n", j, i);
+        notBest[j] = true;
+
+      } else if (v == FOUND_F2_FIRST) {
+        EXPLAIN("Discarding fn %i as less visible than %i\n", i, j);
+        notBest[i] = true;
+        break; // no need to continue considering the other (i, *) pairs
+
+      } else if (v == FOUND_BOTH) {
+        EXPLAIN("note: Fn %i is as visible as %i\n", i, j);
+        // could set notBest for ones with the same visibility here,
+        // if that helps the algorithm.
+      }
+    }
+  }
+
+  for (int i = 0; i < n; i++) {
     ResolutionCandidate* candidate1         = candidates.v[i];
     bool                 singleMostSpecific = true;
+    bool forGenericInit = candidate1->fn->isInitializer() ||
+                          candidate1->fn->isCopyInit();
 
-    bool forGenericInit = candidate1->fn->isInitializer() || candidate1->fn->isCopyInit();
-
-    EXPLAIN("%s\n\n", toString(candidate1->fn));
+    EXPLAIN("# Considering function %d #\n", i);
+    EXPLAIN("%s\n", toString(candidate1->fn));
 
     if (notBest[i]) {
       EXPLAIN("Already known to not be best match.  Skipping.\n\n");
       continue;
     }
 
-    for (int j = 0; j < candidates.n; ++j) {
+    for (int j = 0; j < n; j++) {
       if (i == j) {
         continue;
       }
