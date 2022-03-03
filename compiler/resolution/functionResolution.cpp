@@ -5749,9 +5749,18 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
         if (notBest[j]) {
           // Inherit the notBest status of what we are comparing against
           //
-          // If this candidate is equally as good as something that wasn't
-          // the best, then it is also not the best (or else there is something
-          // terribly wrong with our compareSpecificity function).
+          // If this candidate is equally as good as something that was
+          // ruled out as not the best, that not-the-best candidate
+          // wasn't as good as some other candidate, and therefore
+          // this candidate also isn't as good as some other candidate.
+          //
+          // If this candidate is incomparable with something that wasn't
+          // the best, that not-the-best candidate wasn't as good as
+          // some-other-candidate, but we don't know the relationship between
+          // the current candidate and some-other-candidate.
+          //
+          // TODO: check that things work without this logic / have
+          // compareSpecificity consider equal and incomparable.
           notBest[i] = true;
         }
         break;
