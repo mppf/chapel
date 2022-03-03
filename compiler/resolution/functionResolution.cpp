@@ -5744,9 +5744,9 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
         singleMostSpecific = false;
         break;
       } else {
-        EXPLAIN("X: Fn %d is a as good a match as Fn %d\n\n\n", i, j);
+        EXPLAIN("X: Fn %d is not better or worse than Fn %d\n\n\n", i, j);
         singleMostSpecific = false;
-        if (notBest[j]) {
+//        if (notBest[j]) {
           // Inherit the notBest status of what we are comparing against
           //
           // If this candidate is equally as good as something that was
@@ -5761,8 +5761,8 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
           //
           // TODO: check that things work without this logic / have
           // compareSpecificity consider equal and incomparable.
-          notBest[i] = true;
-        }
+//          notBest[i] = true;
+//        }
         break;
       }
     }
