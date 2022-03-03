@@ -5607,7 +5607,45 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
   // we already know it can not be the best match.
   std::vector<bool> notBest(candidates.n, false);
 
-  for (int i = 0; i < candidates.n; ++i) {
+  int n = candidates.n;
+  int nParamOnly = 0;
+  int nPromotes = 0;
+  for (int i = 0; i < n; i++) {
+    ResolutionCandidate* candidate = candidates.v[i];
+    if (candidate->paramOnly)
+      nParamOnly++;
+    if (candidate->anyPromotes)
+      nPromotes++;
+  }
+
+  /*
+   if any candidate has all formal arguments param, and there is at least one
+   candidate where that is not the case, remove all candidates with non-param
+   formal arguments
+   */
+  if (nParamOnly > 0 && nParamOnly != n) {
+    for (int i = 0; i < n; i++) {
+      ResolutionCandidate* candidate = candidates.v[i];
+      if (candidate->paramOnly == false) {
+        notBest[i] = true;
+      }
+    }
+  }
+
+  /*
+   if any candidate does not use promotion, remove all candidates that do use
+   promotion
+   */
+  if (nPromotes > 0 && nPromotes != n) {
+    for (int i = 0; i < n; i++) {
+      ResolutionCandidate* candidate = candidates.v[i];
+      if (candidate->anyPromotes) {
+        notBest[i] = true;
+      }
+    }
+  }
+
+  for (int i = 0; i < n; i++) {
     EXPLAIN("##########################\n");
     EXPLAIN("# Considering function %d #\n", i);
     EXPLAIN("##########################\n\n");
@@ -5679,7 +5717,7 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
 
   EXPLAIN("Z: No non-ambiguous best match.\n\n");
 
-  for (int i = 0; i < candidates.n; ++i) {
+  for (int i = 0; i < n; i++) {
     if (notBest[i] == false) {
       ambiguous.add(candidates.v[i]);
     }

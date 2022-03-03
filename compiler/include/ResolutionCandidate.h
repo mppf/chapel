@@ -105,6 +105,9 @@ public:
   // Is this a CG "interim instantiation"?
   bool                    isInterimInstantiation;
 
+  bool                    paramOnly; // all formals are param
+  bool                    anyPromotes; // any formal promotes
+
   Symbol*                 failingArgument; // actual or formal
   ResolutionCandidateFailureReason reason;
 

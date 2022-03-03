@@ -51,6 +51,8 @@ std::map<Type*,std::map<Type*,bool> > actualFormalCoercible;
 ResolutionCandidate::ResolutionCandidate(FnSymbol* function) {
   fn = function;
   isInterimInstantiation = false;
+  paramOnly = false;
+  anyPromotes = false;
   failingArgument = NULL;
   reason = RESOLUTION_CANDIDATE_MATCH;
 }
@@ -858,6 +860,9 @@ bool ResolutionCandidate::checkResolveFormalsWhereClauses(CallInfo& info,
                                                     VisibilityInfo* visInfo) {
   int coindex = -1;
 
+  this->paramOnly = true;
+  this->anyPromotes = false;
+
   /*
    * A derived generic type will use the type of its parent,
    * and expects this to be instantiated before it is.
@@ -868,18 +873,19 @@ bool ResolutionCandidate::checkResolveFormalsWhereClauses(CallInfo& info,
   bool isInitCopy = fn->hasFlag(FLAG_INIT_COPY_FN);
 
   for_formals(formal, fn) {
+    bool formalIsParam     = formal->hasFlag(FLAG_INSTANTIATED_PARAM) ||
+                             formal->intent == INTENT_PARAM;
+    bool promotes          = false;
+
     if (Symbol* actual = formalIdxToActual[++coindex]) {
       bool actualIsTypeAlias = actual->hasFlag(FLAG_TYPE_VARIABLE);
       bool formalIsTypeAlias = formal->hasFlag(FLAG_TYPE_VARIABLE);
 
-      bool formalIsParam     = formal->hasFlag(FLAG_INSTANTIATED_PARAM) ||
-                               formal->intent == INTENT_PARAM;
       bool isInitThis        = (fn->isInitializer() || fn->isCopyInit()) &&
                                formal->hasFlag(FLAG_ARG_THIS);
       bool isNewTypeArg      = strcmp(fn->name,"_new") == 0 &&
                                coindex == 0; // first formal/actual
 
-      bool promotes          = false;
 
       if (isInitCopy && isString(actual) && formal->getValType() == dtStringC) {
         // Do not allow an initCopy of a string to find the c_string initCopy,
@@ -946,6 +952,9 @@ bool ResolutionCandidate::checkResolveFormalsWhereClauses(CallInfo& info,
         return false;
       }
     }
+
+    this->paramOnly &= formalIsParam;
+    this->anyPromotes |= promotes;
   }
 
   if (evaluateWhereClause(fn) == false) {
