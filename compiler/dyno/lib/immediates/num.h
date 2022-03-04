@@ -113,7 +113,7 @@ namespace chpl {
 namespace types {
 
 class Immediate { public:
-  uint8_t const_kind;
+  uint8_t const_kind; // IF1_num_kind / IF1_const_kind
   IF1_string_kind string_kind;
   uint8_t num_index;
   union {

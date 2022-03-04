@@ -633,6 +633,8 @@ switch (to->const_kind) {
    default: assert(false && "Illegal case in coerce_immediate switch statement"); break;
    case NUM_KIND_BOOL:
      to->v_string = istrFromUserBool(context, from->bool_value()); break;
+   case CONST_KIND_STRING:
+     to->v_string = from->v_string; break;
    case NUM_KIND_UINT:
      switch (from->num_index) {
      case INT_SIZE_8:
