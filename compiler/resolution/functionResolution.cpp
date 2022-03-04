@@ -5371,12 +5371,16 @@ struct PartialOrderChecker {
   int n;
   std::vector<bool> results;
   const Vec<ResolutionCandidate*>& candidates;
-  const DisambiguationContext& DC;
+  DisambiguationContext DC;
+  bool ignoreWhere;
 
   PartialOrderChecker(const Vec<ResolutionCandidate*>& candidates,
-                      const DisambiguationContext& DC)
-    : n(candidates.n), candidates(candidates), DC(DC) {
+                      const DisambiguationContext& DC,
+                      bool ignoreWhere)
+    : n(candidates.n), candidates(candidates),
+      DC(DC), ignoreWhere(ignoreWhere) {
     results.resize(n*n);
+    this->DC.explain = true;
   }
 
   int idx(int i, int j) {
@@ -5405,7 +5409,39 @@ struct PartialOrderChecker {
       Type* t = actual->getValType();
       printf("%s : %s", toString(actual, false), toString(t));
     }
-    printf(")\n");
+    printf(") ignoreWhere=%i\n", ignoreWhere);
+  }
+
+  void explainComparison(int i, int j) {
+    ResolutionCandidate* candidate1         = candidates.v[i];
+    bool forGenericInit = candidate1->fn->isInitializer() || candidate1->fn->isCopyInit();
+
+    EXPLAIN("##########################\n");
+    EXPLAIN("# Considering function %d #\n", i);
+    EXPLAIN("##########################\n\n");
+    EXPLAIN("%s\n\n", toString(candidate1->fn));
+
+    ResolutionCandidate* candidate2 = candidates.v[j];
+
+    EXPLAIN("Comparing to function %d\n", j);
+    EXPLAIN("-----------------------\n");
+    EXPLAIN("%s\n", toString(candidate2->fn));
+
+    int cmp = compareSpecificity(candidate1,
+                                 candidate2,
+                                 DC,
+                                 i,
+                                 j,
+                                 ignoreWhere,
+                                 forGenericInit);
+
+    if (cmp < 0) {
+      EXPLAIN("X: Fn %d is a better match than Fn %d\n\n\n", i, j);
+    } else if (cmp > 0) {
+      EXPLAIN("X: Fn %d is a worse match than Fn %d\n\n\n", i, j);
+    } else {
+      EXPLAIN("X: Fn %d is not better or worse than Fn %d\n\n\n", i, j);
+    }
   }
 
   void checkResults() {
@@ -5433,6 +5469,9 @@ struct PartialOrderChecker {
           printf("i: %s\n", toString(candidatei->fn));
           printf("j: %s\n", toString(candidatej->fn));
           printf("\n");
+          explainComparison(i, j);
+          explainComparison(j, i);
+          printf("\n\n");
         }
       }
     }
@@ -5453,6 +5492,10 @@ struct PartialOrderChecker {
               printf("j: %s\n", toString(candidatej->fn));
               printf("k: %s\n", toString(candidatek->fn));
               printf("\n");
+              explainComparison(i, j);
+              explainComparison(j, k);
+              explainComparison(i, k);
+              printf("\n\n");
             }
           }
         }
@@ -5561,7 +5604,7 @@ disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
   auto ret = disambiguateByMatchInner(candidates, DC, ignoreWhere, ambiguous);
 
   // do checking
-  PartialOrderChecker checker(candidates, DC);
+  PartialOrderChecker checker(candidates, DC, ignoreWhere);
 
   for (int i = 0; i < candidates.n; ++i) {
     ResolutionCandidate* candidate1         = candidates.v[i];
