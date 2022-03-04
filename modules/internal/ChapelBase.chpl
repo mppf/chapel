@@ -128,9 +128,22 @@ module ChapelBase {
     return true;
   }
 
+  inline operator ==(param a: bool, param b: bool) param {
+    return __primitive("==", a, b);
+  }
+  inline operator ==(param a: numeric, param b: numeric) param {
+    return __primitive("==", a, b);
+  }
+  inline operator ==(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive("==", a, b);
+  }
+
+  /*
   inline operator ==(param a: bool, param b: bool) param return __primitive("==", a, b);
   inline operator ==(param a: int(?w), param b: int(w)) param return __primitive("==", a, b);
   inline operator ==(param a: uint(?w), param b: uint(w)) param return __primitive("==", a, b);
+
   //
   inline operator ==(param a: enum, param b: enum) param where (a.type == b.type) return __primitive("==", a, b);
   //
@@ -143,17 +156,20 @@ module ChapelBase {
   inline operator ==(param a: real(?w), param b: real(w)) param return __primitive("==", a, b);
   inline operator ==(param a: imag(?w), param b: imag(w)) param return __primitive("==", a, b);
   inline operator ==(param a: complex(?w), param b: complex(w)) param return __primitive("==", a, b);
+   */
   inline operator ==(a: nothing, b: nothing) param return true;
 
-  inline operator !=(param a: bool, param b: bool) param return __primitive("!=", a, b);
-  inline operator !=(param a: int(?w), param b: int(w)) param return __primitive("!=", a, b);
-  inline operator !=(param a: uint(?w), param b: uint(w)) param return __primitive("!=", a, b);
+  inline operator !=(param a: bool, param b: bool) param {
+    return __primitive("!=", a, b);
+  }
+  inline operator !=(param a: numeric, param b: numeric) param {
+    return __primitive("!=", a, b);
+  }
+  inline operator !=(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive("!=", chpl__enumToOrder(a), chpl__enumToOrder(b));
+  }
 
-  inline operator !=(param a: enum, param b: enum) param where (a.type == b.type) return __primitive("!=", chpl__enumToOrder(a), chpl__enumToOrder(b));
-
-  inline operator !=(param a: real(?w), param b: real(w)) param return __primitive("!=", a, b);
-  inline operator !=(param a: imag(?w), param b: imag(w)) param return __primitive("!=", a, b);
-  inline operator !=(param a: complex(?w), param b: complex(w)) param return __primitive("!=", a, b);
   inline operator !=(a: nothing, b: nothing) param return false;
 
   //
@@ -207,25 +223,37 @@ module ChapelBase {
     return false;
   }
 
-  inline operator <=(param a: int(?w), param b: int(w)) param return __primitive("<=", a, b);
-  inline operator <=(param a: uint(?w), param b: uint(w)) param return __primitive("<=", a, b);
-  inline operator <=(param a: enum, param b: enum) param where (a.type == b.type) return __primitive("<=", chpl__enumToOrder(a), chpl__enumToOrder(b));
-  inline operator <=(param a: real(?w), param b: real(w)) param return __primitive("<=", a, b);
+  inline operator <=(param a: numeric, param b: numeric) param {
+    return __primitive("<=", a, b);
+  }
+  inline operator <=(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive("<=", chpl__enumToOrder(a), chpl__enumToOrder(b));
+  }
 
-  inline operator >=(param a: int(?w), param b: int(w)) param return __primitive(">=", a, b);
-  inline operator >=(param a: uint(?w), param b: uint(w)) param return __primitive(">=", a, b);
-  inline operator >=(param a: enum, param b: enum) param where (a.type == b.type) return __primitive(">=", chpl__enumToOrder(a), chpl__enumToOrder(b));
-  inline operator >=(param a: real(?w), param b: real(w)) param return __primitive(">=", a, b);
+  inline operator >=(param a: numeric, param b: numeric) param {
+    return __primitive(">=", a, b);
+  }
+  inline operator >=(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive(">=", chpl__enumToOrder(a), chpl__enumToOrder(b));
+  }
 
-  inline operator <(param a: int(?w), param b: int(w)) param return __primitive("<", a, b);
-  inline operator <(param a: uint(?w), param b: uint(w)) param return __primitive("<", a, b);
-  inline operator <(param a: enum, param b: enum) param where (a.type == b.type) return __primitive("<", chpl__enumToOrder(a), chpl__enumToOrder(b));
-  inline operator <(param a: real(?w), param b: real(w)) param return __primitive("<", a, b);
+  inline operator <(param a: numeric, param b: numeric) param {
+    return __primitive("<", a, b);
+  }
+  inline operator <(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive("<", chpl__enumToOrder(a), chpl__enumToOrder(b));
+  }
 
-  inline operator >(param a: int(?w), param b: int(w)) param return __primitive(">", a, b);
-  inline operator >(param a: uint(?w), param b: uint(w)) param return __primitive(">", a, b);
-  inline operator >(param a: enum, param b: enum) param where (a.type == b.type) return __primitive(">", chpl__enumToOrder(a), chpl__enumToOrder(b));
-  inline operator >(param a: real(?w), param b: real(w)) param return __primitive(">", a, b);
+  inline operator >(param a: numeric, param b: numeric) param {
+    return __primitive(">", a, b);
+  }
+  inline operator >(param a: enum, param b: enum) param
+    where (a.type == b.type) {
+    return __primitive(">", chpl__enumToOrder(a), chpl__enumToOrder(b));
+  }
 
   //
   // unary + and - on primitive types
@@ -242,23 +270,25 @@ module ChapelBase {
   inline operator -(a: imag(?w)) return __primitive("u-", a);
   inline operator -(a: complex(?w)) return __primitive("u-", a);
 
-  inline operator +(param a: int(?w)) param return a;
-  inline operator +(param a: uint(?w)) param return a;
-  inline operator +(param a: real(?w)) param return a;
-  inline operator +(param a: imag(?w)) param return a;
-  inline operator +(param a: complex(?w)) param return a;
+  inline operator +(param a: numeric) param return a;
 
-  inline operator -(param a: int(?w)) param return __primitive("u-", a);
-  inline operator -(param a: uint(?w)) param {
-    if (a:int(w) < 0) then
+  proc checkUintNeg(param a: uint(?w)) param {
+    if a:int(w) < 0 {
       compilerError("illegal use of '-' on operand of type ", a.type:string);
-    else
-      return -(a:int(w));
+      return false;
+    } else {
+      return true;
+    }
+  }
+  proc checkUintNeg(param a) param {
+    return true;
   }
 
-  inline operator -(param a: real(?w)) param return __primitive("u-", a);
-  inline operator -(param a: imag(?w)) param return __primitive("u-", a);
-  inline operator -(param a: complex(?w)) param return __primitive("u-", a);
+  inline operator -(param a: numeric) param {
+    checkUintNeg(a);
+
+    return __primitive("u-", a);
+  }
 
   //
   // binary + and - on primitive types for runtime values
@@ -292,25 +322,13 @@ module ChapelBase {
   //
   // binary + and - on param values
   //
-  inline operator +(param a: int(?w), param b: int(w)) param return __primitive("+", a, b);
-  inline operator +(param a: uint(?w), param b: uint(w)) param return __primitive("+", a, b);
-  inline operator +(param a: real(?w), param b: real(w)) param return __primitive("+", a, b);
-  inline operator +(param a: imag(?w), param b: imag(w)) param return __primitive("+", a, b);
-  inline operator +(param a: complex(?w), param b: complex(w)) param return __primitive("+", a, b);
-  /*inline operator +(param a: real(?w), param b: imag(w)) param return __primitive("+", a, b);
-  inline operator +(param a: imag(?w), param b: real(w)) param return __primitive("+", a, b);
-  inline operator +(param a: real(?w), param b: complex(w*2)) param return
-  __primitive("+", a, b);*/
+  inline operator +(param a: numeric, param b: numeric) param {
+    return __primitive("+", a, b);
+  }
 
-  inline operator -(param a: int(?w), param b: int(w)) param return __primitive("-", a, b);
-  inline operator -(param a: uint(?w), param b: uint(w)) param return __primitive("-", a, b);
-  inline operator -(param a: real(?w), param b: real(w)) param return __primitive("-", a, b);
-  inline operator -(param a: imag(?w), param b: imag(w)) param return __primitive("-", a, b);
-  inline operator -(param a: complex(?w), param b: complex(w)) param return __primitive("-", a, b);
-  /*inline operator -(param a: real(?w), param b: imag(w)) param return __primitive("-", a, b);
-  inline operator -(param a: imag(?w), param b: real(w)) param return __primitive("-", a, b);
-  inline operator -(param a: real(?w), param b: complex(w*2)) param return
-  __primitive("-", a, b);*/
+  inline operator -(param a: numeric, param b: numeric) param {
+    return __primitive("-", a, b);
+  }
 
   //
   // * and / on primitive types
@@ -2004,7 +2022,9 @@ module ChapelBase {
   // permitting the user to define their own overloads (or 'use'
   // a module which does).
   //
+  pragma "last resort"
   inline operator +(a: uint(64), b: int(64)) { _throwOpError("+"); }
+  pragma "last resort"
   inline operator +(a: int(64), b: uint(64)) { _throwOpError("+"); }
 
   //
@@ -2016,7 +2036,7 @@ module ChapelBase {
   // a non-param one, if the 'int' version here is not provided,
   // anEnumVariable + 1 (say) will resolve to the uint + here
   // and that would give the wrong result type (uint rather than int).
-  inline operator +(a: uint(64), param b: uint(64)) {
+  /*inline operator +(a: uint(64), param b: uint(64)) {
     return __primitive("+", a, b);
   }
   inline operator +(param a: uint(64), b: uint(64)) {
@@ -2027,15 +2047,17 @@ module ChapelBase {
   }
   inline operator +(param a: int(64), b: int(64)) {
     return __primitive("+", a, b);
-  }
+  }*/
 
 
   // non-param/non-param
+  pragma "last resort"
   inline operator -(a: uint(64), b: int(64)) { _throwOpError("-"); }
+  pragma "last resort"
   inline operator -(a: int(64), b: uint(64)) { _throwOpError("-"); }
 
   // non-param/param and param/non-param
-  inline operator -(a: uint(64), param b: uint(64)) {
+  /*inline operator -(a: uint(64), param b: uint(64)) {
     return __primitive("-", a, b);
   }
   inline operator -(param a: uint(64), b: uint(64)) {
@@ -2046,15 +2068,17 @@ module ChapelBase {
   }
   inline operator -(param a: int(64), b: int(64)) {
     return __primitive("-", a, b);
-  }
+  }*/
 
 
   // non-param/non-param
+  pragma "last resort"
   inline operator *(a: uint(64), b: int(64)) { _throwOpError("*"); }
+  pragma "last resort"
   inline operator *(a: int(64), b: uint(64)) { _throwOpError("*"); }
 
   // non-param/param and param/non-param
-  inline operator *(a: uint(64), param b: uint(64)) {
+  /*inline operator *(a: uint(64), param b: uint(64)) {
     return __primitive("*", a, b);
   }
   inline operator *(param a: uint(64), b: uint(64)) {
@@ -2065,11 +2089,13 @@ module ChapelBase {
   }
   inline operator *(param a: int(64), b: int(64)) {
     return __primitive("*", a, b);
-  }
+  }*/
 
 
   // non-param/non-param
+  pragma "last resort"
   inline operator /(a: uint(64), b: int(64)) { _throwOpError("/"); }
+  pragma "last resort"
   inline operator /(a: int(64), b: uint(64)) { _throwOpError("/"); }
 
   // non-param/param and param/non-param
@@ -2098,11 +2124,13 @@ module ChapelBase {
 
 
   // non-param/non-param
+  pragma "last resort"
   inline operator **(a: uint(64), b: int(64)) { _throwOpError("**"); }
+  pragma "last resort"
   inline operator **(a: int(64), b: uint(64)) { _throwOpError("**"); }
 
   // non-param/param and param/non-param
-  inline operator **(a: uint(64), param b: uint(64)) {
+  /*inline operator **(a: uint(64), param b: uint(64)) {
     return __primitive("**", a, b);
   }
   inline operator **(param a: uint(64), b: uint(64)) {
@@ -2113,11 +2141,13 @@ module ChapelBase {
   }
   inline operator **(param a: int(64), b: int(64)) {
     return __primitive("**", a, b);
-  }
+  }*/
 
 
   // non-param/non-param
+  pragma "last resort"
   inline operator %(a: uint(64), b: int(64)) { _throwOpError("%"); }
+  pragma "last resort"
   inline operator %(a: int(64), b: uint(64)) { _throwOpError("%"); }
 
   // non-param/param and param/non-param
@@ -2212,12 +2242,12 @@ module ChapelBase {
   inline operator <(a: uint(64), param b: uint(64)) param where b == 0 {
     return false;
   }
-  inline operator <(a: uint(64), param b: uint(64)) {
+  /*inline operator <(a: uint(64), param b: uint(64)) {
     return __primitive("<", a, b);
   }
   inline operator <(a: int(64), param b: int(64)) {
     return __primitive("<", a, b);
-  }
+  }*/
 
 
 
@@ -2233,12 +2263,12 @@ module ChapelBase {
   inline operator >=(a: uint(64), param b: uint(64)) param where b == 0 {
     return true;
   }
-  inline operator >=(a: uint(64), param b: uint(64)) {
+  /*inline operator >=(a: uint(64), param b: uint(64)) {
     return __primitive(">=", a, b);
   }
   inline operator >=(a: int(64), param b: int(64)) {
     return __primitive(">=", a, b);
-  }
+  }*/
 
 
   // non-param/non-param
@@ -2253,12 +2283,12 @@ module ChapelBase {
   inline operator <=(param a: uint(64), b: uint(64)) param where a == 0 {
     return true;
   }
-  inline operator <=(param a: uint(64), b: uint(64)) {
+  /*inline operator <=(param a: uint(64), b: uint(64)) {
     return __primitive("<=", a, b);
   }
   inline operator <=(param a: int(64), b: int(64)) {
     return __primitive("<=", a, b);
-  }
+  }*/
 
 
   proc isGenericType(type t) param return __primitive("is generic type", t);
