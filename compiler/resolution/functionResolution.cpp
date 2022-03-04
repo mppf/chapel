@@ -88,18 +88,6 @@ public:
 
   bool  fn1MoreSpecific;
   bool  fn2MoreSpecific;
-
-  bool  fn1Promotes;
-  bool  fn2Promotes;
-
-  bool fn1WeakPreferred;
-  bool fn2WeakPreferred;
-
-  bool fn1WeakerPreferred;
-  bool fn2WeakerPreferred;
-
-  bool fn1WeakestPreferred;
-  bool fn2WeakestPreferred;
 };
 
 // map: (block id) -> (map: sym -> sym)
@@ -987,18 +975,11 @@ static bool canParamCoerce(Type*   actualType,
       return true;
     }
 
-    //
-    // For smaller integer types, if the argument is a param, does it
-    // store a value that's small enough that it could dispatch to
-    // this argument?
-    //
-    if (get_width(formalType) < 64) {
-      if (VarSymbol* var = toVarSymbol(actualSym)) {
-        if (var->immediate) {
-          if (fits_in_int(get_width(formalType), var->immediate)) {
-            *paramNarrows = true;
-            return true;
-          }
+    if (VarSymbol* var = toVarSymbol(actualSym)) {
+      if (var->immediate) {
+        if (fits_in_int(get_width(formalType), var->immediate)) {
+          *paramNarrows = true;
+          return true;
         }
       }
     }
@@ -3218,12 +3199,12 @@ static BlockStmt* findVisibleFunctionsAndCandidates(
                                      Vec<FnSymbol*>&            visibleFns,
                                      Vec<ResolutionCandidate*>& candidates);
 
-static int       disambiguateByMatch(CallInfo&                  info,
-                                     BlockStmt*                 searchScope,
-                                     Vec<ResolutionCandidate*>& candidates,
-                                     ResolutionCandidate*&      bestRef,
-                                     ResolutionCandidate*&      bestConstRef,
-                                     ResolutionCandidate*&      bestValue);
+static int       disambiguateByMatchRI(CallInfo&                  info,
+                                       BlockStmt*                 searchScope,
+                                       Vec<ResolutionCandidate*>& candidates,
+                                       ResolutionCandidate*&      bestRef,
+                                       ResolutionCandidate*&      bestConstRef,
+                                       ResolutionCandidate*&      bestValue);
 
 static FnSymbol* resolveNormalCall(CallInfo&            info,
                                    check_state_t        checkState,
@@ -3661,8 +3642,8 @@ static FnSymbol* resolveNormalCall(CallInfo& info, check_state_t checkState) {
   scopeUsed = findVisibleFunctionsAndCandidates(info, visInfo,
                                                 mostApplicable, candidates);
 
-  numMatches = disambiguateByMatch(info, scopeUsed, candidates,
-                                   bestRef, bestCref, bestVal);
+  numMatches = disambiguateByMatchRI(info, scopeUsed, candidates,
+                                     bestRef, bestCref, bestVal);
 
   if (checkState == CHECK_NORMAL_CALL && numMatches > 0 && visInfo.inPOI())
     updateCacheInfosForACall(visInfo,
@@ -5265,25 +5246,25 @@ static FnSymbol* resolveForwardedCall(CallInfo& info, check_state_t checkState) 
 #endif
 
 
-static ResolutionCandidate*
+static void
 disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
                     const DisambiguationContext& DC,
-                    bool                         ignoreWhere,
-                    Vec<ResolutionCandidate*>&   ambiguous);
+                    Vec<ResolutionCandidate*>&   mostSpecific,
+                    int phase);
 
 static int  compareSpecificity(ResolutionCandidate*         candidate1,
                                ResolutionCandidate*         candidate2,
                                const DisambiguationContext& DC,
                                int                          i,
                                int                          j,
-                               bool                         ignoreWhere,
-                               bool                         forGenericInit);
+                               int phase);
 
 static void testArgMapping(FnSymbol*                    fn1,
                            ArgSymbol*                   formal1,
                            FnSymbol*                    fn2,
                            ArgSymbol*                   formal2,
                            Symbol*                      actual,
+                           int phase,
                            const DisambiguationContext& DC,
                            int                          i,
                            int                          j,
@@ -5294,37 +5275,88 @@ static void testOpArgMapping(FnSymbol* fn1, ArgSymbol* formal1, FnSymbol* fn2,
                              const DisambiguationContext& DC, int i, int j,
                              DisambiguationState& DS);
 
+// determines the best function from the set of most specific functions
+//
+// all functions, if none of them contain a where clause
+// only those function that have a where clause, otherwise
+//
+// returns the single best match, if there is one
+// and updates 'candidates' to be filtered as above
+static ResolutionCandidate*
+filterByHasWhereClause(const DisambiguationContext& DC,
+                       Vec<ResolutionCandidate*>& candidates) {
+
+  // do phase 1
+  Vec<ResolutionCandidate*> mostSpecific;
+  disambiguateByMatch(candidates, DC, mostSpecific, /* phase */ 1);
+  if (mostSpecific.n != candidates.n) {
+    candidates = mostSpecific;
+  }
+
+  // now filter by existence of where clauses
+  int n = candidates.n;
+  int nWhere = 0;
+  forv_Vec(ResolutionCandidate*, candidate, candidates) {
+    if (candidate->fn->where != nullptr &&
+        !candidate->fn->hasFlag(FLAG_COMPILER_ADDED_WHERE)) {
+      nWhere++;
+    }
+  }
+
+  if (nWhere == 0 || nWhere == n) {
+    // no need to do any filtering
+    if (candidates.n == 1)
+      return candidates.v[0];
+    else
+      return nullptr;
+  }
+
+  // Otherwise, filter out those without a where clause
+  Vec<ResolutionCandidate*> tmp;
+  forv_Vec(ResolutionCandidate*, candidate, candidates) {
+    if (candidate->fn->where != nullptr &&
+        !candidate->fn->hasFlag(FLAG_COMPILER_ADDED_WHERE)) {
+      tmp.push_back(candidate);
+    }
+  }
+
+  candidates = tmp;
+
+  if (candidates.n == 1)
+    return candidates.v[0];
+  else
+    return nullptr;
+}
+
 ResolutionCandidate*
 disambiguateForInit(CallInfo& info, Vec<ResolutionCandidate*>& candidates) {
   DisambiguationContext     DC(info, getVisibilityScope(info.call));
-  Vec<ResolutionCandidate*> ambiguous;
+  Vec<ResolutionCandidate*> mostSpecific;
 
-  return disambiguateByMatch(candidates, DC, false, ambiguous);
+  disambiguateByMatch(candidates, DC, mostSpecific, /*phase*/ 0);
+  return filterByHasWhereClause(DC, mostSpecific);
 }
 
-
 // searchScope is the scope used to evaluate is-more-visible
-static int disambiguateByMatch(CallInfo&                  info,
-                               BlockStmt*                 searchScope,
-                               Vec<ResolutionCandidate*>& candidates,
-
-                               ResolutionCandidate*&      bestRef,
-                               ResolutionCandidate*&      bestConstRef,
-                               ResolutionCandidate*&      bestValue) {
+static int disambiguateByMatchRI(CallInfo&                  info,
+                                 BlockStmt*                 searchScope,
+                                 Vec<ResolutionCandidate*>& candidates,
+                                 ResolutionCandidate*&      bestRef,
+                                 ResolutionCandidate*&      bestConstRef,
+                                 ResolutionCandidate*&      bestValue) {
   DisambiguationContext     DC(info, searchScope);
 
-  Vec<ResolutionCandidate*> ambiguous;
+  Vec<ResolutionCandidate*> mostSpecific;
 
-  ResolutionCandidate*      best   = disambiguateByMatch(candidates,
-                                                         DC,
-                                                         true,
-                                                         ambiguous);
+  disambiguateByMatch(candidates, DC, mostSpecific, /*phase*/ 0);
 
   int                       retval = 0;
 
   // The common case is that there is no ambiguity because the
   // return intent overload feature is not used.
-  if (best != NULL) {
+  if (mostSpecific.n == 1) {
+    ResolutionCandidate* best = mostSpecific.v[0];
+
     if (best->fn->retTag == RET_REF) {
       bestRef = best;
 
@@ -5338,120 +5370,69 @@ static int disambiguateByMatch(CallInfo&                  info,
     retval = 1;
 
   } else {
-    // Now, if there was ambiguity, find candidates with different
-    // return intent in ambiguousCandidates.
-    // If there is only one of each, we are good to go.
-    int                  nRef              = 0;
-    int                  nConstRef         = 0;
-    int                  nValue            = 0;
-    int                  nOther            = 0;
-    int                  total             = 0;
+    // Now, if there was ambiguity, split according to return intent
+    Vec<ResolutionCandidate*> refCandidates;
+    Vec<ResolutionCandidate*> constRefCandidates;
+    Vec<ResolutionCandidate*> valueCandidates;
+    Vec<ResolutionCandidate*> otherCandidates;
 
-    ResolutionCandidate* refCandidate      = NULL;
-    ResolutionCandidate* constRefCandidate = NULL;
-    ResolutionCandidate* valueCandidate    = NULL;
-
-    // Count number of candidates in each category.
-    forv_Vec(ResolutionCandidate*, candidate, ambiguous) {
+    forv_Vec(ResolutionCandidate*, candidate, mostSpecific) {
       RetTag retTag = candidate->fn->retTag;
 
       if (retTag == RET_REF) {
-        refCandidate = candidate;
-        nRef++;
+        refCandidates.push_back(candidate);
 
       } else if(retTag == RET_CONST_REF) {
-        constRefCandidate = candidate;
-        nConstRef++;
+        constRefCandidates.push_back(candidate);
 
       } else if(retTag == RET_VALUE) {
-        valueCandidate = candidate;
-        nValue++;
+        valueCandidates.push_back(candidate);
 
       } else {
-        nOther++;
+        otherCandidates.push_back(candidate);
       }
     }
 
-    total = nRef + nConstRef + nValue + nOther;
+    filterByHasWhereClause(DC, refCandidates);
+    filterByHasWhereClause(DC, constRefCandidates);
+    filterByHasWhereClause(DC, valueCandidates);
+    filterByHasWhereClause(DC, otherCandidates);
+
+    int total = refCandidates.n + constRefCandidates.n +
+                valueCandidates.n + otherCandidates.n;
 
     // 0 or 1 matches -> return now, not a ref pair.
-    if (total <= 1) {
+    if (total == 0) {
       retval = 0;
 
-      // 1 match is possible with best==NULL in cases
-      // where the 'more specific' relation is not transitive.
+    } else if (total == 1 && otherCandidates.n == 1) {
+      bestValue = otherCandidates.v[0];
+      retval = 1;
 
-    } else if (nOther > 0) {
-      ambiguous.clear();
-
+    } else if (otherCandidates.n > 0) {
       // If there are *any* type/param candidates, we need to cause ambiguity
       // if they are not selected... including consideration of where clauses.
-      bestValue  = disambiguateByMatch(candidates, DC, false, ambiguous);
-      if (bestValue)
-        retval = 1;
-      else
-        retval = 0;
+      retval = 0;
+
+    } else if (refCandidates.n <= 1 &&
+               constRefCandidates.n <= 1 &&
+               valueCandidates.n <= 1) {
+      retval = 0;
+      if (refCandidates.n == 1) {
+        bestRef = otherCandidates.v[0];
+        retval++;
+      }
+      if (constRefCandidates.n == 1) {
+        bestConstRef = constRefCandidates.v[0];
+        retval++;
+      }
+      if (valueCandidates.n == 1) {
+        bestValue = valueCandidates.v[0];
+        retval++;
+      }
 
     } else {
-      if (nRef > 1 || nConstRef > 1 || nValue > 1) {
-        // Split candidates into ref, const ref, and value candidates
-        Vec<ResolutionCandidate*> refCandidates;
-        Vec<ResolutionCandidate*> constRefCandidates;
-        Vec<ResolutionCandidate*> valueCandidates;
-        Vec<ResolutionCandidate*> tmpAmbiguous;
-
-        // Move candidates to above Vecs according to return intent
-        forv_Vec(ResolutionCandidate*, candidate, candidates) {
-          RetTag retTag = candidate->fn->retTag;
-
-          if (retTag == RET_REF) {
-            refCandidates.push_back(candidate);
-
-          } else if (retTag == RET_CONST_REF) {
-            constRefCandidates.push_back(candidate);
-
-          } else if (retTag == RET_VALUE) {
-            valueCandidates.push_back(candidate);
-          }
-        }
-
-        // Disambiguate each group
-        refCandidate      = disambiguateByMatch(refCandidates,
-                                                DC,
-                                                false,
-                                                tmpAmbiguous);
-
-        constRefCandidate = disambiguateByMatch(constRefCandidates,
-                                                DC,
-                                                false,
-                                                tmpAmbiguous);
-
-        valueCandidate    = disambiguateByMatch(valueCandidates,
-                                                DC,
-                                                false,
-                                                tmpAmbiguous);
-        // update the counts
-        if (refCandidate      != NULL) nRef      = 1;
-        if (constRefCandidate != NULL) nConstRef = 1;
-        if (valueCandidate    != NULL) nValue    = 1;
-      }
-
-      // Now we know there are >= 2 matches.
-      // If there are more than 2 matches in any category, fail for ambiguity.
-      if (nRef > 1 || nConstRef > 1 || nValue > 1) {
-        retval = 0;
-
-      } else {
-        bestRef      = refCandidate;
-        bestConstRef = constRefCandidate;
-        bestValue    = valueCandidate;
-
-        int nBestRef      = bestRef      != NULL ? 1 : 0;
-        int nBestValue    = bestValue    != NULL ? 1 : 0;
-        int nBestConstRef = bestConstRef != NULL ? 1 : 0;
-
-        retval = nBestRef + nBestValue + nBestConstRef;
-      }
+      retval = total; // ambiguity
     }
   }
 
@@ -5462,14 +5443,17 @@ struct PartialOrderChecker {
   int n;
   std::vector<bool> results;
   const Vec<ResolutionCandidate*>& candidates;
+  const std::vector<bool>& discarded;
   DisambiguationContext DC;
-  bool ignoreWhere;
+  int phase;
 
   PartialOrderChecker(const Vec<ResolutionCandidate*>& candidates,
+                      const std::vector<bool>& discarded,
                       const DisambiguationContext& DC,
-                      bool ignoreWhere)
-    : n(candidates.n), candidates(candidates),
-      DC(DC), ignoreWhere(ignoreWhere) {
+                      int phase)
+    : n(candidates.n), candidates(candidates), discarded(discarded),
+      DC(DC),
+      phase(phase) {
     results.resize(n*n);
     this->DC.explain = true;
   }
@@ -5500,12 +5484,11 @@ struct PartialOrderChecker {
       Type* t = actual->getValType();
       printf("%s : %s", toString(actual, false), toString(t));
     }
-    printf(") ignoreWhere=%i\n", ignoreWhere);
+    printf(")\n");
   }
 
   void explainComparison(int i, int j) {
     ResolutionCandidate* candidate1         = candidates.v[i];
-    bool forGenericInit = candidate1->fn->isInitializer() || candidate1->fn->isCopyInit();
 
     EXPLAIN("##########################\n");
     EXPLAIN("# Considering function %d #\n", i);
@@ -5523,8 +5506,7 @@ struct PartialOrderChecker {
                                  DC,
                                  i,
                                  j,
-                                 ignoreWhere,
-                                 forGenericInit);
+                                 phase);
 
     if (cmp < 0) {
       EXPLAIN("X: Fn %d is a better match than Fn %d\n\n\n", i, j);
@@ -5538,6 +5520,9 @@ struct PartialOrderChecker {
   void checkResults() {
     // check irreflexivity
     for (int i = 0; i < n; i++) {
+      if (discarded[i])
+        continue;
+
       if (results[idx(i, i)]) {
         ResolutionCandidate* candidatei = candidates.v[i];
 
@@ -5550,7 +5535,11 @@ struct PartialOrderChecker {
 
     // check asymmetry
     for (int i = 0; i < n; i++) {
+      if (discarded[i])
+        continue;
       for (int j = 0; j < n; j++) {
+        if (discarded[j])
+          continue;
         if (results[idx(i, j)] && results[idx(j, i)]) {
           ResolutionCandidate* candidatei = candidates.v[i];
           ResolutionCandidate* candidatej = candidates.v[j];
@@ -5569,9 +5558,15 @@ struct PartialOrderChecker {
 
     // check transitivity
     for (int i = 0; i < n; i++) {
+      if (discarded[i])
+        continue;
       for (int j = 0; j < n; j++) {
+        if (discarded[j])
+          continue;
         if (i != j && results[idx(i, j)]) {
           for (int k = 0; k < n; k++) {
+            if (discarded[k])
+              continue;
             if (j != k && results[idx(j, k)] && !results[idx(i, k)]) {
               ResolutionCandidate* candidatei = candidates.v[i];
               ResolutionCandidate* candidatej = candidates.v[j];
@@ -5598,113 +5593,24 @@ struct PartialOrderChecker {
 static ResolutionCandidate*
 disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
                     const DisambiguationContext& DC,
-                    bool                         ignoreWhere,
-                    Vec<ResolutionCandidate*>&   ambiguous) {
+                    const std::vector<bool>& discarded,
+                    std::vector<bool>& notBest,
+                    int phase) {
   // MPF note: A more straightforwardly O(n) version of this
   // function did not appear to be faster. See history of this comment.
 
+  // how does notBest work?
   // If index i is set then we can skip testing function F_i because
   // we already know it can not be the best match.
-  std::vector<bool> notBest(candidates.n, false);
 
   int n = candidates.n;
-  int nParamOnly = 0;
-  int nPromotes = 0;
-  for (int i = 0; i < n; i++) {
-    ResolutionCandidate* candidate = candidates.v[i];
-
-    EXPLAIN("##########################\n");
-    EXPLAIN("# Considering function %d #\n", i);
-    EXPLAIN("##########################\n\n");
-
-    EXPLAIN("%s\n\n", toString(candidate->fn));
-
-    if (candidate->paramOnly)
-      nParamOnly++;
-    if (candidate->anyPromotes)
-      nPromotes++;
-  }
-
-  /*
-   if any candidate has all formal arguments param, and there is at least one
-   candidate where that is not the case, remove all candidates with non-param
-   formal arguments
-   */
-  if (nParamOnly > 0 && nParamOnly != n) {
-    for (int i = 0; i < n; i++) {
-      ResolutionCandidate* candidate = candidates.v[i];
-      if (candidate->paramOnly == false) {
-        EXPLAIN("Discarding function %d for not all param\n", i);
-        notBest[i] = true;
-      }
-    }
-  }
-
-  /*
-   if any candidate does not use promotion, remove all candidates that do use
-   promotion
-   */
-  if (nPromotes > 0 && nPromotes != n) {
-    for (int i = 0; i < n; i++) {
-      ResolutionCandidate* candidate = candidates.v[i];
-      if (candidate->anyPromotes) {
-        EXPLAIN("Discarding function %d for promoting\n", i);
-        notBest[i] = true;
-      }
-    }
-  }
-
-  /*
-   if any candidate is more visible than any other candidate, remove all
-   candidates that are less visible than another candidate
-   */
-  // ignore candidates in internal modules for this check
-  // TODO: something to do for class methods here?
-  for (int i = 0; i < n; i++) {
-    ResolutionCandidate* candidate1         = candidates.v[i];
-
-    if (notBest[i]) {
-      continue;
-    }
-
-    // ignore candidates in internal modules for this check
-    if (candidate1->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
-      continue;
-
-    for (int j = i+1; j < n; j++) {
-      if (notBest[j]) {
-        continue;
-      }
-
-      ResolutionCandidate* candidate2 = candidates.v[j];
-
-      // ignore candidates in internal modules for this check
-      if (candidate2->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
-        continue;
-
-      auto v = isMoreVisible(DC.scope, candidate1->fn, candidate2->fn);
-      if (v == FOUND_F1_FIRST) {
-        EXPLAIN("Discarding fn %i as less visible than %i\n", j, i);
-        notBest[j] = true;
-
-      } else if (v == FOUND_F2_FIRST) {
-        EXPLAIN("Discarding fn %i as less visible than %i\n", i, j);
-        notBest[i] = true;
-        break; // no need to continue considering the other (i, *) pairs
-
-      } else if (v == FOUND_BOTH) {
-        EXPLAIN("note: Fn %i is as visible as %i\n", i, j);
-        // could set notBest for ones with the same visibility here,
-        // if that helps the algorithm.
-      }
-    }
-  }
-
   for (int i = 0; i < n; i++) {
     ResolutionCandidate* candidate1         = candidates.v[i];
     bool                 singleMostSpecific = true;
-    bool forGenericInit = candidate1->fn->isInitializer() ||
-                          candidate1->fn->isCopyInit();
+
+    if (discarded[i]) {
+      continue;
+    }
 
     EXPLAIN("# Considering function %d #\n", i);
     EXPLAIN("%s\n", toString(candidate1->fn));
@@ -5716,6 +5622,9 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
 
     for (int j = 0; j < n; j++) {
       if (i == j) {
+        continue;
+      }
+      if (discarded[j]) {
         continue;
       }
 
@@ -5731,8 +5640,7 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
                                    DC,
                                    i,
                                    j,
-                                   ignoreWhere,
-                                   forGenericInit);
+                                   phase);
 
       if (cmp < 0) {
         EXPLAIN("X: Fn %d is a better match than Fn %d\n\n\n", i, j);
@@ -5777,30 +5685,32 @@ disambiguateByMatchInner(Vec<ResolutionCandidate*>&   candidates,
   }
 
   EXPLAIN("Z: No non-ambiguous best match.\n\n");
-
-  for (int i = 0; i < n; i++) {
-    if (notBest[i] == false) {
-      ambiguous.add(candidates.v[i]);
-    }
-  }
-
-  return NULL;
+  return nullptr;
 }
+
 static ResolutionCandidate*
-disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
+disambiguateByMatchInnerChecking(Vec<ResolutionCandidate*>&   candidates,
                     const DisambiguationContext& DC,
-                    bool                         ignoreWhere,
-                    Vec<ResolutionCandidate*>&   ambiguous) {
-  auto ret = disambiguateByMatchInner(candidates, DC, ignoreWhere, ambiguous);
+                    const std::vector<bool>& discarded,
+                    std::vector<bool>& notBest,
+                    int phase) {
+
+  ResolutionCandidate* ret =
+    disambiguateByMatchInner(candidates, DC, discarded, notBest, phase);
 
   // do checking
-  PartialOrderChecker checker(candidates, DC, ignoreWhere);
+  PartialOrderChecker checker(candidates, discarded,
+                              DC, phase);
 
   for (int i = 0; i < candidates.n; ++i) {
+    if (discarded[i])
+      continue;
+
     ResolutionCandidate* candidate1         = candidates.v[i];
-    bool forGenericInit = candidate1->fn->isInitializer() || candidate1->fn->isCopyInit();
 
     for (int j = i; j < candidates.n; ++j) {
+      if (discarded[j])
+        continue;
       ResolutionCandidate* candidate2 = candidates.v[j];
 
       int cmp = compareSpecificity(candidate1,
@@ -5808,8 +5718,7 @@ disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
                                    DC,
                                    i,
                                    j,
-                                   ignoreWhere,
-                                   forGenericInit);
+                                   phase);
 
       checker.addResult(i, j, cmp);
     }
@@ -5818,6 +5727,125 @@ disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
   checker.checkResults();
 
   return ret;
+}
+
+static void
+disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
+                    const DisambiguationContext& DC,
+                    Vec<ResolutionCandidate*>&   mostSpecific,
+                    int phase) {
+
+  std::vector<bool> discarded(candidates.n, false);
+  std::vector<bool> notBest(candidates.n, false);
+
+  int n = candidates.n;
+  //int nParamOnly = 0;
+  int nPromotes = 0;
+  for (int i = 0; i < n; i++) {
+    ResolutionCandidate* candidate = candidates.v[i];
+
+    EXPLAIN("##########################\n");
+    EXPLAIN("# Considering function %d #\n", i);
+    EXPLAIN("##########################\n\n");
+
+    EXPLAIN("%s\n\n", toString(candidate->fn));
+
+    //if (candidate->paramOnly)
+    //  nParamOnly++;
+    if (candidate->anyPromotes)
+      nPromotes++;
+  }
+
+  /*
+   if any candidate has all formal arguments param, and there is at least one
+   candidate where that is not the case, remove all candidates with non-param
+   formal arguments
+   */
+  /*bool allFormalsParam = false;
+  if (nParamOnly > 0 && nParamOnly != n) {
+    allFormalsParam = true;
+    for (int i = 0; i < n; i++) {
+      ResolutionCandidate* candidate = candidates.v[i];
+      if (candidate->paramOnly == false) {
+        EXPLAIN("Discarding function %d for not all param\n", i);
+        discarded[i] = true;
+      }
+    }
+  }*/
+
+  /*
+   if any candidate does not use promotion, remove all candidates that do use
+   promotion
+   */
+  if (nPromotes > 0 && nPromotes != n) {
+    for (int i = 0; i < n; i++) {
+      ResolutionCandidate* candidate = candidates.v[i];
+      if (candidate->anyPromotes) {
+        EXPLAIN("Discarding function %d for promoting\n", i);
+        discarded[i] = true;
+      }
+    }
+  }
+
+  /*
+   if any candidate is more visible than any other candidate, remove all
+   candidates that are less visible than another candidate
+   */
+  // ignore candidates in internal modules for this check
+  // TODO: something to do for class methods here?
+  for (int i = 0; i < n; i++) {
+    ResolutionCandidate* candidate1         = candidates.v[i];
+
+    if (discarded[i]) {
+      continue;
+    }
+
+    // ignore candidates in internal modules for this check
+    if (candidate1->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
+      continue;
+
+    for (int j = i+1; j < n; j++) {
+      if (discarded[j]) {
+        continue;
+      }
+
+      ResolutionCandidate* candidate2 = candidates.v[j];
+
+      // ignore candidates in internal modules for this check
+      if (candidate2->fn->defPoint->getModule()->modTag == MOD_INTERNAL)
+        continue;
+
+      auto v = isMoreVisible(DC.scope, candidate1->fn, candidate2->fn);
+      if (v == FOUND_F1_FIRST) {
+        EXPLAIN("Discarding fn %i as less visible than %i\n", j, i);
+        discarded[j] = true;
+
+      } else if (v == FOUND_F2_FIRST) {
+        EXPLAIN("Discarding fn %i as less visible than %i\n", i, j);
+        discarded[i] = true;
+        break; // no need to continue considering the other (i, *) pairs
+
+      } else if (v == FOUND_BOTH) {
+        EXPLAIN("note: Fn %i is as visible as %i\n", i, j);
+        // could set notBest for ones with the same visibility here,
+        // if that helps the algorithm.
+      }
+    }
+  }
+
+  auto ret = disambiguateByMatchInnerChecking(candidates, DC,
+                                              discarded, notBest,
+                                              phase);
+
+  if (ret != nullptr) {
+    mostSpecific.push_back(ret);
+  } else {
+    for (int i = 0; i < n; i++) {
+      if (notBest[i] == false) {
+        mostSpecific.push_back(candidates.v[i]);
+      }
+    }
+  }
 }
 
 /** Determines if fn1 is a better match than fn2.
@@ -5829,13 +5857,9 @@ disambiguateByMatch(Vec<ResolutionCandidate*>&   candidates,
  * \param candidate1 The function on the left-hand side of the comparison.
  * \param candidate2 The function on the right-hand side of the comparison.
  * \param DC         The disambiguation context.
- * \param ignoreWhere Set to `true` to ignore `where` clauses when
- *                    deciding if one match is better than another.
- *                    This is important for resolving return intent
- *                    overloads.
  *
  * \return -1 if fn1 is a more specific function than f2
- * \return 0 if fn1 and fn2 are equally specific
+ * \return 0 if fn1 and fn2 are incomparable or  equally specific
  * \return 1 if fn2 is a more specific function than f1
  */
 static int compareSpecificity(ResolutionCandidate*         candidate1,
@@ -5843,10 +5867,14 @@ static int compareSpecificity(ResolutionCandidate*         candidate1,
                               const DisambiguationContext& DC,
                               int                          i,
                               int                          j,
-                              bool                         ignoreWhere,
-                              bool                         forGenericInit) {
+                              int phase) {
 
   DisambiguationState DS;
+
+  bool forGenericInit = candidate1->fn->isInitializer() ||
+                        candidate1->fn->isCopyInit() ||
+                        candidate2->fn->isInitializer() ||
+                        candidate2->fn->isCopyInit();
 
   // Initializer work-around: Skip _mt/_this for generic initializers
   int                 start   = (forGenericInit == false) ? 0 : 2;
@@ -5881,77 +5909,20 @@ static int compareSpecificity(ResolutionCandidate*         candidate1,
                    candidate2->fn,
                    formal2,
                    actual,
+                   phase,
                    DC,
                    i,
                    j,
                    DS);
   }
 
-  if (DS.fn1Promotes != DS.fn2Promotes) {
-    EXPLAIN("\nP: only one of the functions requires argument promotion\n");
-
-    // Prefer the version that did not promote
-    prefer1 = !DS.fn1Promotes;
-    prefer2 = !DS.fn2Promotes;
-
-  } else if (DS.fn1MoreSpecific != DS.fn2MoreSpecific) {
+  if (DS.fn1MoreSpecific != DS.fn2MoreSpecific) {
     EXPLAIN("\nP1: only one more specific argument mapping\n");
 
     prefer1 = DS.fn1MoreSpecific;
     prefer2 = DS.fn2MoreSpecific;
 
-  } else {
-    // If the decision hasn't been made based on the argument mappings...
-    auto v = isMoreVisible(DC.scope, candidate1->fn, candidate2->fn);
-    if (v == FOUND_F1_FIRST) {
-      EXPLAIN("\nQ: preferring more visible function\n");
-      prefer1 = true;
-
-    } else if (v == FOUND_F2_FIRST) {
-      EXPLAIN("\nR: preferring more visible function\n");
-      prefer2 = true;
-
-    } else if (DS.fn1WeakPreferred != DS.fn2WeakPreferred) {
-      EXPLAIN("\nS: preferring based on weak preference\n");
-      prefer1 = DS.fn1WeakPreferred;
-      prefer2 = DS.fn2WeakPreferred;
-
-    } else if (DS.fn1WeakerPreferred != DS.fn2WeakerPreferred) {
-      EXPLAIN("\nS: preferring based on weaker preference\n");
-      prefer1 = DS.fn1WeakerPreferred;
-      prefer2 = DS.fn2WeakerPreferred;
-
-    } else if (DS.fn1WeakestPreferred != DS.fn2WeakestPreferred) {
-      EXPLAIN("\nS: preferring based on weakest preference\n");
-      prefer1 = DS.fn1WeakestPreferred;
-      prefer2 = DS.fn2WeakestPreferred;
-
-      /* A note about weak-prefers. Why are there 3 levels?
-
-         Something like 'param x:int(16) = 5' should be able to coerce to any
-         integral type. Meanwhile, 'param y = 5' should also be able to coerce
-         to any integral type. Now imagine we are resolving 'x+y'.  We
-         want it to resolve to the 'int(16)' version because 'x' has a type
-         specified, but 'y' is a default type. Before the 3 weak levels, this
-         version was chosen simply because non-default-sized ints didn't allow
-         param conversion.
-
-       */
-    } else if (!ignoreWhere) {
-      bool fn1where = candidate1->fn->where != NULL &&
-                      !candidate1->fn->hasFlag(FLAG_COMPILER_ADDED_WHERE);
-      bool fn2where = candidate2->fn->where != NULL &&
-                      !candidate2->fn->hasFlag(FLAG_COMPILER_ADDED_WHERE);
-
-      if (fn1where != fn2where) {
-        EXPLAIN("\nU: preferring function with where clause\n");
-
-        prefer1 = fn1where;
-        prefer2 = fn2where;
-      }
-    }
   }
-
   INT_ASSERT(!(prefer1 && prefer2));
 
   if (prefer1) {
@@ -5966,7 +5937,7 @@ static int compareSpecificity(ResolutionCandidate*         candidate1,
 
   } else {
     // Neither is more specific
-    EXPLAIN("\nW: Fn %d and Fn %d are equally specific\n",
+    EXPLAIN("\nW: Fn %d is not more or less specific than Fn %d\n",
                                 i, j);
     return 0;
   }
@@ -5983,11 +5954,7 @@ static void testArgMapHelper(FnSymbol* fn, ArgSymbol* formal, Symbol* actual,
   canDispatch(actualType, actual, fType, formal, fn, formalPromotes,
               formalNarrows);
 
-  if (fnNum == 1) {
-    DS.fn1Promotes |= *formalPromotes;
-  } else if (fnNum == 2) {
-    DS.fn2Promotes |= *formalPromotes;
-  } else {
+  if (fnNum != 1 && fnNum != 2) {
     INT_FATAL("fnNum should be either 1 or 2");
   }
 
@@ -6008,6 +5975,196 @@ static void testArgMapHelper(FnSymbol* fn, ArgSymbol* formal, Symbol* actual,
     }
   }
 }
+
+/*
+  Returns -1 if formal1 is a better conversion target than formal2
+  Returns 1 if formal2 is a better conversion target than formal1
+  Returns 0 otherwise (which might mean they are incomparable)
+ */
+static int isBetterConversionTarget(FnSymbol*                    fn1,
+                                    ArgSymbol*                   formal1,
+                                    Type*                        f1Type,
+                                    bool                         f1Param,
+                                    FnSymbol*                    fn2,
+                                    ArgSymbol*                   formal2,
+                                    Type*                        f2Type,
+                                    bool                         f2Param,
+                                    const DisambiguationContext& DC,
+                                    int                          i,
+                                    int                          j) {
+  const char* reason = "";
+  bool prefer1 = false;
+  bool prefer2 = false;
+
+  if (f1Param != f2Param && f1Param) {
+    prefer1 = true; reason = "param vs not";
+
+  } else if (f1Param != f2Param && f2Param) {
+    prefer2 = true; reason = "param vs not";
+
+  } else if (moreSpecific(fn1, f1Type, f2Type) && f2Type != f1Type) {
+    prefer1 = true; reason = "can dispatch";
+
+  } else if (moreSpecific(fn1, f2Type, f1Type) && f2Type != f1Type) {
+    prefer2 = true; reason = "can dispatch";
+
+  } else if (is_int_type(f1Type) && is_uint_type(f2Type)) {
+    // This int/uint rule supports choosing between an 'int' and 'uint'
+    // overload when passed say a uint(32).
+    prefer1 = true; reason = "int vs uint";
+
+  } else if (is_int_type(f2Type) && is_uint_type(f1Type)) {
+    prefer2 = true; reason = "int vs uint";
+
+  }
+
+  if (prefer1) {
+    EXPLAIN("%s: Fn %d is better conversion target\n", reason, i);
+    return -1;
+  }
+  if (prefer2) {
+    EXPLAIN("%s: Fn %d is better conversion target\n", reason, j);
+    return 1;
+  }
+
+  return 0;
+}
+
+/*
+  Returns -1 if formal1 is a better conversion from the actual
+  Returns 1 if formal2 is a better conversion from the actual
+  Returns 0 otherwise (which might mean they are incomparable)
+ */
+static int isBetterConversionFromActual(FnSymbol*                    fn1,
+                                        ArgSymbol*                   formal1,
+                                        Type*                        f1Type,
+                                        bool formal1Promotes,
+                                        bool formal1Narrows,
+                                        bool f1Param,
+                                        FnSymbol*                    fn2,
+                                        ArgSymbol*                   formal2,
+                                        Type*                        f2Type,
+                                        bool formal2Promotes,
+                                        bool formal2Narrows,
+                                        bool f2Param,
+                                        Symbol*                      actual,
+                                        Type*        actualType,
+                                        Type*        actualScalarType,
+                                        bool  actualParam,
+                                        bool  actualParamWithDefaultSize,
+                                        int phase,
+                                        const DisambiguationContext& DC,
+                                        int                          i,
+                                        int                          j,
+                                        DisambiguationState&         DS) {
+
+  const char* reason = "";
+  bool prefer1 = false;
+  bool prefer2 = false;
+
+  if (!formal1Promotes && formal2Promotes) {
+    prefer1 = true; reason = "no promotion vs promotes";
+
+  } else if (formal1Promotes && !formal2Promotes) {
+    prefer2 = true; reason = "no promotion vs promotes";
+
+  } else if (f1Type == f2Type &&
+             !formal1->instantiatedFrom &&
+             formal2->instantiatedFrom) {
+    // this rule causes problems if it is moved after
+    // the same-type rule. it is related to the fact that
+    // this is considering the instantiated generic rather
+    // than what it was declared to be.
+    prefer1 = true; reason = "concrete vs generic";
+
+  } else if (f1Type == f2Type &&
+             formal1->instantiatedFrom &&
+             !formal2->instantiatedFrom) {
+    prefer2 = true; reason = "concrete vs generic";
+
+  } else if (formal1->instantiatedFrom != dtAny &&
+             formal2->instantiatedFrom == dtAny) {
+    prefer1 = true; reason = "generic any vs partially generic/concrete";
+
+  } else if (formal1->instantiatedFrom == dtAny &&
+             formal2->instantiatedFrom != dtAny) {
+    prefer2 = true; reason = "generic any vs partially generic/concrete";
+
+  } else if (formal1->instantiatedFrom &&
+             formal2->instantiatedFrom &&
+             formal1->hasFlag(FLAG_NOT_FULLY_GENERIC) &&
+             !formal2->hasFlag(FLAG_NOT_FULLY_GENERIC)) {
+    prefer1 = true; reason = "partially generic vs generic";
+
+  } else if (formal1->instantiatedFrom &&
+             formal2->instantiatedFrom &&
+             !formal1->hasFlag(FLAG_NOT_FULLY_GENERIC) &&
+             formal2->hasFlag(FLAG_NOT_FULLY_GENERIC)) {
+    prefer2 = true; reason = "partially generic vs generic";
+
+  } else {
+    //if (allFormalsParam || !actualParamWithDefaultSize) {
+
+  //} else if (!actualParam) { leads to 64*2 -> 128:int(8)
+
+    /*
+     causes problems with 23:uint, 0 for ==
+       if (formal2Narrows && !formal1Narrows) {
+      prefer1 = true; reason = "no narrows vs narrows";
+
+    } else if (formal1Narrows && !formal2Narrows) {
+      prefer2 = true; reason = "no narrows vs narrows";
+
+    } else*/
+
+    if (actualType == f1Type && actualType != f2Type) {
+      prefer1 = true; reason = "actual type vs not";
+
+    } else if (actualType == f2Type && actualType != f1Type) {
+      prefer2 = true; reason = "actual type vs not";
+
+    } else if (actualScalarType == f1Type && actualScalarType != f2Type) {
+      prefer1 = true; reason = "scalar type vs not";
+
+    } else if (actualScalarType == f2Type && actualScalarType != f1Type) {
+      prefer2 = true; reason = "scalar type vs not";
+    }
+  }
+  if (prefer1 == false && prefer2 == false) {
+    if (prefersCoercionToOtherNumericType(actualScalarType, f1Type, f2Type)) {
+      prefer1 = true; reason = "preferred coercion to other";
+
+    } else if (prefersCoercionToOtherNumericType(actualScalarType, f2Type, f1Type)) {
+      prefer2 = true; reason = "preferred coercion to other";
+
+    }
+  }
+
+  if (prefer1 == false && prefer2 == false) {
+    int got = isBetterConversionTarget(fn1, formal1, f1Type, f1Param,
+                                       fn2, formal2, f2Type, f2Param,
+                                       DC, i, j);
+    if (got == -1) {
+      prefer1 = true; reason = "better conversion target";
+    } else if (got == 1) {
+      prefer2 = true; reason = "better conversion target";
+    }
+  }
+
+  if (prefer1) {
+    EXPLAIN("%s: Fn %d is better conversion from actual\n", reason, i);
+    return -1;
+  }
+  if (prefer2) {
+    EXPLAIN("%s: Fn %d is better conversion from actual\n", reason, j);
+    return 1;
+  }
+
+  EXPLAIN("neither is a better conversion from actual\n");
+  return 0;
+}
+
+
 
 /** Compare two argument mappings, given a set of actual arguments, and set the
  *  disambiguation state appropriately.
@@ -6031,6 +6188,7 @@ static void testArgMapping(FnSymbol*                    fn1,
                            FnSymbol*                    fn2,
                            ArgSymbol*                   formal2,
                            Symbol*                      actual,
+                           int phase,
                            const DisambiguationContext& DC,
                            int                          i,
                            int                          j,
@@ -6097,148 +6255,23 @@ static void testArgMapping(FnSymbol*                    fn1,
     actualScalarType = actualScalarType->getField("valType")->getValType();
   }
 
-  const char* reason = "";
-  typedef enum {
-    NONE,
-    WEAKEST,
-    WEAKER,
-    WEAK,
-    STRONG
-  } arg_preference_t;
+  int got =
+    isBetterConversionFromActual(fn1, formal1, f1Type,
+                                 formal1Promotes, formal1Narrows, f1Param,
+                                 fn2, formal2, f2Type,
+                                 formal2Promotes, formal2Narrows, f2Param,
+                                 actual, actualType, actualScalarType,
+                                 actualParam, paramWithDefaultSize,
+                                 phase, DC, i, j, DS);
 
-  arg_preference_t prefer1 = NONE;
-  arg_preference_t prefer2 = NONE;
-
-  if (f1Type == f2Type && f1Param && !f2Param) {
-    prefer1 = STRONG; reason = "same type, param vs not";
-
-  } else if (f1Type == f2Type && !f1Param && f2Param) {
-    prefer2 = STRONG; reason = "same type, param vs not";
-
-  } else if (!formal1Promotes && formal2Promotes) {
-    prefer1 = STRONG; reason = "no promotion vs promotes";
-
-  } else if (formal1Promotes && !formal2Promotes) {
-    prefer2 = STRONG; reason = "no promotion vs promotes";
-
-  } else if (f1Type == f2Type           &&
-             !formal1->instantiatedFrom &&
-             formal2->instantiatedFrom) {
-    prefer1 = STRONG; reason = "concrete vs generic";
-
-  } else if (f1Type == f2Type &&
-             formal1->instantiatedFrom &&
-             !formal2->instantiatedFrom) {
-    prefer2 = STRONG; reason = "concrete vs generic";
-
-  } else if (formal1->instantiatedFrom != dtAny &&
-             formal2->instantiatedFrom == dtAny) {
-    prefer1 = STRONG; reason = "generic any vs partially generic/concrete";
-
-  } else if (formal1->instantiatedFrom == dtAny &&
-             formal2->instantiatedFrom != dtAny) {
-    prefer2 = STRONG; reason = "generic any vs partially generic/concrete";
-
-  } else if (formal1->instantiatedFrom &&
-             formal2->instantiatedFrom &&
-             formal1->hasFlag(FLAG_NOT_FULLY_GENERIC) &&
-             !formal2->hasFlag(FLAG_NOT_FULLY_GENERIC)) {
-    prefer1 = STRONG; reason = "partially generic vs generic";
-
-  } else if (formal1->instantiatedFrom &&
-             formal2->instantiatedFrom &&
-             !formal1->hasFlag(FLAG_NOT_FULLY_GENERIC) &&
-             formal2->hasFlag(FLAG_NOT_FULLY_GENERIC)) {
-    prefer2 = STRONG; reason = "partially generic vs generic";
-
-  } else if (f1Param != f2Param && f1Param) {
-    prefer1 = WEAK; reason = "param vs not";
-
-  } else if (f1Param != f2Param && f2Param) {
-    prefer2 = WEAK; reason = "param vs not";
-
-  } else if (!paramWithDefaultSize && formal2Narrows && !formal1Narrows) {
-    prefer1 = WEAK; reason = "no narrows vs narrows";
-
-  } else if (!paramWithDefaultSize && formal1Narrows && !formal2Narrows) {
-    prefer2 = WEAK; reason = "no narrows vs narrows";
-
-  } else if (!actualParam && actualType == f1Type && actualType != f2Type) {
-    prefer1 = STRONG; reason = "actual type vs not";
-
-  } else if (!actualParam && actualType == f2Type && actualType != f1Type) {
-    prefer2 = STRONG; reason = "actual type vs not";
-
-  } else if (actualScalarType == f1Type && actualScalarType != f2Type) {
-    if (paramWithDefaultSize)
-      prefer1 = WEAKEST;
-    else if (actualParam)
-      prefer1 = WEAKER;
-    else
-      prefer1 = STRONG;
-
-    reason = "scalar type vs not";
-
-  } else if (actualScalarType == f2Type && actualScalarType != f1Type) {
-    if (paramWithDefaultSize)
-      prefer2 = WEAKEST;
-    else if (actualParam)
-      prefer2 = WEAKER;
-    else
-      prefer2 = STRONG;
-
-    reason = "scalar type vs not";
-
-  } else if (prefersCoercionToOtherNumericType(actualScalarType, f1Type, f2Type)) {
-    if (paramWithDefaultSize)
-      prefer1 = WEAKEST;
-    else
-      prefer1 = WEAKER;
-
-    reason = "preferred coercion to other";
-
-  } else if (prefersCoercionToOtherNumericType(actualScalarType, f2Type, f1Type)) {
-    if (paramWithDefaultSize)
-      prefer2 = WEAKEST;
-    else
-      prefer2 = WEAKER;
-
-    reason = "preferred coercion to other";
-
-  } else if (moreSpecific(fn1, f1Type, f2Type) && f2Type != f1Type) {
-    prefer1 = actualParam ? WEAKEST : STRONG;
-    reason = "can dispatch";
-
-  } else if (moreSpecific(fn1, f2Type, f1Type) && f2Type != f1Type) {
-    prefer2 = actualParam ? WEAKEST : STRONG;
-    reason = "can dispatch";
-
-  } else if (is_int_type(f1Type) && is_uint_type(f2Type)) {
-    // This int/uint rule supports choosing between an 'int' and 'uint'
-    // overload when passed say a uint(32).
-    prefer1 = actualParam ? WEAKEST : STRONG;
-    reason = "int vs uint";
-
-  } else if (is_int_type(f2Type) && is_uint_type(f1Type)) {
-    prefer2 = actualParam ? WEAKEST : STRONG;
-    reason = "int vs uint";
-
-  }
-
-  if (prefer1 != NONE) {
-    const char* level = "";
-    if (prefer1 == STRONG)  { DS.fn1MoreSpecific = true;     level = "strong"; }
-    if (prefer1 == WEAK)    { DS.fn1WeakPreferred = true;    level = "weak"; }
-    if (prefer1 == WEAKER)  { DS.fn1WeakerPreferred = true;  level = "weaker"; }
-    if (prefer1 == WEAKEST) { DS.fn1WeakestPreferred = true; level = "weakest"; }
-    EXPLAIN("%s: Fn %d is %s preferred\n", reason, i, level);
-  } else if (prefer2 != NONE) {
-    const char* level = "";
-    if (prefer2 == STRONG)  { DS.fn2MoreSpecific = true;     level = "strong"; }
-    if (prefer2 == WEAK)    { DS.fn2WeakPreferred = true;    level = "weak"; }
-    if (prefer2 == WEAKER)  { DS.fn2WeakerPreferred = true;  level = "weaker"; }
-    if (prefer2 == WEAKEST) { DS.fn2WeakestPreferred = true; level = "weakest"; }
-    EXPLAIN("%s: Fn %d is %s preferred\n", reason, j, level);
+  if (got == -1) {
+    DS.fn1MoreSpecific = true;
+    EXPLAIN("Fn %d is preferred\n", i);
+  } else if (got == 1) {
+    DS.fn2MoreSpecific = true;
+    EXPLAIN("Fn %d is preferred\n", j);
+  } else {
+    EXPLAIN("Neither is preferred\n");
   }
 }
 
@@ -6255,7 +6288,6 @@ static void testOpArgMapping(FnSymbol* fn1, ArgSymbol* formal1, FnSymbol* fn2,
   Type* actualType = actual->type->getValType();
   bool actualParam = getImmediate(actual) != NULL;
   const char* reason = "potentially optional argument present vs not";
-  const char* level = "weak";
 
   if (formal1 == NULL) {
     EXPLAIN("Function 1 did not have a corresponding formal");
@@ -6269,8 +6301,8 @@ static void testOpArgMapping(FnSymbol* fn1, ArgSymbol* formal1, FnSymbol* fn2,
     testArgMapHelper(fn2, formal2, actual, f2Type, actualType, actualParam,
                      &formal2Promotes, &formal2Narrows, DC, DS, 2);
 
-    DS.fn2WeakPreferred = true;
-    EXPLAIN("%s: Fn % is %s preferred\n", reason, j, level);
+    DS.fn2MoreSpecific = true;
+    EXPLAIN("%s: Fn % is preferred\n", reason, j);
 
   } else {
     INT_ASSERT(formal2 == NULL);
@@ -6284,8 +6316,8 @@ static void testOpArgMapping(FnSymbol* fn1, ArgSymbol* formal1, FnSymbol* fn2,
     testArgMapHelper(fn1, formal1, actual, f1Type, actualType, actualParam,
                      &formal1Promotes, &formal1Narrows, DC, DS, 1);
 
-    DS.fn1WeakPreferred = true;
-    EXPLAIN("%s: Fn % is %s preferred\n", reason, i, level);
+    DS.fn1MoreSpecific = true;
+    EXPLAIN("%s: Fn % is preferred\n", reason, i);
   }
 }
 
@@ -12332,14 +12364,4 @@ DisambiguationContext::DisambiguationContext(CallInfo& info,
 DisambiguationState::DisambiguationState() {
   fn1MoreSpecific = false;
   fn2MoreSpecific = false;
-
-  fn1Promotes     = false;
-  fn2Promotes     = false;
-
-  fn1WeakPreferred= false;
-  fn2WeakPreferred= false;
-  fn1WeakerPreferred= false;
-  fn2WeakerPreferred= false;
-  fn1WeakestPreferred= false;
-  fn2WeakestPreferred= false;
 }
