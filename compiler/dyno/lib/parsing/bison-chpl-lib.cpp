@@ -7420,7 +7420,7 @@ yyreduce:
 
   case 105: /* ident_fn_def: TNONE  */
 #line 1216 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'none'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'none'"); }
 #line 7425 "bison-chpl-lib.cpp"
     break;
 
@@ -7432,13 +7432,13 @@ yyreduce:
 
   case 107: /* ident_fn_def: TFALSE  */
 #line 1218 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'false'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'false'"); }
 #line 7437 "bison-chpl-lib.cpp"
     break;
 
   case 108: /* ident_fn_def: TTRUE  */
 #line 1219 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'true'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'true'"); }
 #line 7443 "bison-chpl-lib.cpp"
     break;
 
@@ -7459,7 +7459,7 @@ yyreduce:
 
   case 111: /* ident_def: TNONE  */
 #line 1227 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'none'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'none'"); }
 #line 7464 "bison-chpl-lib.cpp"
     break;
 
@@ -7471,13 +7471,13 @@ yyreduce:
 
   case 113: /* ident_def: TFALSE  */
 #line 1229 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'false'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'false'"); }
 #line 7476 "bison-chpl-lib.cpp"
     break;
 
   case 114: /* ident_def: TTRUE  */
 #line 1230 "chpl.ypp"
-                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "redefining reserved word 'true'"); }
+                           { (yyval.uniqueStr) = (yyvsp[0].uniqueStr); ERROR((yyloc), "attempt to redefine reserved word 'true'"); }
 #line 7482 "bison-chpl-lib.cpp"
     break;
 
