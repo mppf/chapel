@@ -21,6 +21,7 @@
 #ifndef _SCOPE_RESOLVE_H_
 #define _SCOPE_RESOLVE_H_
 
+#include "llvm/ADT/SmallVector.h"
 class astlocT;
 class BaseAST;
 class CallExpr;
@@ -41,7 +42,7 @@ Symbol*  lookup(const char*           name,
 
 void     lookup(const char*           name,
                 BaseAST*              context,
-                std::vector<Symbol*>& symbols,
+                llvm::SmallVectorImpl<Symbol*>& symbols,
                 std::map<Symbol*, astlocT*>& renameLocs,
                 std::map<Symbol*, VisibilityStmt*>& reexportPts,
                 bool storeRenames = false);
@@ -53,7 +54,7 @@ Symbol*  lookupAndCount(const char*           name,
                         astlocT** renameLoc = NULL,
                         bool issueErrors = true);
 
-void checkConflictingSymbols(std::vector<Symbol *>& symbols,
+void checkConflictingSymbols(llvm::SmallVectorImpl<Symbol *>& symbols,
                              const char* name,
                              BaseAST* context,
                              bool storeRenames,

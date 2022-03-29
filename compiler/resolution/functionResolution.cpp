@@ -4769,7 +4769,7 @@ static void findVisibleFunctionsAndCandidates(
   // to avoid revisiting those functions for the next POI.
   int numVisitedVis = 0, numVisitedMA = 0;
   LastResortCandidates lrc;
-  std::set<BlockStmt*> visited;
+  PtrSet<BlockStmt*> visited;
   visInfo.currStart = getVisibilityScope(call);
   INT_ASSERT(visInfo.poiDepth == -1); // we have not used it
 
