@@ -206,7 +206,9 @@ class Conditional final : public AstNode {
 
     if (elseB == nullptr) {
       return AstListIteratorPair<AstNode>(children_.end(),
-                                          children_.end());
+                                          children_.end(),
+                                          asttags::AST_TAG_UNKNOWN,
+                                          asttags::NUM_AST_TAGS);
     }
 
     return elseB->stmts();

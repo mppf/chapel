@@ -107,7 +107,9 @@ class Select final : public AstNode {
         ? children_.begin() + whenStmtStartChildNum_
         : children_.end();
     auto end = begin + numWhenStmts_;
-    return AstListIteratorPair<When>(begin, end);
+    return AstListIteratorPair<When>(begin, end,
+                                     asttags::AST_TAG_UNKNOWN,
+                                     asttags::NUM_AST_TAGS);
   }
 
 };

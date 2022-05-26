@@ -94,7 +94,9 @@ class Enum final : public TypeDecl {
           ? children_.begin() + declOrCommentChildNum()
           : children_.end();
     auto end = begin + numDeclOrComments();
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**
@@ -121,7 +123,8 @@ class Enum final : public TypeDecl {
           ? children_.begin() + declOrCommentChildNum()
           : children_.end();
     auto end = begin + numDeclOrComments();
-    return AstListNoCommentsIteratorPair<EnumElement>(begin, end);
+    return AstListNoCommentsIteratorPair<EnumElement>(begin, end,
+        asttags::EnumElement, asttags::EnumElement);
   }
 };
 

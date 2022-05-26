@@ -59,7 +59,9 @@ class Call : public AstNode {
   AstListIteratorPair<AstNode> actuals() const {
     return
       AstListIteratorPair<AstNode>(children_.begin()+hasCalledExpression_,
-                                      children_.end());
+                                   children_.end(),
+                                   asttags::AST_TAG_UNKNOWN,
+                                   asttags::NUM_AST_TAGS);
   }
 
   // note: the reason for the +/- 1 below is that the

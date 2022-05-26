@@ -99,7 +99,9 @@ class Manage final : public SimpleBlockLike {
   AstListIteratorPair<AstNode> managers() const {
     auto begin = children_.begin() + managerExprChildNum_;
     auto end = begin + numManagerExprs_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

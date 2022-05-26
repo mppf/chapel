@@ -90,7 +90,9 @@ class Import final : public AstNode {
   */
   AstListIteratorPair<VisibilityClause> visibilityClauses() const {
     return AstListIteratorPair<VisibilityClause>(children_.begin(),
-                                                 children_.end());
+                                                 children_.end(),
+                                                 asttags::AST_TAG_UNKNOWN,
+                                                 asttags::NUM_AST_TAGS);
   }
 
   /**

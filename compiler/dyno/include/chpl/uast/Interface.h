@@ -119,7 +119,9 @@ class Interface final : public NamedDecl {
   AstListIteratorPair<AstNode> formals() const {
     auto begin = children_.begin() + interfaceFormalsChildNum_;
     auto end = begin + numInterfaceFormals_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**
@@ -156,7 +158,9 @@ class Interface final : public NamedDecl {
   AstListIteratorPair<AstNode> stmts() const {
     auto begin = children_.begin() + bodyChildNum_;
     auto end = begin + numBodyStmts_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

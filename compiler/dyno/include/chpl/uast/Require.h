@@ -65,7 +65,9 @@ class Require final : public AstNode {
   */
   AstListIteratorPair<AstNode> exprs() const {
     return AstListIteratorPair<AstNode>(children_.begin(),
-                                           children_.end());
+                                        children_.end(),
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

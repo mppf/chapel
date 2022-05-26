@@ -120,7 +120,12 @@ class AstNode {
     Return a way to iterate over the children.
     */
   AstListIteratorPair<AstNode> children() const {
-    return AstListIteratorPair<AstNode>(children_.begin(), children_.end());
+    return AstListIteratorPair<AstNode>(children_.begin(), children_.end(),
+                                        // note: first tag is ignored
+                                        // in the assertion checking b/c
+                                        // end is NUM_AST_TAGS
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

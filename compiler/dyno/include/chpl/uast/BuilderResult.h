@@ -102,7 +102,9 @@ class BuilderResult final {
   /** iterate over the parsed top-level expressions */
   AstListIteratorPair<AstNode> topLevelExpressions() const {
     return AstListIteratorPair<AstNode>(topLevelExpressions_.begin(),
-                                        topLevelExpressions_.end());
+                                        topLevelExpressions_.end(),
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /** If the top-level expressions contain only a single Module,

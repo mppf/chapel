@@ -26,6 +26,8 @@
 
 namespace chpl {
 namespace uast {
+class AstNode;
+
 namespace asttags {
 
 
@@ -96,6 +98,7 @@ enum AstTag {
 
 const char* tagToString(AstTag tag);
 
+AstTag tagForNode(const AstNode* ast);
 
 } // end namespace asttags
 

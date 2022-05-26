@@ -21,8 +21,10 @@
 #define CHPL_UAST_ASTLIST_H
 
 #include "chpl/uast/ASTTypes.h"
+#include "chpl/uast/AstTag.h"
 #include "chpl/util/memory.h"
 
+#include <cassert>
 #include <iterator>
 #include <vector>
 
@@ -73,7 +75,8 @@ void markAstList(Context* context, const AstList& keep);
 /**
  Defines an iterator over the AST list elements.
  The iterator hides the ownership (it always returns a pointer e.g. AstNode*)
- and casts elements to a particular type.
+ and casts elements to a particular type and asserts a particular
+ range of tags.
  */
 template<typename CastToType>
 class AstListIterator {
@@ -86,12 +89,28 @@ class AstListIterator {
 
  private:
   AstList::const_iterator it;
+  AstTag startTag = asttags::AST_TAG_UNKNOWN;
+  AstTag endTag = asttags::AST_TAG_UNKNOWN;
+
+  bool validTag(AstTag tag) const {
+    // use <= to allow leaf nodes to be passed as start and end
+    // check for NUM_AST_TAGS to easily allow AstNode
+    return endTag == asttags::NUM_AST_TAGS ||
+           (startTag <= tag && tag <= endTag);
+  }
 
  public:
   // needs to be default-constructible, copy-constructible,
   // copy-assignable and destructible
   AstListIterator() = default;
-  explicit AstListIterator(AstList::const_iterator it) : it(it) { }
+
+  // TODO: add a constructor, if Decl == AstNode, that doesn't take
+  // startTag / endTag
+
+  explicit AstListIterator(AstList::const_iterator it,
+                           AstTag startTag, AstTag endTag)
+    : it(it), startTag(startTag), endTag(endTag) { }
+
   ~AstListIterator() = default;
 
   AstListIterator<CastToType>& operator=(const AstListIterator<CastToType>& it) = default;
@@ -106,10 +125,14 @@ class AstListIterator {
 
   // needs to support * and ->
   const CastToType* operator*() const {
-    return (const CastToType*) this->it->get();
+    const AstNode* ast = this->it->get();
+    assert(validTag(asttags::tagForNode(ast)));
+    return (const CastToType*) ast;
   }
   const CastToType* operator->() const {
-    return (const CastToType*) this->it->get();
+    const AstNode* ast = this->it->get();
+    assert(validTag(asttags::tagForNode(ast)));
+    return (const CastToType*) ast;
   }
 
   // needs to support preincrement and postincrement
@@ -171,20 +194,29 @@ class AstListIterator {
 
   // support the [] operator
   const CastToType* operator[](const int rhs) {
-    return (const CastToType*) this->it[rhs];
+    const AstNode* ast = this->it[rhs]; 
+    assert(validTag(asttags::tagForNode(ast)));
+    return (const CastToType*) ast;
   }
 
   // must be swappable but that should work with the default impl
 };
 
+/**
+ Defines an iterator over the AST list elements.
+ The iterator hides the ownership (it always returns a pointer e.g. AstNode*)
+ and casts elements to a particular type and asserts a particular
+ range of tags.
+ */
 template<typename CastToType>
 struct AstListIteratorPair {
   AstListIterator<CastToType> begin_;
   AstListIterator<CastToType> end_;
 
   AstListIteratorPair(AstList::const_iterator begin,
-                      AstList::const_iterator end)
-    : begin_(begin), end_(end) {
+                      AstList::const_iterator end,
+                      AstTag startTag, AstTag endTag)
+    : begin_(begin, startTag, endTag), end_(end, startTag, endTag) {
   }
   ~AstListIteratorPair() = default;
 

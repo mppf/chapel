@@ -141,7 +141,9 @@ class TupleDecl final : public Decl {
         ? children_.begin() + declChildNum()
         : children_.end();
     auto end = begin + numDecls();
-    return AstListIteratorPair<Decl>(begin, end);
+    return AstListIteratorPair<Decl>(begin, end,
+                                     asttags::AST_TAG_UNKNOWN,
+                                     asttags::NUM_AST_TAGS);
   }
 
   /**

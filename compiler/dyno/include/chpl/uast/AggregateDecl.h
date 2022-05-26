@@ -85,11 +85,15 @@ class AggregateDecl : public TypeDecl {
    */
   AstListIteratorPair<AstNode> declOrComments() const {
     if (elementsChildNum_ < 0)
-      return AstListIteratorPair<AstNode>(children_.end(), children_.end());
+      return AstListIteratorPair<AstNode>(children_.end(), children_.end(),
+                                          asttags::AST_TAG_UNKNOWN,
+                                          asttags::NUM_AST_TAGS);
 
     return AstListIteratorPair<AstNode>(
               children_.begin() + elementsChildNum_,
-              children_.begin() + elementsChildNum_ + numElements_);
+              children_.begin() + elementsChildNum_ + numElements_,
+              asttags::AST_TAG_UNKNOWN,
+              asttags::NUM_AST_TAGS);
   }
 
   /**
@@ -114,11 +118,15 @@ class AggregateDecl : public TypeDecl {
   AstListNoCommentsIteratorPair<Decl> decls() const {
     if (elementsChildNum_ < 0)
       return AstListNoCommentsIteratorPair<Decl>(
-                children_.end(), children_.end());
+                children_.end(), children_.end(),
+                asttags::START_Decl,
+                asttags::END_Decl);
 
     return AstListNoCommentsIteratorPair<Decl>(
               children_.begin() + elementsChildNum_,
-              children_.begin() + elementsChildNum_ + numElements_);
+              children_.begin() + elementsChildNum_ + numElements_,
+              asttags::START_Decl,
+              asttags::END_Decl);
   }
 };
 

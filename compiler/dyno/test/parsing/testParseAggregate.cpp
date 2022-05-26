@@ -551,6 +551,42 @@ static void test12(Parser* parser) {
   assert(mod);
 }
 
+static void test13(Parser* parser) {
+  const AggregateDecl* agg = nullptr;
+  auto res = parseAggregate(parser, agg, "test13.chpl",
+                        R""""(
+                          class C {
+                            // comment
+                            var field: int;
+                            enum eeeeeee {
+                              elt
+                            };
+                          }
+                        )"""");
+
+
+  auto c = agg->toClass();
+  assert(c);
+  assert(c->name() == "C");
+  assert(c->numDeclOrComments() == 4);
+
+  assert(c->declOrComment(0)->isComment());
+  assert(c->declOrComment(1)->isVariable());
+  assert(c->declOrComment(2)->isEnum());
+  assert(c->declOrComment(3)->isEmptyStmt());
+
+  // check that AggregateDecl::decls can filter
+  // out EmptyStmt as well as Comment
+  int i = 0;
+  for (auto d : c->decls()) {
+
+    if (i == 0) assert(d->isVariable());
+    if (i == 1) assert(d->isEnum());
+    i++;
+  }
+  assert(i == 2);
+}
+
 int main() {
   Context context;
   Context* ctx = &context;
@@ -571,6 +607,7 @@ int main() {
   test10(p);
   test11(p);
   test12(p);
+  test13(p);
 
   return 0;
 }

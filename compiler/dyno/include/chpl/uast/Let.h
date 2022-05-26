@@ -76,7 +76,9 @@ class Let final : public AstNode {
   AstListIteratorPair<Decl> decls() const {
     auto begin = children_.begin();
     auto end = begin + numDecls_;
-    return AstListIteratorPair<Decl>(begin, end);
+    return AstListIteratorPair<Decl>(begin, end,
+                                     asttags::AST_TAG_UNKNOWN,
+                                     asttags::NUM_AST_TAGS);
   }
 
   /**

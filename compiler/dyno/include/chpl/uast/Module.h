@@ -99,7 +99,9 @@ class Module final : public NamedDecl {
         ? children_.begin() + stmtChildNum()
         : children_.end();
     auto end = begin + numStmts();
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

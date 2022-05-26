@@ -227,10 +227,14 @@ class Function final : public NamedDecl {
    */
   AstListIteratorPair<Decl> formals() const {
     if (numFormals() == 0) {
-      return AstListIteratorPair<Decl>(children_.end(), children_.end());
+      return AstListIteratorPair<Decl>(children_.end(), children_.end(),
+                                       asttags::AST_TAG_UNKNOWN,
+                                       asttags::NUM_AST_TAGS);
     } else {
       auto start = children_.begin() + formalsChildNum_;
-      return AstListIteratorPair<Decl>(start, start + numFormals_);
+      return AstListIteratorPair<Decl>(start, start + numFormals_,
+                                       asttags::AST_TAG_UNKNOWN,
+                                       asttags::NUM_AST_TAGS);
     }
   }
 
@@ -303,10 +307,14 @@ class Function final : public NamedDecl {
    */
   AstListIteratorPair<AstNode> lifetimeClauses() const {
     if (numLifetimeClauses() == 0) {
-      return AstListIteratorPair<AstNode>(children_.end(), children_.end());
+      return AstListIteratorPair<AstNode>(children_.end(), children_.end(),
+                                          asttags::AST_TAG_UNKNOWN,
+                                          asttags::NUM_AST_TAGS);
     } else {
       auto start = children_.begin() + lifetimeChildNum_;
-      return AstListIteratorPair<AstNode>(start, start + numLifetimeParts_);
+      return AstListIteratorPair<AstNode>(start, start + numLifetimeParts_,
+                                          asttags::AST_TAG_UNKNOWN,
+                                          asttags::NUM_AST_TAGS);
     }
   }
 
@@ -344,7 +352,9 @@ class Function final : public NamedDecl {
   AstListIteratorPair<AstNode> stmts() const {
     const Block* b = body();
     if (b == nullptr) {
-      return AstListIteratorPair<AstNode>(children_.end(), children_.end());
+      return AstListIteratorPair<AstNode>(children_.end(), children_.end(),
+                                          asttags::AST_TAG_UNKNOWN,
+                                          asttags::NUM_AST_TAGS);
     }
 
     return b->stmts();

@@ -89,7 +89,8 @@ class Comment final : public AstNode {
 };
 
 /**
- Defines an iterator over the AST list elements that ignores comments.
+ Defines an iterator over the AST list elements that ignores comments
+ and filters to a particular range of tags.
  The iterator hides the ownership (it always returns a pointer e.g. AstNode*)
  and casts elements to a particular type.
  */
@@ -105,17 +106,27 @@ class AstListNoCommentsIterator {
  private:
   AstList::const_iterator it;
   AstList::const_iterator end;
+  AstTag startTag = asttags::AST_TAG_UNKNOWN;
+  AstTag endTag = asttags::AST_TAG_UNKNOWN;
+
+  bool shouldYield(AstTag tag) {
+    return tag != asttags::Comment &&
+           // <= to allow leaf node tags to be passed as start and end
+           startTag <= tag && tag <= endTag;
+  }
 
  public:
   // needs to be default-constructible, copy-constructible,
   // copy-assignable and destructible
   AstListNoCommentsIterator() = default;
-  explicit AstListNoCommentsIterator(AstList::const_iterator start,
-                                     AstList::const_iterator end)
-    : it(start), end(end) {
 
-    while (this->it != this->end && this->it->get()->isComment()) {
-      ++this->it;
+  explicit AstListNoCommentsIterator(AstList::const_iterator start,
+                                     AstList::const_iterator end,
+                                     AstTag startTag, AstTag endTag)
+    : it(start), end(end), startTag(startTag), endTag(endTag) {
+
+    while (it != end && !shouldYield(it->get()->tag())) {
+      ++it;
     }
   }
   ~AstListNoCommentsIterator() = default;
@@ -141,15 +152,15 @@ class AstListNoCommentsIterator {
   // needs to support preincrement and postincrement
   AstListNoCommentsIterator<CastToType>& operator++() {
     do {
-      ++this->it;
-    } while (this->it != this->end && this->it->get()->isComment());
+      ++it;
+    } while (it != end && !shouldYield(it->get()->tag()));
     return *this;
   }
   AstListNoCommentsIterator<CastToType> operator++(int) {
     AstListNoCommentsIterator<CastToType> tmp = *this;
     do {
-      ++this->it;
-    } while (this->it != this->end && this->it->get()->isComment());
+      ++it;
+    } while (it != end && !shouldYield(it->get()->tag()));
     return tmp;
   }
 
@@ -170,14 +181,21 @@ class AstListNoCommentsIterator {
   // must be swappable but that should work with the default impl
 };
 
+/**
+ Defines an iterato pairr over the AST list elements that ignores comments
+ and filters to a particular range of tags.
+ The iterator hides the ownership (it always returns a pointer e.g. AstNode*)
+ and casts elements to a particular type.
+ */
 template<typename CastToType>
 struct AstListNoCommentsIteratorPair {
   AstListNoCommentsIterator<CastToType> begin_;
   AstListNoCommentsIterator<CastToType> end_;
 
   AstListNoCommentsIteratorPair(AstList::const_iterator begin,
-                                AstList::const_iterator end)
-    : begin_(begin, end), end_(end, end) {
+                                AstList::const_iterator end,
+                                AstTag startTag, AstTag endTag)
+    : begin_(begin, end, startTag, endTag), end_(end, end, startTag, endTag) {
   }
   ~AstListNoCommentsIteratorPair() = default;
 

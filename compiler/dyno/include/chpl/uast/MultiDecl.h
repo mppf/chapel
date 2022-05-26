@@ -96,7 +96,9 @@ class MultiDecl final : public Decl {
         ? children_.begin() + declOrCommentChildNum()
         : children_.end();
     auto end = begin + numDeclOrComments();
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**
@@ -124,7 +126,9 @@ class MultiDecl final : public Decl {
         ? children_.begin() + declOrCommentChildNum()
         : children_.end();
     auto end = begin + numDeclOrComments();
-    return AstListNoCommentsIteratorPair<Decl>(begin, end);
+    return AstListNoCommentsIteratorPair<Decl>(begin, end,
+                                               asttags::START_Decl,
+                                               asttags::END_Decl);
   }
 
 };

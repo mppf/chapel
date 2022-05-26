@@ -104,7 +104,9 @@ class Cobegin final : public AstNode {
   AstListIteratorPair<AstNode> taskBodies() const {
     auto begin = children_.begin() + bodyChildNum_;
     auto end = begin + numTaskBodies_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**

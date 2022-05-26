@@ -112,7 +112,9 @@ class Try final : public AstNode {
     auto begin = numBodyStmts_ ? children_.begin() + bodyChildNum_
                                : children_.end();
     auto end = begin + numBodyStmts_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**
@@ -139,7 +141,9 @@ class Try final : public AstNode {
     auto begin = numHandlers_ ? children_.begin() + numBodyStmts_
                               : children_.end();
     auto end = begin + numHandlers_;
-    return AstListIteratorPair<Catch>(begin, end);
+    return AstListIteratorPair<Catch>(begin, end,
+                                      asttags::AST_TAG_UNKNOWN,
+                                      asttags::NUM_AST_TAGS);
   }
 
   /**

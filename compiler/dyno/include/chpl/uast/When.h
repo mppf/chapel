@@ -93,7 +93,9 @@ class When final : public SimpleBlockLike {
   AstListIteratorPair<AstNode> caseExprs() const {
     auto begin = (numCaseExprs_ >= 0) ? children_.begin() : children_.end();
     auto end = begin + numCaseExprs_;
-    return AstListIteratorPair<AstNode>(begin, end);
+    return AstListIteratorPair<AstNode>(begin, end,
+                                        asttags::AST_TAG_UNKNOWN,
+                                        asttags::NUM_AST_TAGS);
   }
 
   /**
