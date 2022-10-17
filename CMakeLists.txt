@@ -35,6 +35,25 @@ include(CMakePrintHelpers)
 # https://cmake.org/cmake/help/latest/variable/CMAKE_VERBOSE_MAKEFILE.html
 # set(CMAKE_VERBOSE_MAKEFILE 1)
 
+# Handle Installation Prefix
+# normally we will use the value from the command-line, if given DCMAKE_INSTALL_PREFIX
+# but if that is not given, look for a configured_prefix file from ./configure
+if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+  message(STATUS "Searching for configured-prefix file")
+  if(EXISTS "${CMAKE_SOURCE_DIR}/configured-prefix")
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configured-prefix" CONFIGURED_PREFIX_CONTENTS)
+    set(CMAKE_INSTALL_PREFIX ${CONFIGURED_PREFIX_CONTENTS} CACHE PATH "Installation Prefix" FORCE)
+  endif()
+endif()
+
+if (DEFINED CONFIGURED_PREFIX_CONTENTS)
+  message(STATUS "Using configured prefix: ${CONFIGURED_PREFIX_CONTENTS}")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CONFIGURED_PREFIX" "\"${CONFIGURED_PREFIX_CONTENTS}\"")
+else()
+  message(STATUS "Using default prefix: ${CMAKE_INSTALL_PREFIX}")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CONFIGURED_PREFIX" "\"${CMAKE_INSTALL_PREFIX}\"")
+endif()
+
 
 # Options that correspond to printchplenv --compiler
 # Could be set from environment or command-line

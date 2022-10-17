@@ -72,3 +72,5 @@ add_subdirectory(util)
 add_dependencies(chpl libdyno)
 target_compile_options(chpl PUBLIC SHELL:$<$<COMPILE_LANGUAGE:CXX>:${CHPL_LLVM_COMP_ARGS}>)
 target_link_libraries(chpl PUBLIC ${CHPL_LLVM_LINK_ARGS} libdyno)
+
+install(TARGETS chpl DESTINATION bin)
