@@ -17,14 +17,27 @@
 
 cmake_minimum_required(VERSION 3.13.4)
 
+set(CHPL_MAJOR_VERSION 1)
+set(CHPL_MINOR_VERSION 29)
+set(CHPL_UPDATE_VERSION 0)
+
+# TODO: Work with config.h for version info
+project(Chapel VERSION ${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION}.${CHPL_UPDATE_VERSION})
+
 # TODO: Handle BUILD_VERSION for devops
 # set(CHPL_BUILD_VERSION 0 CACHE ) - gets into generated.h along with version info,
 
 # TODO: Write this to generated configured_prefix file
 # CMAKE_INSTALL_PREFIX
 
-# TODO: Work with config.h for version info
-project(Chapel VERSION 1.29.0)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  if (EXISTS "${CMAKE_SOURCE_DIR}/compiler/main/BUILD_VERSION")
+    file(READ "${CMAKE_SOURCE_DIR}/compiler/main/BUILD_VERSION" CHPL_BUILD_VERSION)
+    message(STATUS "CHPL_BUILD_VERSION: ${CHPL_BUILD_VERSION}")
+  else()
+    message(STATUS "BUILD_VERSION file not found")
+  endif()
+endif()
 
 # This built-in module allows us to print variables easily, using
 # cmake_print_variables(MY_VARIABLE)
@@ -38,9 +51,10 @@ include(CMakePrintHelpers)
 # Handle Installation Prefix
 # normally we will use the value from the command-line, if given DCMAKE_INSTALL_PREFIX
 # but if that is not given, look for a configured_prefix file from ./configure
-if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-  message(STATUS "Searching for configured-prefix file")
-  if(EXISTS "${CMAKE_SOURCE_DIR}/configured-prefix")
+if(EXISTS "${CMAKE_SOURCE_DIR}/configured-prefix")
+  message(STATUS "configured-prefix file exists...")
+  if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+    set(CONFIGURED_PREFIX_CONTENTS INTERNAL PATH "Installation prefix from ./configure")
     file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configured-prefix" CONFIGURED_PREFIX_CONTENTS)
     set(CMAKE_INSTALL_PREFIX ${CONFIGURED_PREFIX_CONTENTS} CACHE PATH "Installation Prefix" FORCE)
   endif()
@@ -49,8 +63,11 @@ endif()
 if (DEFINED CONFIGURED_PREFIX_CONTENTS)
   message(STATUS "Using configured prefix: ${CONFIGURED_PREFIX_CONTENTS}")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CONFIGURED_PREFIX" "\"${CONFIGURED_PREFIX_CONTENTS}\"")
-else()
+elseif(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
   message(STATUS "Using default prefix: ${CMAKE_INSTALL_PREFIX}")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CONFIGURED_PREFIX" "\"${CMAKE_INSTALL_PREFIX}\"")
+else()
+  message(STATUS "Using cached install prefix: ${CMAKE_INSTALL_PREFIX}")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CONFIGURED_PREFIX" "\"${CMAKE_INSTALL_PREFIX}\"")
 endif()
 
@@ -60,8 +77,6 @@ endif()
 # TODO: Update these "Description" values to meaningful values
 set(CHPL_HOST_PLATFORM CACHE STRING "Description")
 set(CHPL_HOST_COMPILER CACHE STRING "Description")
-set(CHPL_HOST_CC CACHE STRING "Description")
-set(CHPL_HOST_CXX CACHE STRING "Description")
 set(CHPL_HOST_ARCH CACHE STRING "Description")
 set(CHPL_HOST_MEM CACHE STRING "Description")
 set(CHPL_LLVM CACHE STRING "Description")
@@ -75,6 +90,8 @@ set(CHPL_DEVELOPER CACHE BOOL "Description")
 set(CHPL_LLVM_GCC_PREFIX CACHE STRING "Description")
 
 # Internal CHPL variables
+set(CHPL_HOST_CC CACHE INTERNAL "Description")
+set(CHPL_HOST_CXX CACHE INTERNAL "Description")
 set(CHPL_HOST_BUNDLED_COMPILE_ARGS CACHE INTERNAL "Description")
 set(CHPL_HOST_CPU CACHE INTERNAL "Description")
 set(CHPL_HOST_SYSTEM_COMPILE_ARGS CACHE INTERNAL "Description")
@@ -192,19 +209,26 @@ set(OPTIMIZE OFF CACHE BOOL "OPTIMIZE flag from make")
 set(DEBUG OFF CACHE BOOL "DEBUG flag from make")
 set(PROFILE OFF CACHE BOOL "PROFILE flag from make")
 
-# TODO: Update the C/CXX flags with the proper values for each of the above options
+# TODO: Update the C/CXX flags with the proper values DEBUG
 if (${DEBUG})
   set(CMAKE_BUILD_TYPE CACHE BOOL Debug "Debug build" FORCE)
 endif()
 
+# TODO: Update the C/CXX flags with the proper values for WARNINGS
 if (${WARNINGS})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
+# TODO: Update the C/CXX flags with the proper values for OPTIMIZE
 if (${OPTIMIZE})
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
+
+# TODO: Update the C/CXX flags with the proper values for PROFILE
+if (${PROFILE})
+  # What to do here is TODO...
 endif()
 
 set(PRINTCHPLENV_COMMAND printchplenv --compiler --internal --cmake)
@@ -257,3 +281,7 @@ endif()
 # message(DEBUG "${CHPL_HOST_BUNDLED_LINK_ARGS} ${CHPL_HOST_SYSTEM_LINK_ARGS}")
 add_subdirectory(compiler)
 add_subdirectory(frontend)
+add_subdirectory(tools)
+install(TARGETS chpl chpldoc
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib/chapel/${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION})
