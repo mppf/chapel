@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# USE update_if_different
 
 add_library(libdyno-obj OBJECT)
 
@@ -26,7 +27,6 @@ set_property(TARGET libdyno-obj PROPERTY POSITION_INDEPENDENT_CODE 1)
 target_include_directories(libdyno-obj PUBLIC
                            ${CHPL_MAIN_INCLUDE_DIR}
                            ${CHPL_INCLUDE_DIR})
-
 
 # Library code can also use headers from the lib/ directory
 # but these are not to be public
@@ -52,3 +52,31 @@ target_include_directories(libdyno PUBLIC
 target_link_libraries(libdyno PUBLIC ${CHPL_LLVM_LINK_ARGS})
 # TODO: Get printchplenv output proper so that we don't need to SHELL here
 target_compile_options(libdyno PUBLIC SHELL:$<$<COMPILE_LANGUAGE:CXX>:${CHPL_LLVM_COMP_ARGS}>)
+find_package(Git QUIET)
+execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                OUTPUT_VARIABLE GIT_SHORT_HASH
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+
+# generate the git-version.cpp and compile it to produce the .o
+add_custom_command(TARGET libdyno
+                   PRE_LINK
+                   COMMAND ${CMAKE_COMMAND} -E echo "namespace chpl { " > ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp
+                   COMMAND ${CMAKE_COMMAND} -E echo_append "const char* GIT_SHA=\"" >> ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp
+                   COMMAND ${CMAKE_COMMAND} -E echo_append ${GIT_SHORT_HASH} >> ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp
+                   COMMAND ${CMAKE_COMMAND} -E echo "\"\;" >> ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp
+                   COMMAND ${CMAKE_COMMAND} -E echo "}" >> ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp  # generate the file with git sha
+                   COMMAND ${CMAKE_CXX_COMPILER} -c ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp -o ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o
+                   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o
+                   COMMENT "Generating git-version.cpp"
+                   VERBATIM
+                   COMMAND_EXPAND_LISTS) # really want this to result in a .o file, not the .cpp file- also, how to link it in now?
+
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o)
+  message(STATUS "Found compiled git-version.cpp.o!")
+  # add_library(payload_object OBJECT IMPORTED GLOBAL)
+  # set_target_properties(payload_object PROPERTIES IMPORTED_OBJECTS ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o)
+  # target_sources(libdyno-obj PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o)
+  target_link_libraries(libdyno PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/libdyno-obj.dir/util/git-version.cpp.o)
+endif()
