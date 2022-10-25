@@ -77,6 +77,13 @@ frontend: FORCE
 
 dyno: frontend FORCE
 
+# TODO: have this call CMake directly with the appropriate options
+# @cd compiler && $(MAKE)
+# CMAKE ?= cmake
+# BUILD_VERSION_FILE = $(COMPILER_ROOT)/main/BUILD_VERSION
+# configured prefix file
+# CONFIGURED_PREFIX_FILE = $(COMPILER_BUILD)/CONFIGURED_PREFIX
+# @cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) && $(CMAKE) --build . --target chpl --parallel
 compiler: FORCE
 	@echo "Making the compiler..."
 	@cd third-party && $(MAKE) llvm
