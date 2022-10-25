@@ -19,10 +19,10 @@ cmake_minimum_required(VERSION 3.13.4)
 
 set(CHPL_MAJOR_VERSION 1)
 set(CHPL_MINOR_VERSION 29)
-set(CHPL_UPDATE_VERSION 0)
+set(CHPL_PATCH_VERSION 0)
 
 # TODO: Work with config.h for version info
-project(Chapel VERSION ${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION}.${CHPL_UPDATE_VERSION})
+project(Chapel VERSION ${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION}.${CHPL_PATCH_VERSION})
 
 # TODO: Handle BUILD_VERSION for devops
 # set(CHPL_BUILD_VERSION 0 CACHE ) - gets into generated.h along with version info,
@@ -53,9 +53,11 @@ include(CMakePrintHelpers)
 # but if that is not given, look for a configured_prefix file from ./configure
 if(EXISTS "${CMAKE_SOURCE_DIR}/configured-prefix")
   message(STATUS "configured-prefix file exists...")
+  configure_file("${CMAKE_SOURCE_DIR}/configured-prefix" "${CMAKE_BINARY_DIR}/configured-prefix" COPYONLY)
+  message(STATUS "copied configured-prefix to ${CMAKE_BINARY_DIR}/configured-prefix")
   if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
     set(CONFIGURED_PREFIX_CONTENTS INTERNAL PATH "Installation prefix from ./configure")
-    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configured-prefix" CONFIGURED_PREFIX_CONTENTS)
+    file(STRINGS "${CMAKE_BINARY_DIR}/configured-prefix" CONFIGURED_PREFIX_CONTENTS)
     set(CMAKE_INSTALL_PREFIX ${CONFIGURED_PREFIX_CONTENTS} CACHE PATH "Installation Prefix" FORCE)
   endif()
 endif()
