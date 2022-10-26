@@ -91,7 +91,11 @@ $(CHPL_CONFIG_CHECK): | $(CHPL_BIN_DIR)
 	echo $(CHPL_MAKE_COMPILER_SUBDIR) > $(CHPL_CONFIG_CHECK)
 
 $(CHPL): FORCE $(CHPL_CONFIG_CHECK) $(COMPILER_BUILD) | $(CHPL_BIN_DIR)
-	@cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$(CHPL_BIN_DIR) && $(CMAKE) --build . --target chpl --parallel 4
+	if [ -f $(COMPILER_BUILD)/Makefile ]; then \
+		cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$(CHPL_BIN_DIR) && $(MAKE) chpl; \
+	else \
+		cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$(CHPL_BIN_DIR) && $(CMAKE) --build . --target chpl; \
+	fi
 
 MAKEALLCHPLDOCSUBDIRS = $(CHPLDOC_SUBDIRS:%=%.makedir)
 
@@ -107,6 +111,9 @@ $(COMPILER_BUILD):
 $(CHPL_BIN_DIR):
 	mkdir -p $@
 
+# TODO: This causes a warning about overriding (from footer?) but seems to work
+clean: FORCE
+	@cd $(COMPILER_BUILD) && $(CMAKE) --build . --target clean
 
 #
 # include standard footer for compiler
