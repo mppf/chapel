@@ -26,6 +26,7 @@
 // this include sets BUILD_VERSION
 #include "version_num.h"
 
+#include "chpl/util/version.h"
 // this include sets CONFIGURED_PREFIX
 #include "configured_prefix.h"
 
@@ -33,18 +34,18 @@ void
 get_version(char *v) {
   v += sprintf(v, "%d.%d.%d", MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
   if (!officialRelease) {
-    sprintf(v, " pre-release (%s)", BUILD_VERSION);
+    sprintf(v, " pre-release (%s)", get_build_version());
   } else {
     // It's is an official release.
     // Try to decide whether or not to include the BUILD_VERSION
     // based on its string length. A short git sha is 10 characters.
-    if (strlen(BUILD_VERSION) > 2 && !developer) {
+    if (strlen(get_build_version()) > 2 && !developer) {
       // assume it is a sha, so don't include it
-    } else if (strcmp(BUILD_VERSION, "0") == 0) {
+    } else if (strcmp(get_build_version(), "0") == 0) {
       // no need to append a .0
     } else {
       // include the BUILD_VERSION contents to add e.g. a .1
-      sprintf(v, ".%s", BUILD_VERSION);
+      sprintf(v, ".%s", get_build_version());
     }
   }
 }
@@ -69,7 +70,11 @@ int get_update_version() {
   return UPDATE_VERSION;
 }
 const char* get_build_version() {
-  return BUILD_VERSION;
+
+  // TODO: add control logic for release vs. non-release to return sha or build-version
+  return chpl::gitSHA();
+
+  //return BUILD_VERSION;
 }
 bool get_is_official_release() {
   return officialRelease;

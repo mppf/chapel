@@ -24,43 +24,12 @@ ifndef CHPL_MAKE_HOME
 export CHPL_MAKE_HOME=$(shell pwd)/..
 endif
 
-
+CMAKE ?= cmake
 COMPILER_ROOT=.
 COMPILER_SUBDIR = .
 
-#
-# subdirectories and false subdirectory-oriented targets to force recursion
-#
-SUBDIRS = \
-	adt \
-	AST \
-	backend \
-	codegen \
-	llvm \
-	main \
-	../frontend/lib/immediates \
-	../frontend/lib/parsing \
-	../frontend/lib/framework \
-	../frontend/lib/resolution \
-	../frontend/lib/types \
-	../frontend/lib/uast \
-	../frontend/lib/util \
-	optimizations \
-	parser \
-	passes \
-	resolution \
-	util \
 
 
-CHPLDOC_SUBDIRS = \
-	../frontend/lib/immediates \
-	../frontend/lib/parsing \
-	../frontend/lib/framework \
-	../frontend/lib/resolution \
-	../frontend/lib/types \
-	../frontend/lib/uast \
-	../frontend/lib/util \
-	../tools/chpldoc \
 
 
 #
@@ -68,7 +37,6 @@ CHPLDOC_SUBDIRS = \
 #
 include $(COMPILER_ROOT)/make/Makefile.compiler.head
 
-ALL_HEADERS= */*.h ../frontend/include/chpl/*/*.h
 
 # Generate tags command, dependent on if Make variable, TAGS == 1
 ifeq ($(TAGS), 1)
@@ -83,70 +51,7 @@ BUILD_VERSION_FILE = $(COMPILER_ROOT)/main/BUILD_VERSION
 # configured prefix file
 CONFIGURED_PREFIX_FILE = $(COMPILER_BUILD)/CONFIGURED_PREFIX
 
-#
-# include source subdirectories here
-#
-include adt/Makefile.include
-include AST/Makefile.include
-include backend/Makefile.include
-include codegen/Makefile.include
-include llvm/Makefile.include
-include main/Makefile.include
-include ../frontend/lib/immediates/Makefile.include
-include ../frontend/lib/parsing/Makefile.include
-include ../frontend/lib/framework/Makefile.include
-include ../frontend/lib/resolution/Makefile.include
-include ../frontend/lib/types/Makefile.include
-include ../frontend/lib/uast/Makefile.include
-include ../frontend/lib/util/Makefile.include
-include optimizations/Makefile.include
-include parser/Makefile.include
-include passes/Makefile.include
-include resolution/Makefile.include
-include util/Makefile.include
 
-# sources here are only used to build chpldoc
-include ../tools/chpldoc/Makefile.include
-
-SRCS =
-
-CHPL_OBJS = \
-	$(ADT_OBJS) \
-	$(AST_OBJS) \
-	$(BACKEND_OBJS) \
-	$(CODEGEN_OBJS) \
-	$(IFA_OBJS) \
-	$(LLVM_OBJS) \
-	$(MAIN_OBJS) \
-	$(OPTIMIZATIONS_OBJS) \
-	$(PARSER_OBJS) \
-	$(PASSES_OBJS) \
-	$(RESOLUTION_OBJS) \
-	$(SYMTAB_OBJS) \
-	$(UTIL_OBJS) \
-	$(FRONTEND_FRAMEWORK_OBJS) \
-	$(FRONTEND_IMMEDIATES_OBJS) \
-	$(FRONTEND_PARSING_OBJS) \
-	$(FRONTEND_RESOLUTION_OBJS) \
-	$(FRONTEND_TYPES_OBJS) \
-	$(FRONTEND_UAST_OBJS) \
-	$(FRONTEND_UTIL_OBJS) \
-
-
-CHPLDOC_OBJS = \
-	$(FRONTEND_FRAMEWORK_OBJS) \
-	$(FRONTEND_IMMEDIATES_OBJS) \
-	$(FRONTEND_PARSING_OBJS) \
-	$(FRONTEND_RESOLUTION_OBJS) \
-	$(FRONTEND_TYPES_OBJS) \
-	$(FRONTEND_UAST_OBJS) \
-	$(FRONTEND_UTIL_OBJS) \
-        $(DYNO_CHPLDOC_OBJS) \
-
-
-EXECS = $(CHPL) $(CHPLDOC)
-
-PRETARGETS = $(BUILD_VERSION_FILE) $(CONFIGURED_PREFIX_FILE)
 TARGETS = $(CHPL)
 
 LIBS = -lm
@@ -185,15 +90,13 @@ $(CHPL_CONFIG_CHECK): | $(CHPL_BIN_DIR)
 	mkdir -p $(CHPL_CONFIG_CHECK_DIR)
 	echo $(CHPL_MAKE_COMPILER_SUBDIR) > $(CHPL_CONFIG_CHECK)
 
-$(CHPL): $(CHPL_OBJS) $(CHPL_CONFIG_CHECK) | $(CHPL_BIN_DIR)
-	$(CXX) $(LDFLAGS) -o $@ $(CHPL_OBJS) $(CHPL_MAKE_HOST_BUNDLED_LINK_ARGS) $(LIBS) $(LLVM_EXTRA_LIBS) $(CHPL_MAKE_HOST_SYSTEM_LINK_ARGS)
-	$(TAGS_COMMAND)
-	$(EBROWSE_COMMAND)
+$(CHPL): FORCE $(CHPL_CONFIG_CHECK) $(COMPILER_BUILD) | $(CHPL_BIN_DIR)
+	@cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$(CHPL_BIN_DIR) && $(CMAKE) --build . --target chpl --parallel
 
 MAKEALLCHPLDOCSUBDIRS = $(CHPLDOC_SUBDIRS:%=%.makedir)
 
 $(CHPLDOC): $(MAKEALLCHPLDOCSUBDIRS) $(CHPLDOC_OBJS) | $(CHPL_BIN_DIR)
-	$(CXX) $(LDFLAGS) -o $@ $(CHPLDOC_OBJS) $(CHPL_MAKE_HOST_BUNDLED_LINK_ARGS) $(LIBS) $(LLVM_EXTRA_LIBS) $(CHPL_MAKE_HOST_SYSTEM_LINK_ARGS)
+	@cd $(COMPILER_BUILD) && $(CMAKE) $(CHPL_MAKE_HOME) -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$(CHPL_BIN_DIR) && $(CMAKE) --build . --target chpldoc --parallel
 
 chpldoc: $(CHPLDOC)
 

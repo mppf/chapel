@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import os
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser(description='Write the git SHA to git-version.cpp')
+parser.add_argument('location', help='The location to write git-version.cpp')
+
+args = parser.parse_args()
+
+git_sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], encoding='utf-8').strip()
+
+with open(os.path.join(args.location, 'git-version.cpp'), 'w') as f:
+    f.write('namespace chpl {\n')
+    f.write(f'  const char* GIT_SHA = "{git_sha}";\n')
+    f.write('}\n')
