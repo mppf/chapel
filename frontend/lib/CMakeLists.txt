@@ -75,9 +75,8 @@ add_custom_command(TARGET libdyno
                    PRE_LINK
                    COMMAND ${CMAKE_SOURCE_DIR}/util/config/write-git-sha ${CMAKE_CURRENT_BINARY_DIR}/util # generate the file with git sha
                    COMMAND ${CMAKE_CXX_COMPILER} -c ${CMAKE_CURRENT_BINARY_DIR}/util/git-version.cpp -o ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/git-sha-obj.dir/util/git-version.cpp.o
-                   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/git-sha-obj.dir/util/git-version.cpp.o
                    COMMENT "Generating git-version.cpp"
                    VERBATIM
-                   COMMAND_EXPAND_LISTS) # results in a .o file
+                   ) # results in a .o file
 
 message(STATUS "current-binary-directory = ${CMAKE_CURRENT_BINARY_DIR}/util")
