@@ -10,7 +10,8 @@ parser.add_argument('location', help='The location to write git-version.cpp')
 args = parser.parse_args()
 
 git_sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], encoding='utf-8').strip()
-
+if not os.path.exists(args.location):
+    os.makedirs(args.location)
 with open(os.path.join(args.location, 'git-version.cpp'), 'w') as f:
     f.write('namespace chpl {\n')
     f.write(f'  const char* GIT_SHA = "{git_sha}";\n')
