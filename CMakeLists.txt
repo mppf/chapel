@@ -48,6 +48,7 @@ include(CMakePrintHelpers)
 # https://cmake.org/cmake/help/latest/variable/CMAKE_VERBOSE_MAKEFILE.html
 # set(CMAKE_VERBOSE_MAKEFILE 1)
 
+# TODO: Fix this when configured-prefix exists but we also pass CMAKE_INSTALL_PREFIX
 # Handle Installation Prefix
 # normally we will use the value from the command-line, if given DCMAKE_INSTALL_PREFIX
 # but if that is not given, look for a configured_prefix file from ./configure
