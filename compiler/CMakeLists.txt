@@ -35,6 +35,10 @@ set(SRC_DIR     ${CMAKE_CURRENT_SOURCE_DIR})
 string(CONCAT CHPL_LLVM_COMP_ARGS ${CHPL_HOST_BUNDLED_COMPILE_ARGS} " " ${CHPL_HOST_SYSTEM_COMPILE_ARGS})
 string(CONCAT CHPL_LLVM_LINK_ARGS ${CHPL_HOST_BUNDLED_LINK_ARGS} " " ${CHPL_HOST_SYSTEM_LINK_ARGS})
 
+if(NOT EXISTS ${SRC_DIR}/main/BUILD_VERSION)
+  FILE(WRITE ${SRC_DIR}/main/BUILD_VERSION "\"0\"")
+endif()
+
 # message(DEBUG "CHPL_LLVM_COMP_ARGS: ${CHPL_LLVM_COMP_ARGS}")
 # message(DEBUG "CHPL_LLVM_LINK_ARGS: ${CHPL_LLVM_LINK_ARGS}")
 
@@ -57,6 +61,37 @@ include_directories(
         )
 
 add_executable(chpl)
+if (NOT EXISTS ${SRC_DIR}/main/LICENSE)
+  execute_process(COMMAND ${SRC_DIR}/../util/config/generate-license ${SRC_DIR}/../ ${SRC_DIR}/main
+                  OUTPUT_FILE ${SRC_DIR}/main/LICENSE)
+endif()
+
+if (NOT EXISTS ${SRC_DIR}/main/COPYRIGHT)
+  execute_process(COMMAND ${SRC_DIR}/../util/config/generate-copyright ${SRC_DIR}/../ ${SRC_DIR}/main
+  OUTPUT_FILE ${SRC_DIR}/main/COPYRIGHT)
+endif()
+
+if (NOT EXISTS ${SRC_DIR}/codegen/reservedSymbolNames.h)
+  execute_process(COMMAND ${SRC_DIR}/../util/config/generate-reservedSymbolNames ${SRC_DIR}/codegen
+  OUTPUT_FILE ${SRC_DIR}/codegen/reservedSymbolNames.h)
+endif()
+# TODO: I expected something like this to work, but it fails when the file doesn't exist yet...
+# add_custom_command(TARGET chpl
+#                    PRE_BUILD
+#                    COMMAND ${SRC_DIR}/../util/config/generate-license ${SRC_DIR}/../ ${SRC_DIR}/main
+#                    BYPRODUCTS ${SRC_DIR}/main/LICENSE
+#                    COMMENT "Writing LICENSE file to compiler/main"
+#                    VERBATIM
+#                   )
+
+# add_custom_command(TARGET chpl
+#                    PRE_BUILD
+#                    COMMAND ${SRC_DIR}/../util/config/generate-copyright ${SRC_DIR}/../ ${SRC_DIR}/main
+#                    BYPRODUCTS ${SRC_DIR}/main/COPYRIGHT
+#                    COMMENT "Writing COPYRIGHT file to compiler/main"
+#                    VERBATIM
+#                   )
+
 add_subdirectory(AST)
 add_subdirectory(adt)
 add_subdirectory(backend)
@@ -72,4 +107,3 @@ add_subdirectory(util)
 add_dependencies(chpl libdyno)
 target_compile_options(chpl PUBLIC SHELL:$<$<COMPILE_LANGUAGE:CXX>:${CHPL_LLVM_COMP_ARGS}>)
 target_link_libraries(chpl PUBLIC ${CHPL_LLVM_LINK_ARGS} libdyno)
-
