@@ -78,5 +78,3 @@ add_custom_command(TARGET libdyno
                    COMMENT "Generating git-version.cpp"
                    VERBATIM
                    ) # results in a .o file
-
-message(STATUS "current-binary-directory = ${CMAKE_CURRENT_BINARY_DIR}/util")
