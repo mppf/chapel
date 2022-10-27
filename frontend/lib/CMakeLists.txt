@@ -78,3 +78,8 @@ add_custom_command(TARGET libdyno
                    COMMENT "Generating git-version.cpp"
                    VERBATIM
                    ) # results in a .o file
+
+# install libdyno
+# TODO: also install headers with PUBLIC_HEADER DESTINATION <dir>
+install(TARGETS libdyno
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})

@@ -43,10 +43,13 @@ endif()
 # cmake_print_variables(MY_VARIABLE)
 include(CMakePrintHelpers)
 
+#
 # Turns on verbose output from Makefile builds. Having it ON displays each
 # command line as it is launched.
 # https://cmake.org/cmake/help/latest/variable/CMAKE_VERBOSE_MAKEFILE.html
 # set(CMAKE_VERBOSE_MAKEFILE 1)
+
+set(INSTALLATION_MODE "prefix" CACHE STRING "prefix or home installation mode")
 
 # TODO: Fix this when configured-prefix exists but we also pass CMAKE_INSTALL_PREFIX
 # Handle Installation Prefix
@@ -60,7 +63,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/configured-prefix)
   endif()
 
   if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-    message(STATUS "Writing configured-prefix file")
+    message(STATUS "Reading configured-prefix file")
     set(CONFIGURED_PREFIX_CONTENTS INTERNAL PATH "Installation prefix from ./configure")
     file(STRINGS "${CMAKE_BINARY_DIR}/configured-prefix" CONFIGURED_PREFIX_CONTENTS)
     set(CMAKE_INSTALL_PREFIX ${CONFIGURED_PREFIX_CONTENTS} CACHE PATH "Installation Prefix" FORCE)
@@ -80,6 +83,18 @@ else()
   endif()
 endif()
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/configured-chpl-home)
+  message(STATUS "configured-chpl-home file exists...")
+
+  if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+    message(STATUS "Adjusting cmake install prefix")
+    set(CONFIGURED_CHPL_HOME_CONTENTS INTERNAL PATH "Installation CHPL_HOME from ./configure")
+    file(STRINGS "${CMAKE_SOURCE_DIR}/configured-chpl-home" CONFIGURED_CHPL_HOME_CONTENTS)
+    set(CMAKE_INSTALL_PREFIX ${CONFIGURED_CHPL_HOME_CONTENTS} CACHE PATH "Installation Prefix" FORCE)
+    # update INSTALLATION_MODE as well from the default of prefix
+    set(INSTALLATION_MODE "home" CACHE STRING "prefix or home installation mode" FORCE)
+  endif()
+endif()
 
 # Options that correspond to printchplenv --compiler
 # Could be set from environment or command-line
@@ -291,6 +306,21 @@ endif()
 add_subdirectory(compiler)
 add_subdirectory(frontend)
 add_subdirectory(tools)
-install(TARGETS chpl chpldoc
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib/chapel/${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION})
+#install(TARGETS chpl chpldoc
+#        RUNTIME DESTINATION bin
+#        LIBRARY DESTINATION lib/chapel/${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION})
+
+
+# Adjust the install rpath for chpl and chpldoc
+set_target_properties(chpl PROPERTIES
+                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set_target_properties(chpldoc PROPERTIES
+                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+if (INSTALLATION_MODE STREQUAL "home")
+  install(TARGETS chpl chpldoc
+          RUNTIME DESTINATION "bin/${CHPL_HOST_BIN_SUBDIR}")
+else()
+  install(TARGETS chpl chpldoc
+          RUNTIME DESTINATION bin)
+endif()
