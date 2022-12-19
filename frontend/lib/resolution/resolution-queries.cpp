@@ -1573,6 +1573,8 @@ resolveFunctionByInfoQuery(Context* context,
 
   // Note that in this case the AST for the function can be nullptr.
   if (isTfsForInitializer(sig)) {
+    auto retType = QualifiedType(QualifiedType::VAR, VoidType::get(context));
+
     ResolutionResultByPostorderID resolutionById;
     auto visitor = Resolver::createForInitializer(context, fn, poiScope,
                                                   sig,
@@ -1580,6 +1582,8 @@ resolveFunctionByInfoQuery(Context* context,
     CHPL_ASSERT(visitor.initResolver.get());
     if (fn) {
       fn->body()->traverse(visitor);
+      // then, set the return type
+      visitor.returnType = retType;
       // then, resolve '=' and add any copy init/deinit calls as needed
       callInitDeinit(visitor);
     }
@@ -1600,7 +1604,8 @@ resolveFunctionByInfoQuery(Context* context,
       auto resolvedInit = toOwned(new ResolvedFunction(newTfsForInitializer,
                                   fn->returnIntent(),
                                   std::move(resolutionByIdCopy),
-                                  resolvedPoiInfo));
+                                  resolvedPoiInfo,
+                                  visitor.returnType));
       auto idsUsed = resolvedPoiInfo.poiFnIdsUsed();
       QUERY_STORE_RESULT(resolveFunctionByPoisQuery,
                          context,
@@ -1625,7 +1630,8 @@ resolveFunctionByInfoQuery(Context* context,
     owned<ResolvedFunction> resolved
         = toOwned(new ResolvedFunction(finalTfs, fn->returnIntent(),
                   std::move(resolutionById),
-                  resolvedPoiInfo));
+                  resolvedPoiInfo,
+                  visitor.returnType));
 
     // Store the result in the query under the POIs used.
     // If there was already a value for this revision, this
@@ -1647,6 +1653,9 @@ resolveFunctionByInfoQuery(Context* context,
     // then, resolve '=' and add any copy init/deinit calls as needed
     callInitDeinit(visitor);
 
+    // then, compute the return type
+    computeReturnType(visitor);
+
     // TODO: can this be encapsulated in a method?
     resolvedPoiInfo.swap(visitor.poiInfo);
     resolvedPoiInfo.setResolved(true);
@@ -1655,7 +1664,8 @@ resolveFunctionByInfoQuery(Context* context,
     owned<ResolvedFunction> resolved
         = toOwned(new ResolvedFunction(sig, fn->returnIntent(),
                   std::move(resolutionById),
-                  resolvedPoiInfo));
+                  resolvedPoiInfo,
+                  visitor.returnType));
 
     // Store the result in the query under the POIs used.
     // If there was already a value for this revision, this
@@ -1768,7 +1778,8 @@ scopeResolveFunctionQuery(Context* context, ID id) {
 
   result = toOwned(new ResolvedFunction(sig, fn->returnIntent(),
                                         std::move(resolutionById),
-                                        PoiInfo()));
+                                        PoiInfo(),
+                                        QualifiedType()));
 
   return QUERY_END(result);
 }
