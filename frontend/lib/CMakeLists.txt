@@ -92,5 +92,11 @@ set_target_properties(libdyno PROPERTIES ADDITIONAL_CLEAN_FILES ${CMAKE_CURRENT_
 
 # install libdyno
 # TODO: also install headers with PUBLIC_HEADER DESTINATION <dir>
-install(TARGETS libdyno
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (INSTALLATION_MODE STREQUAL "prefix")
+  install(TARGETS libdyno
+          LIBRARY DESTINATION "lib/chapel/${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION}/compiler")
+else()
+  install(TARGETS libdyno
+          LIBRARY DESTINATION
+          "lib/compiler/${CHPL_HOST_BIN_SUBDIR}")
+endif()

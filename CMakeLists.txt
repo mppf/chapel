@@ -17,6 +17,16 @@
 
 cmake_minimum_required(VERSION 3.13.4)
 
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.16)
+  # request new behavior for INSTALL_RPATH quoting
+  cmake_policy(SET CMP0095 NEW)
+endif()
+if (CMAKE_VERSION VERSION_LESS 3.20)
+  # warn that cmake 3.20 will be required in a future release
+  message(WARNING "cmake 3.20 or newer will be required in a future \
+                  release. You have ${CMAKE_VERSION}")
+endif()
+
 ###### ENV VARIABLES TO CHANGE CMAKE BEHAVIOR #####
 # CMAKE_VERBOSE_MAKEFILE          turn verbose makefiles on to see compiler flags
 # CHPL_CMAKE_PRINTCHPLENV_RESULTS hide or display output from printchplenv
@@ -73,7 +83,8 @@ endif()
 
 ### BEGIN handling installation mode from ./configure - prefix or home are allowed ###
 if (NOT DEFINED INSTALLATION_MODE)
-  set(INSTALLATION_MODE "prefix" CACHE STRING "prefix or home installation mode")
+  # it can be set to empty string if no installation mode is selected yet
+  set(INSTALLATION_MODE "" CACHE STRING "prefix or home installation mode")
 endif()
 
 
@@ -348,20 +359,39 @@ endif()
 set(CHPL_CMAKE_PYTHON $ENV{CHPL_MAKE_PYTHON})
 message(STATUS "Using Python: ${CHPL_CMAKE_PYTHON}")
 # message(DEBUG "${CHPL_HOST_BUNDLED_LINK_ARGS} ${CHPL_HOST_SYSTEM_LINK_ARGS}")
+
 add_subdirectory(compiler)
 add_subdirectory(frontend)
 add_subdirectory(tools)
 
-# Adjust the install rpath for chpl and chpldoc
-set_target_properties(chpl PROPERTIES
-                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set_target_properties(chpldoc PROPERTIES
-                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+if (INSTALLATION_MODE STREQUAL "prefix")
+  # let the build and install rpaths be absolute (which is the default)
+  set_target_properties(chpl chpldoc
+                        PROPERTIES
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/chapel/${CHPL_MAJOR_VERSION}.${CHPL_MINOR_VERSION}/compiler")
 
-if (INSTALLATION_MODE STREQUAL "home")
-  install(TARGETS chpl chpldoc
-          RUNTIME DESTINATION "bin/${CHPL_HOST_BIN_SUBDIR}")
-else()
   install(TARGETS chpl chpldoc
           RUNTIME DESTINATION bin)
+else()
+  # use relative rpaths for the build and do not change them on install
+  #set_target_properties(chpl chpldoc
+  #                      PROPERTIES
+  #                      BUILD_RPATH_USE_ORIGIN 1)
+  if (CMAKE_VERSION VERSION_LESS 3.16)
+    # do nothing to adjust the rpath because we don't know how to
+    # write $ORIGIN quoted correctly
+    if (INSTALLATION_MODE STREQUAL "home")
+      # Error out if a 'home' installation was requested
+      message(FATAL_ERROR "--chpl-home installation requires cmake 3.16 or newer")
+    endif()
+  else()
+    # TODO: add and test if APPLE version with @executable_path
+    set_target_properties(chpl chpldoc
+                          PROPERTIES
+                          BUILD_WITH_INSTALL_RPATH TRUE
+                          INSTALL_RPATH "$ORIGIN/../../lib/compiler/${CHPL_HOST_BIN_SUBDIR}")
+  endif()
+
+  install(TARGETS chpl chpldoc
+          RUNTIME DESTINATION "bin/${CHPL_HOST_BIN_SUBDIR}")
 endif()
