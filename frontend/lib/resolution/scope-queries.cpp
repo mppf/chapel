@@ -562,19 +562,22 @@ static bool doLookupInScope(Context* context,
     if (onlyInnermost && got) return true;
   }
 
-  LookupConfig newConfig = LOOKUP_DECLS;
-  if (checkUseImport) {
-    newConfig |= LOOKUP_IMPORT_AND_USE;
-  }
-  if (skipPrivateVisibilities) {
-    newConfig |= LOOKUP_SKIP_PRIVATE_VIS;
-  }
-  if (onlyInnermost) {
-    newConfig |= LOOKUP_INNERMOST;
-  }
-
   // consider the receiver scopes
   {
+    LookupConfig newConfig = LOOKUP_DECLS;
+    if (checkUseImport) {
+      newConfig |= LOOKUP_IMPORT_AND_USE;
+    }
+    if (skipPrivateVisibilities) {
+      newConfig |= LOOKUP_SKIP_PRIVATE_VIS;
+    }
+    if (onlyInnermost) {
+      newConfig |= LOOKUP_INNERMOST;
+    }
+    if (checkParents) {
+      newConfig |= LOOKUP_PARENTS;
+    }
+
     bool got = false;
     for (const auto& currentScope : receiverScopes) {
       got |= doLookupInScope(context, currentScope, {}, resolving,
@@ -584,6 +587,19 @@ static bool doLookupInScope(Context* context,
   }
 
   if (checkParents) {
+    LookupConfig newConfig = LOOKUP_DECLS;
+    if (checkUseImport) {
+      newConfig |= LOOKUP_IMPORT_AND_USE;
+    }
+    if (skipPrivateVisibilities) {
+      newConfig |= LOOKUP_SKIP_PRIVATE_VIS;
+    }
+    if (onlyInnermost) {
+      newConfig |= LOOKUP_INNERMOST;
+    }
+    // no need to search parent scopes since that's covered
+    // directly in the loop below.
+
     // Search parent scopes, if any, until a module is encountered
     const Scope* cur = nullptr;
     bool reachedModule = false;
