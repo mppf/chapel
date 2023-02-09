@@ -2650,6 +2650,7 @@ lookupCalledExpr(Context* context,
 
   // For method calls, also consider the receiver scope.
   if (ci.isMethodCall() || ci.isOpCall()) {
+    // TODO: should types of all arguments be considered for an op call?
     CHPL_ASSERT(ci.numActuals() >= 1);
     auto& qtReceiver = ci.actual(0).type();
     if (auto t = qtReceiver.type()) {
@@ -2764,7 +2765,8 @@ gatherAndFilterCandidatesForwarding(Context* context,
     //   equally as sources of candidates
     // * do not consider forwarding (since we are considering it now!)
 
-    NamedScopeSet visited;
+    std::vector<NamedScopeSet> visited;
+    visited.resize(numForwards);
 
     for (auto fci : forwardingCis) {
       size_t start = nonPoiCandidates.size();
@@ -2776,24 +2778,30 @@ gatherAndFilterCandidatesForwarding(Context* context,
     }
 
     // next, look for candidates without using POI.
-    for (auto fci : forwardingCis) {
-      size_t start = nonPoiCandidates.size();
-      // compute the potential functions that it could resolve to
-      auto v = lookupCalledExpr(context, inScope, fci, visited);
+    {
+      int i = 0;
+      for (auto fci : forwardingCis) {
+        size_t start = nonPoiCandidates.size();
+        // compute the potential functions that it could resolve to
+        auto v = lookupCalledExpr(context, inScope, fci, visited[i]);
 
-      // filter without instantiating yet
-      const auto& initialCandidates = filterCandidatesInitial(context, v, fci);
+        // filter without instantiating yet
+        const auto& initialCandidates =
+          filterCandidatesInitial(context, v, fci);
 
-      // find candidates, doing instantiation if necessary
-      filterCandidatesInstantiating(context,
-                                    initialCandidates,
-                                    fci,
-                                    inScope,
-                                    inPoiScope,
-                                    nonPoiCandidates);
+        // find candidates, doing instantiation if necessary
+        filterCandidatesInstantiating(context,
+                                      initialCandidates,
+                                      fci,
+                                      inScope,
+                                      inPoiScope,
+                                      nonPoiCandidates);
 
-      // update forwardingTo
-      helpComputeForwardingTo(fci, start, nonPoiCandidates, nonPoiForwardingTo);
+        // update forwardingTo
+        helpComputeForwardingTo(fci, start,
+                                nonPoiCandidates, nonPoiForwardingTo);
+        i++;
+      }
     }
 
     // next, look for candidates using POI
@@ -2806,11 +2814,13 @@ gatherAndFilterCandidatesForwarding(Context* context,
         break;
       }
 
+
+      int i = 0;
       for (auto fci : forwardingCis) {
         size_t start = poiCandidates.size();
 
         // compute the potential functions that it could resolve to
-        auto v = lookupCalledExpr(context, curPoi->inScope(), fci, visited);
+        auto v = lookupCalledExpr(context, curPoi->inScope(), fci, visited[i]);
 
         // filter without instantiating yet
         auto& initialCandidates = filterCandidatesInitial(context, v, fci);
@@ -2825,6 +2835,7 @@ gatherAndFilterCandidatesForwarding(Context* context,
 
         // update forwardingTo
         helpComputeForwardingTo(fci, start, poiCandidates, poiForwardingTo);
+        i++;
       }
     }
 
@@ -2885,6 +2896,7 @@ gatherAndFilterCandidates(Context* context,
     // compute the potential functions that it could resolve to
     auto v = lookupCalledExpr(context, inScope, ci, visited);
 
+    /*
     printf("Visible functions for\n");
     ci.dump();
     printf("\n");
@@ -2893,6 +2905,7 @@ gatherAndFilterCandidates(Context* context,
       printf("\n");
     }
     printf("\n\n");
+    */
 
     // filter without instantiating yet
     const auto& initialCandidates = filterCandidatesInitial(context, v, ci);
@@ -3014,7 +3027,6 @@ resolveFnCallFilterAndFindMostSpecific(Context* context,
                                        const Scope* inScope,
                                        const PoiScope* inPoiScope,
                                        PoiInfo& poiInfo) {
-
   // search for candidates at each POI until we have found candidate(s)
   size_t firstPoiCandidate = 0;
   ForwardingInfoVec forwardingInfo;
