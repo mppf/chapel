@@ -562,20 +562,15 @@ static bool doLookupInScope(Context* context,
     if (onlyInnermost && got) return true;
   }
 
-  // consider the receiver scopes
+  // consider the receiver scopes directly (for fields)
+  // (don't consider parent scopes of receiver scopes yet)
   {
     LookupConfig newConfig = LOOKUP_DECLS;
-    if (checkUseImport) {
-      newConfig |= LOOKUP_IMPORT_AND_USE;
-    }
     if (skipPrivateVisibilities) {
       newConfig |= LOOKUP_SKIP_PRIVATE_VIS;
     }
     if (onlyInnermost) {
       newConfig |= LOOKUP_INNERMOST;
-    }
-    if (checkParents) {
-      newConfig |= LOOKUP_PARENTS;
     }
 
     bool got = false;
@@ -586,6 +581,7 @@ static bool doLookupInScope(Context* context,
     if (onlyInnermost && got) return true;
   }
 
+  // consider the parent scopes due to nesting
   if (checkParents) {
     LookupConfig newConfig = LOOKUP_DECLS;
     if (checkUseImport) {
@@ -618,7 +614,10 @@ static bool doLookupInScope(Context* context,
           skipClosestConditional = true;
 
     if (!asttags::isModule(scope->tag()) || goPastModules) {
-      for (cur = scope->parentScope(); cur != nullptr; cur = cur->parentScope()) {
+      for (cur = scope->parentScope();
+           cur != nullptr;
+           cur = cur->parentScope()) {
+
         if (asttags::isModule(cur->tag()) && !goPastModules) {
           reachedModule = true;
           break;
@@ -654,6 +653,24 @@ static bool doLookupInScope(Context* context,
       // check the containing module scope
       bool got = doLookupInScope(context, cur, {}, resolving, name,
                                  newConfig, checkedScopes, result);
+      if (onlyInnermost && got) return true;
+    }
+
+    // consider the parent scopes of receiver scopes, if any
+    // (to find secondary methods)
+    {
+      bool got = false;
+      for (const auto& rcvScope : receiverScopes) {
+        for (cur = rcvScope->parentScope();
+             cur != nullptr;
+             cur = cur->parentScope()) {
+          got |= doLookupInScope(context, cur, {}, resolving,
+                                 name, newConfig, checkedScopes, result);
+          if (asttags::isModule(cur->tag()) && !goPastModules) {
+            break;
+          }
+        }
+      }
       if (onlyInnermost && got) return true;
     }
 
