@@ -1444,7 +1444,13 @@ static void markTempsDeadLastMention(std::set<VarSymbol*>& temps) {
         } else if (isInitOrReturn(call, lhsSe, subCall)) {
           // call above sets lhsSe and initOrCtor
         } else if (call->resolvedOrVirtualFunction()) {
-          subCall = call;
+          if (call->isNamedAstr(astrSassign)) {
+            // consider '=' also as setting a user variable
+            lhsSe = toSymExpr(call->get(1));
+            subCall = toCallExpr(call->get(2));
+          } else {
+            subCall = call;
+          }
         }
 
         // returning into a user var?
