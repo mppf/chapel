@@ -116,7 +116,6 @@ GenRet ImportStmt::codegen() {
 ********************************* | ********************************/
 
 #ifdef HAVE_LLVM
-static
 void codegenLifetimeEnd(llvm::Type *valType, llvm::Value *addr)
 {
   GenInfo *info = gGenInfo;

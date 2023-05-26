@@ -6024,6 +6024,17 @@ DEFINE_PRIM(INVARIANT_START) {
   }
 }
 
+DEFINE_PRIM(DEAD_FROM_ELIDED_COPY) {
+  // TODO: mark the lifetime ending for the passed variable
+#ifdef HAVE_LLVM
+/*  Expr* arg = call->get(1);
+  INT_ASSERT(arg);
+  GenRet var = arg;
+  GenRet varType = arg->typeInfo();
+  codegenLifetimeEnd(varType.type, var.val);*/
+#endif
+}
+
 #ifdef HAVE_LLVM
 static
 llvm::MDNode* createMetadataScope(llvm::LLVMContext& ctx,

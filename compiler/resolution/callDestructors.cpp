@@ -2005,6 +2005,12 @@ bool CallDestructorsCallCleanup::shouldProcess(CallExpr* call) {
 void CallDestructorsCallCleanup::process(CallExpr* call) {
   if (call->isPrimitive(PRIM_ASSIGN_ELIDED_COPY)) {
     call->primitive = primitives[PRIM_ASSIGN];
+    // mark the RHS as dead
+    SET_LINENO(call);
+    SymExpr* rhsSe = toSymExpr(call->get(2));
+    INT_ASSERT(rhsSe);
+    call->insertAfter(new CallExpr(PRIM_DEAD_FROM_ELIDED_COPY,
+                                   new SymExpr(rhsSe->symbol())));
   } else {
     call->remove();
   }

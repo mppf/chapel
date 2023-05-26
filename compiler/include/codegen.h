@@ -156,6 +156,7 @@ extern std::map<std::string, int> commIDMap;
 
 #ifdef HAVE_LLVM
 void setupClang(GenInfo* info, std::string rtmain);
+void codegenLifetimeEnd(llvm::Type *valType, llvm::Value *addr);
 #endif
 
 bool isBuiltinExternCFunction(const char* cname);

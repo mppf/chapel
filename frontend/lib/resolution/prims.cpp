@@ -538,6 +538,7 @@ CallResolutionResult resolvePrimCall(Context* context,
     case PRIM_INVARIANT_START:
     case PRIM_GET_TEST_BY_NAME:
     case PRIM_GET_TEST_BY_INDEX:
+    case PRIM_DEAD_FROM_ELIDED_COPY:
       type = QualifiedType(QualifiedType::CONST_VAR,
                            VoidType::get(context));
       break;

@@ -240,6 +240,8 @@ bool SafeExprAnalysis::isSafePrimitive(CallExpr* ce) {
       bool isRefStore = ce->get(1)->isRefOrWideRef() && !ce->get(2)->isRefOrWideRef();
       return !isRefStore;
     }
+    case PRIM_DEAD_FROM_ELIDED_COPY:
+      return false;
     case PRIM_SIZEOF_BUNDLE:
     case PRIM_SIZEOF_DDATA_ELEMENT:
     case PRIM_STRING_COPY:

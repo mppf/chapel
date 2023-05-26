@@ -1226,6 +1226,13 @@ initPrimitive() {
   // takes in a pointer/reference argument that is the invariant thing
   prim_def(PRIM_INVARIANT_START, "invariant start", returnInfoVoid, false, false);
 
+  // When a copy is elided, during resolution we have
+  // PRIM_ASSIGN_ELIDED_COPY, but after that, it turns into
+  // PRIM_ASSIGN / PRIM_DEAD_FROM_ELIDED_COPY. The PRIM_DEAD_FROM_ELIDED_COPY
+  // can be used by the LLVM backend to mark that the variable's
+  // lifetime has ended.
+  prim_def(PRIM_DEAD_FROM_ELIDED_COPY, "dead from elided copy", returnInfoVoid, false, false);
+
   // variable number of arguments
   // 1st argument is a SymExpr referring to a Symbol indicating which
   //  alias set this is (e.g. the owning array).
