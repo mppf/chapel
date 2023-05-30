@@ -425,6 +425,7 @@ module Bytes {
     inline proc param numBytes param do
       return __primitive("string_length_bytes", this);
 
+    @deprecated("the type 'c_string' is deprecated and with it, 'bytes.c_str()'; use 'c_ptrToConst(bytes)' or 'c_ptrTo(bytes)' from the CTypes module instead")
     inline proc param c_str() param : c_string {
       return this:c_string; // folded out in resolution
     }
@@ -538,7 +539,7 @@ module Bytes {
         :type:`bytes`. The returned `c_string` is only valid when used
         on the same locale as the bytes.
    */
-  @deprecated(notes="bytes.c_str() is deprecated, use c_ptrTo(bytes) or c_ptrToConst(bytes) and cast to c_string")
+  @deprecated(notes="the type 'c_string' is deprecated and with it, 'bytes.c_str()'; use 'c_ptrToConst(bytes)' or 'c_ptrTo(bytes)' from the CTypes module instead")
   inline proc bytes.c_str(): c_string {
     return getCStr(this);
   }

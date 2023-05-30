@@ -136,8 +136,8 @@ module LocaleModelHelpSetup {
     use ChplConfig;
     if CHPL_COMM == "gasnet" {
       if CHPL_COMM_SUBSTRATE == "udp" {
-        const spawnfn = getenv(c"GASNET_SPAWNFN");
-        if spawnfn != nil && spawnfn:c_string == c"L" {
+        const spawnfn = getenv(c_ptrToConst_helper("GASNET_SPAWNFN"):c_string);
+        if spawnfn != nil && spawnfn:c_string == c_ptrToConst_helper("L"):c_string {
           return true;
         }
       } else if (CHPL_COMM_SUBSTRATE == "smp") {

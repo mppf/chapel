@@ -5102,12 +5102,12 @@ private proc _read_text_internal(_channel_internal:qio_channel_ptr_t,
     var err:errorCode = 0;
     var got:bool = false;
 
-    err = qio_channel_scan_literal(false, _channel_internal, c"true", "true".numBytes:c_ssize_t, 1);
+    err = qio_channel_scan_literal(false, _channel_internal, c_ptrToConst_helper("true"):c_string, "true".numBytes:c_ssize_t, 1);
     if !err {
       got = true;
     } else if err == EFORMAT {
       // try reading false instead.
-      err = qio_channel_scan_literal(false, _channel_internal, c"false", "false".numBytes:c_ssize_t, 1);
+      err = qio_channel_scan_literal(false, _channel_internal, c_ptrToConst_helper("false"):c_string, "false".numBytes:c_ssize_t, 1);
       // got is already false, so we don't need to set it.
     }
     if !err then x = got;
@@ -5178,9 +5178,9 @@ private proc _read_text_internal(_channel_internal:qio_channel_ptr_t,
 private proc _write_text_internal(_channel_internal:qio_channel_ptr_t, x:?t):errorCode where _isIoPrimitiveType(t) {
   if isBoolType(t) {
     if x {
-      return qio_channel_print_literal(false, _channel_internal, c"true", "true".numBytes:c_ssize_t);
+      return qio_channel_print_literal(false, _channel_internal, c_ptrToConst_helper("true"):c_string, "true".numBytes:c_ssize_t);
     } else {
-      return qio_channel_print_literal(false, _channel_internal, c"false", "false".numBytes:c_ssize_t);
+      return qio_channel_print_literal(false, _channel_internal, c_ptrToConst_helper("false"):c_string, "false".numBytes:c_ssize_t);
     }
   } else if isIntegralType(t) {
     // handles int types
