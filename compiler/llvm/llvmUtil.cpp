@@ -328,6 +328,8 @@ void makeLifetimeStart(llvm::IRBuilder<>* irBuilder,
   irBuilder->CreateLifetimeStart(addr, size);
 }
 
+// This appends an llvm.lifetime.start intrinsic to the function
+// and also adds an alloca at the start of the current function
 llvm::AllocaInst* makeAllocaAndLifetimeStart(llvm::IRBuilder<>* irBuilder,
                                         const llvm::DataLayout& layout,
                                         llvm::LLVMContext &ctx,
