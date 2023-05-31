@@ -555,15 +555,37 @@ module CTypes {
     return c_ptrTo(x[0]):c_ptr(void);
   }
   @chpldoc.nodoc
+  inline operator :(x:c_ptr, type t:c_ptr(void)) {
+    return __primitive("cast", t, x);
+  }
+  @chpldoc.nodoc
+  inline operator :(x:c_ptrConst, type t:c_ptr(void)) {
+    return __primitive("cast", t, x);
+  }
+  @chpldoc.nodoc
+  inline operator :(x:c_ptr(void), type t:c_ptr) {
+    return __primitive("cast", t, x);
+  }
+  @chpldoc.nodoc
+  inline operator :(x:c_ptr(void), type t:c_ptrConst) {
+    return __primitive("cast", t, x);
+  }
+  @chpldoc.nodoc
+  inline operator c_void_ptr.:(x:c_ptr(void), type t:string) {
+    try! {
+      return string.createAdoptingBuffer(__primitive("ref to string", x):c_ptr(c_uchar));
+    }
+  }
+  @chpldoc.nodoc
   inline operator c_ptr.:(x:c_ptr, type t:string) {
     try! {
-      return string.createAdoptingBuffer(__primitive("ref to string", x));
+      return string.createAdoptingBuffer(__primitive("ref to string", x):c_ptr(c_uchar));
     }
   }
   @chpldoc.nodoc
   inline operator c_ptrConst.:(x:c_ptrConst, type t:string) {
     try! {
-      return string.createAdoptingBuffer(__primitive("ref to string", x));
+      return string.createAdoptingBuffer(__primitive("ref to string", x):c_ptr(c_uchar));
     }
   }
   pragma "last resort"

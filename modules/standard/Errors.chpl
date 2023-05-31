@@ -408,7 +408,7 @@ module Errors {
     var nameC: c_string = __primitive("class name by id", cid);
     var nameS: string;
     try! {
-      nameS = string.createCopyingBuffer(nameC);
+      nameS = string.createCopyingBuffer(nameC:c_ptrConst(c_uchar));
     }
     return nameS;
   }
@@ -493,13 +493,13 @@ module Errors {
   pragma "insert line file info"
   pragma "always propagate line file info"
   proc chpl_uncaught_error(err: unmanaged Error) {
-    extern proc chpl_error_preformatted(c_string);
+    extern proc chpl_error_preformatted(ptr:c_ptrConst(c_uchar));
 
     const myFileC:c_string = __primitive("chpl_lookupFilename",
                                          __primitive("_get_user_file"));
     var myFileS: string;
     try! {
-      myFileS = string.createCopyingBuffer(myFileC);
+      myFileS = string.createCopyingBuffer(myFileC:c_ptrConst(c_uchar));
     }
     const myLine = __primitive("_get_user_line");
 
@@ -507,14 +507,14 @@ module Errors {
                                              err.thrownFileId);
     var thrownFileS: string;
     try! {
-      thrownFileS = string.createCopyingBuffer(thrownFileC);
+      thrownFileS = string.createCopyingBuffer(thrownFileC:c_ptrConst(c_uchar));
     }
     const thrownLine = err.thrownLine;
 
     var s = "uncaught " + chpl_describe_error(err) +
             "\n  " + thrownFileS + ":" + thrownLine:string + ": thrown here" +
             "\n  " + myFileS + ":" + myLine:string + ": uncaught here";
-    chpl_error_preformatted(c_ptrToConst_helper(s):c_string);
+    chpl_error_preformatted(c_ptrToConst_helper(s));
   }
   // This is like the above, but it is only ever added by the
   // compiler. In case of iterator inlining (say), this call
