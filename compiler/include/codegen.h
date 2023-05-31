@@ -71,6 +71,34 @@ struct LoopData
 #endif
 };
 
+/* A variable for use in VariablesByBlock */
+struct GenVariable {
+  llvm::AllocaInst* localVariable = nullptr;
+
+  // TODO: add support for reasoning about globals/outer variables
+  // and fields for use with llvm.invariant.start
+  //llvm::Value* outerVariable = nullptr;
+
+  // what type is the alloca / global pointing to?
+  llvm::Type* type = nullptr;
+
+  VarSymbol* var = nullptr;
+  llvm::Value* invariantStartInst = nullptr;
+
+  GenVariable(llvm::AllocaInst* localVariable, llvm::Type* type, VarSymbol* var)
+    : localVariable(localVariable), type(type), var(var) { }
+};
+
+/* This class helps to keep track of variables declared by the
+   block in which they are declared */
+struct GenVariablesByBlock {
+  BlockStmt* block = nullptr; // just for debugging
+  std::vector<GenVariable> vars;
+  std::vector<size_t> needsInvariantStart; // indexes into the above
+
+  GenVariablesByBlock(BlockStmt* block) : block(block) { }
+};
+
 /* GenInfo is meant to be a global variable which stores
  * the code generator state - e.g. FILE* to print C to
  * or LLVM module in which to generate.
@@ -112,7 +140,8 @@ struct GenInfo {
   llvm::TargetMachine* targetMachine;
 
   std::vector<LoopData> loopStack;
-  std::vector<std::pair<llvm::AllocaInst*, llvm::Type*> > currentStackVariables;
+  std::vector<GenVariablesByBlock> currentStackVariables;
+
   const clang::CodeGen::CGFunctionInfo* currentFunctionABI;
 
   llvm::LLVMContext llvmContext;
@@ -156,7 +185,22 @@ extern std::map<std::string, int> commIDMap;
 
 #ifdef HAVE_LLVM
 void setupClang(GenInfo* info, std::string rtmain);
-void codegenLifetimeEnd(llvm::Type *valType, llvm::Value *addr);
+
+void codegenLifetimeEnd(GenVariable& v);
+void codegenInvariantStart(GenVariable& v);
+void codegenInvariantEnd(GenVariable& v);
+GenVariable* findGenVariable(VarSymbol* var);
+void noteInvariantStartShouldBeEmitted(VarSymbol* var);
+
+// * appends an llvm.lifetime.start intrinsic to the function
+// * and also adds an alloca at the start of the current function
+// * adds the variable to gGenInfo->currentStackVariables
+llvm::AllocaInst* createVarLLVM(llvm::Type* type,
+                                const char* name=nullptr,
+                                VarSymbol* var=nullptr);
+
+llvm::Value *convertValueToType(llvm::Value *value, llvm::Type *newType,
+                                bool isSigned = false, bool force = false);
 #endif
 
 bool isBuiltinExternCFunction(const char* cname);

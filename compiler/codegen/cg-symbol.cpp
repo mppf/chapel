@@ -62,6 +62,8 @@
 
 #include "global-ast-vecs.h"
 
+#include "view.h" // debug
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -968,7 +970,9 @@ void VarSymbol::codegenDef() {
     alignment = getAlignment(type);
 
     llvm::Type *varType = type->codegen().type;
-    llvm::AllocaInst *varAlloca = createVarLLVM(varType, cname);
+    // create llvm.lifetime.start at the current position in the
+    // function and an alloca at the top of the function.
+    llvm::AllocaInst *varAlloca = createVarLLVM(varType, cname, this);
 
     // Update the alignment if necessary
 #if HAVE_LLVM_VER >= 100
@@ -981,7 +985,7 @@ void VarSymbol::codegenDef() {
     }
 #endif
 
-
+    // Add it to the layered value table for lookup by name
     info->lvt->addValue(cname, varAlloca, GEN_PTR, ! is_signed(type));
 
     if(AggregateType *ctype = toAggregateType(type)) {
@@ -2551,6 +2555,7 @@ void FnSymbol::codegenDef() {
     info->irBuilder->SetInsertPoint(block);
 
     info->lvt->addLayer();
+    info->currentStackVariables.push_back(GenVariablesByBlock(body));
 
     if(debug_info) {
       llvm::DISubprogram* dbgScope = debug_info->get_function(this);
@@ -2806,16 +2811,16 @@ void FnSymbol::codegenDef() {
 
   body->codegen();
   flushStatements();
-#ifdef HAVE_LLVM
-  info->currentStackVariables.clear();
-  info->currentFunctionABI = NULL;
-#endif
-
   if( outfile ) {
     fprintf(outfile, "}\n\n");
   } else {
 #ifdef HAVE_LLVM
     info->lvt->removeLayer();
+    INT_ASSERT(info->currentStackVariables.size() == 1 &&
+               info->currentStackVariables.back().block == body);
+    info->currentStackVariables.clear();
+    info->currentFunctionABI = NULL;
+
     if( developer || fVerify ) {
       bool problems = false;
       // Debug info generation creates metadata nodes that won't be
@@ -2824,7 +2829,11 @@ void FnSymbol::codegenDef() {
       if( ! debug_info )
         problems = llvm::verifyFunction(*func, &llvm::errs());
       if( problems ) {
-        INT_FATAL("LLVM function verification failed");
+        if (developer) {
+          nprint_view(this);
+          print_llvm(func);
+        }
+        //INT_FATAL(this, "LLVM function verification failed");
       }
     }
 

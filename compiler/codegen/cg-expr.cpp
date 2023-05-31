@@ -259,8 +259,17 @@ GenRet DefExpr::codegen() {
 ************************************* | ************************************/
 
 #ifdef HAVE_LLVM
-llvm::AllocaInst* createVarLLVM(llvm::Type* type, const char* name)
+llvm::AllocaInst* createVarLLVM(llvm::Type* type,
+                                const char* name,
+                                VarSymbol* var)
 {
+  char namebuf[32];
+  if (name == nullptr) {
+    // generate a name if we don't have one yet
+    snprintf(namebuf, sizeof(namebuf), "chpl_macro_tmp_%d", codegen_tmp++);
+    name = namebuf;
+  }
+
   GenInfo* info = gGenInfo;
   llvm::IRBuilder<>* irBuilder = info->irBuilder;
   const llvm::DataLayout& layout = info->module->getDataLayout();
@@ -268,17 +277,12 @@ llvm::AllocaInst* createVarLLVM(llvm::Type* type, const char* name)
   llvm::AllocaInst* val = NULL;
 
   val = makeAllocaAndLifetimeStart(irBuilder, layout, ctx, type, name);
-  info->currentStackVariables.push_back(
-      std::pair<llvm::AllocaInst*, llvm::Type*>(val, type));
+  // Add it to currentStackVariables to track lifetime start / end
+  INT_ASSERT(info->currentStackVariables.size() > 0);
+  info->currentStackVariables.back().vars.push_back(
+      GenVariable(val, type, var));
 
   return val;
-}
-
-llvm::AllocaInst* createVarLLVM(llvm::Type* type)
-{
-  char name[32];
-  snprintf(name, sizeof(name), "chpl_macro_tmp_%d", codegen_tmp++);
-  return createVarLLVM(type, name);
 }
 
 llvm::Value *convertValueToType(llvm::Value *value, llvm::Type *newType,
@@ -294,9 +298,12 @@ llvm::Value *convertValueToType(llvm::Value *value, llvm::Type *newType,
                             value, newType,
                             &alloca, isSigned, force);
 
-  if (alloca != NULL)
-    info->currentStackVariables.push_back(
-      std::pair<llvm::AllocaInst*, llvm::Type*>(alloca, newType));
+  if (alloca != NULL) {
+    // Add it to currentStackVariables to track lifetime start / end
+    INT_ASSERT(info->currentStackVariables.size() > 0);
+    info->currentStackVariables.back().vars.push_back(
+      GenVariable(alloca, newType, /* VarSymbol */ nullptr));
+  }
 
   return val;
 }
@@ -542,31 +549,6 @@ llvm::Type* computePointerElementType(llvm::Value* ptr, Type* chplType) {
     INT_FATAL("could not compute pointer type");
   }
   return eltTypeFromInsn;
-}
-
-// If valType is nullptr, will try to compute it by looking
-// for an AllocaInst or a GlobalValue in addr.
-static
-void codegenInvariantStart(llvm::Type *valType, llvm::Value *addr)
-{
-  GenInfo *info = gGenInfo;
-  const llvm::DataLayout& dataLayout = info->module->getDataLayout();
-
-  if (valType == nullptr) {
-    valType = tryComputingPointerElementType(addr);
-    INT_ASSERT(valType);
-  }
-
-  uint64_t sizeInBytes;
-  if (valType->isSized())
-    sizeInBytes = dataLayout.getTypeSizeInBits(valType)/8;
-  else
-    return;
-
-  llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
-      llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
-
-  info->irBuilder->CreateInvariantStart(addr, size);
 }
 
 // Create an LLVM store instruction possibly adding
@@ -6017,21 +5999,36 @@ DEFINE_PRIM(INVARIANT_START) {
     // do nothing for the C backend
   } else {
 #ifdef HAVE_LLVM
-    GenRet ptr = codegenValue(call->get(1));
-    llvm::Value* val = ptr.val;
-    codegenInvariantStart(nullptr, val);
+    Expr* arg = call->get(1);
+    INT_ASSERT(arg);
+    if (SymExpr* se = toSymExpr(arg)) {
+      if (VarSymbol* var = toVarSymbol(se->symbol())) {
+        if (GenVariable* v = findGenVariable(var)) {
+          codegenInvariantStart(*v);
+        }
+      }
+    }
 #endif
   }
 }
 
 DEFINE_PRIM(DEAD_FROM_ELIDED_COPY) {
-  // TODO: mark the lifetime ending for the passed variable
 #ifdef HAVE_LLVM
-/*  Expr* arg = call->get(1);
+  // mark the lifetime ending for the now-dead variable
+  Expr* arg = call->get(1);
   INT_ASSERT(arg);
-  GenRet var = arg;
-  GenRet varType = arg->typeInfo();
-  codegenLifetimeEnd(varType.type, var.val);*/
+  if (SymExpr* se = toSymExpr(arg)) {
+    if (VarSymbol* var = toVarSymbol(se->symbol())) {
+      if (GenVariable* v = findGenVariable(var)) {
+        if (v->invariantStartInst != nullptr) {
+          codegenInvariantEnd(*v);
+        }
+        if (v->localVariable != nullptr) {
+          codegenLifetimeEnd(*v);
+        }
+      }
+    }
+  }
 #endif
 }
 

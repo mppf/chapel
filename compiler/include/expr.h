@@ -375,16 +375,6 @@ void addOptimizationFlag(Expr* insertAfter, Flag flag);
 bool hasOptimizationFlag(Expr* anchor, Flag flag);
 
 
-#ifdef HAVE_LLVM
-// These append an llvm.lifetime.start intrinsic to the function
-// and also add an alloca at the start of the current function
-llvm::AllocaInst* createVarLLVM(llvm::Type* type, const char* name);
-llvm::AllocaInst* createVarLLVM(llvm::Type* type);
-
-llvm::Value *convertValueToType(llvm::Value *value, llvm::Type *newType,
-                                bool isSigned = false, bool force = false);
-#endif
-
 GenRet codegenValue(GenRet r);
 GenRet codegenValuePtr(GenRet r);
 

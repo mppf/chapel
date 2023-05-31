@@ -142,6 +142,8 @@ void AddInitGuards::addInitGuard(FnSymbol* fn, FnSymbol* preInitFn) {
     //      if (<init_fn_name>_p) goto _exit_<init_fn_name>.
     // Precedes everything in the module initialization function,
     // including the assignment we just added.
+    // TODO: This is the only use of GOTO_NORMAL -- could this
+    // use GOTO_RETURN instead?
     LabelSymbol* label = new LabelSymbol(astr("_exit_", fn->name));
     fn->insertIntoEpilogue(new DefExpr(label));
     Expr* gotoExit = new GotoStmt(GOTO_NORMAL, label);
