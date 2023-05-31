@@ -30,9 +30,9 @@ if errorCase == 1 {
   gr("hi");
 }
 
-var hi_c = c"hi";
-var ss = string.createCopyingBuffer(hi_c)+ string.createCopyingBuffer(hi_c);
-var s = c_ptrToConst_helper(ss):c_string;
+var hi_c = c_ptrToConst_helper("hi");
+var ss = string.createCopyingBuffer(hi_c) + string.createCopyingBuffer(hi_c);
+var s = c_ptrToConst_helper(ss);
 
 f(string.createCopyingBuffer(s));
 fi(string.createCopyingBuffer(s));

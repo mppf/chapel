@@ -46,11 +46,11 @@ iter HDFSmap(dataFile: string, namenode: string = "default", port: int(32) = 0) 
 
 
   // use const instead of var -- better optimizations this way
-  const hdfsFS: c_ptr(void) = HDFS.hdfsConnect(c_ptrToConst_helper(namenode.localize()):c_string, port);
-  const fileInfo = HDFS.chadoopGetFileInfo(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string);
-  const blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string, 0, fileInfo.mSize); // incr 0?
+  const hdfsFS: c_ptr(void) = HDFS.hdfsConnect(c_ptrToConst_helper(namenode.localize()), port);
+  const fileInfo = HDFS.chadoopGetFileInfo(hdfsFS, c_ptrToConst_helper(dataFile.localize()));
+  const blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()), 0, fileInfo.mSize); // incr 0?
   const blockCount = HDFS.chadoopGetBlockCount(blockHosts);
-  const dataFileLocal = HDFS.hdfsOpenFile(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string, O_RDONLY, 0, 0, 0);
+  const dataFileLocal = HDFS.hdfsOpenFile(hdfsFS, c_ptrToConst_helper(dataFile.localize()), O_RDONLY, 0, 0, 0);
   assert(HDFS.IS_NULL(dataFileLocal) == HDFS.IS_NULL_FALSE, "Failed to open dataFileLocal");
   var length = (fileInfo.mBlockSize): int(32); // LOOK
 
@@ -113,11 +113,11 @@ iter HDFSmap(param tag: iterKind, dataFile: string, namenode: string = "default"
       on loc {
 
         //======================== File connection =========================
-        var hdfsFS: c_ptr(void) = HDFS.hdfsConnect(c_ptrToConst_helper(namenode.localize()):c_string, port);
+        var hdfsFS: c_ptr(void) = HDFS.hdfsConnect(c_ptrToConst_helper(namenode.localize()), port);
         assert(HDFS.IS_NULL(hdfsFS) == HDFS.IS_NULL_FALSE, "Failed to connect to HDFS");
 
-        var fileInfo      = HDFS.chadoopGetFileInfo(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string);
-        var dataFileLocal = HDFS.hdfsOpenFile(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string, O_RDONLY, 0, 0, 0);
+        var fileInfo      = HDFS.chadoopGetFileInfo(hdfsFS, c_ptrToConst_helper(dataFile.localize()));
+        var dataFileLocal = HDFS.hdfsOpenFile(hdfsFS, c_ptrToConst_helper(dataFile.localize()), O_RDONLY, 0, 0, 0);
         assert(HDFS.IS_NULL(dataFileLocal) == HDFS.IS_NULL_FALSE, "Failed to open dataFileLocal on loc ", here.id);
         // =================================== END =========================
 
@@ -144,7 +144,7 @@ iter HDFSmap(param tag: iterKind, dataFile: string, namenode: string = "default"
       // Setup a mapping loc --> {block1, block2, ...}
       var fileInfo = rcLocal(fileInfo_PL);
       var hdfsFS   = rcLocal(hdfsFS_PL);
-      var blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string, 0, fileInfo.mSize); // Investigate
+      var blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()), 0, fileInfo.mSize); // Investigate
       var blockCount: int = HDFS.chadoopGetBlockCount(blockHosts);
 
       const Space = {0..blockCount-1};
@@ -154,7 +154,7 @@ iter HDFSmap(param tag: iterKind, dataFile: string, namenode: string = "default"
       forall (j, i) in zip (Biter, 0..) {
         var fileInfo = rcLocal(fileInfo_PL);
         var hdfsFS   = rcLocal(hdfsFS_PL);
-        var blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()):c_string, 0, fileInfo.mSize); // Investigate
+        var blockHosts = HDFS.hdfsGetHosts(hdfsFS, c_ptrToConst_helper(dataFile.localize()), 0, fileInfo.mSize); // Investigate
 
         //var owner_tmp = HDFS.chadoopGetHost(blockHosts, i: int(32), here.name + domainSuffix, (i % fileInfo.mReplication): int(32));
         var owner_tmp = HDFS.chadoopGetHost(blockHosts, i: int(32), (i % fileInfo.mReplication): int(32)):string;

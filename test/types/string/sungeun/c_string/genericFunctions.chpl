@@ -61,37 +61,37 @@ var vs: string;
 // s should be c_string for these
 {
   proc g(s) {
-    checkType(c_string, s.type);
+    checkType(c_ptrConst(c_uchar), s.type);
   }
 
-  g(c_ptrToConst_helper(vs):c_string);
-  g(c_ptrToConst_helper(cs):c_string);
-  g(s=c_ptrToConst_helper(vs):c_string);
-  g(s=c_ptrToConst_helper(cs):c_string);
+  g(c_ptrToConst_helper(vs));
+  g(c_ptrToConst_helper(cs));
+  g(s=c_ptrToConst_helper(vs));
+  g(s=c_ptrToConst_helper(cs));
 }
 
 {
   proc f(type gtype, g, s) {
     checkType(gtype, g.type);
-    checkType(c_string, s.type);
+    checkType(c_ptrConst(c_uchar), s.type);
   }
 
-  f(int, 3, c_ptrToConst_helper(vs):c_string);
-  f(int, 3, c_ptrToConst_helper(cs):c_string);
-  f(s=c_ptrToConst_helper(vs):c_string, int, 5);
-  f(s=c_ptrToConst_helper(cs):c_string, int, 5);
+  f(int, 3, c_ptrToConst_helper(vs));
+  f(int, 3, c_ptrToConst_helper(cs));
+  f(s=c_ptrToConst_helper(vs), int, 5);
+  f(s=c_ptrToConst_helper(cs), int, 5);
 }
 
 {
   proc f(s, type gtype, g = 3.14) {
     checkType(gtype, g.type);
-    checkType(c_string, s.type);
+    checkType(c_ptrConst(c_uchar), s.type);
   }
 
-  f(c_ptrToConst_helper(vs):c_string, real);
-  f(c_ptrToConst_helper(cs):c_string, real);
-  f(real, s=c_ptrToConst_helper(vs):c_string);
-  f(real, s=c_ptrToConst_helper(cs):c_string);
+  f(c_ptrToConst_helper(vs), real);
+  f(c_ptrToConst_helper(cs), real);
+  f(real, s=c_ptrToConst_helper(vs));
+  f(real, s=c_ptrToConst_helper(cs));
 }
 
 {

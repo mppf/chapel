@@ -2,18 +2,18 @@ use checkType;
 use CTypes;
 
 proc rcs() {
-  var s = c"hi";
+  var s = c_ptrToConst_helper("hi");
   var ss = string.createCopyingBuffer(s) + string.createCopyingBuffer(s);
-  var cs = c_ptrToConst_helper(ss):c_string;
+  var cs = c_ptrToConst_helper(ss);
   return cs;
 }
 
-checkType(c_string, rcs().type);
+checkType(c_ptrConst(c_uchar), rcs().type);
 
 proc rcss():string {
-  var s = c"hi";
+  var s = c_ptrToConst_helper("hi");
   var ss = string.createCopyingBuffer(s) + string.createCopyingBuffer(s);
-  var cs = c_ptrToConst_helper(ss):c_string;
+  var cs = c_ptrToConst_helper(ss);
   return string.createCopyingBuffer(cs);
 }
 
