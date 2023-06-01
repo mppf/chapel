@@ -352,7 +352,12 @@ GenRet BlockStmt::codegen() {
 
     info->lvt->addLayer();
 
-    bool handledInvariantEndThisBlock = false;
+/*TODO -- inline functions collapses blocks, and then all the info
+        about lifetimes is lost. As a result, I am thinking it's best
+        to add invariant end and lifetime end primitives within
+        call destructors.*/
+
+    bool handledBlockExit = false;
     bool addedToCurrentStackVars = false;
     bool inIterator = this->getFunction()->hasFlag(FLAG_AUTO_II);
 
@@ -373,10 +378,6 @@ GenRet BlockStmt::codegen() {
       BlockStmt* tgtBlock = nullptr;
       ControlFlowType cfType = characterizeControlFlow(node, tgtBlock);
       if (cfType != ControlFlowType::NONE) {
-        if (cfType == ControlFlowType::LABEL ||
-            cfType == ControlFlowType::FUNCTION_EXIT)
-          handledInvariantEndThisBlock = true;
-
         // generate llvm.invariant.end for all variables declared
         // in blocks that will be exited on the way to the target block.
         auto& blocks = info->currentStackVariables;
@@ -386,37 +387,25 @@ GenRet BlockStmt::codegen() {
             // stop before we reach the target block for e.g. break
             break;
           }
+          // if we got this far, we handled block exit for this block
+          handledBlockExit = true;
           for (auto vIt = vbb.vars.rbegin(); vIt != vbb.vars.rend(); ++vIt) {
             GenVariable& v = *vIt;
             if (v.invariantStartInst) {
               codegenInvariantEnd(v);
-              if (handledInvariantEndThisBlock) {
+              if (handledBlockExit) {
                 // clear out the invariant start ptr so we don't
                 // try to emit more invariant ends later.
                 v.invariantStartInst = nullptr;
               }
             }
+            if (cfType != ControlFlowType::OTHER) {
+              codegenLifetimeEnd(v);
+            }
           }
           if (cfType != ControlFlowType::LABEL && vbb.block == tgtBlock) {
             // stop after reaching the target block for e.g. label end
             break;
-          }
-        }
-      }
-
-      // LLVM 13 documented the semantics of llvm.lifetime.end better,
-      // and pointed out that an alloca reaches the end of its lifetime
-      // when the function returns. As a result, these llvm.lifetime.end
-      // calls might be unnecessary.
-      if (CallExpr* call = toCallExpr(node)) {
-        if (call->isPrimitive(PRIM_RETURN)) {
-          auto& blocks = info->currentStackVariables;
-          for (auto bIt = blocks.rbegin(); bIt != blocks.rend(); ++bIt) {
-            GenVariablesByBlock& vbb = *bIt;
-            for (auto vIt = vbb.vars.rbegin(); vIt != vbb.vars.rend(); ++vIt) {
-              GenVariable& v = *vIt;
-              codegenLifetimeEnd(v);
-            }
           }
         }
       }
@@ -471,7 +460,7 @@ GenRet BlockStmt::codegen() {
 
     // If the block didn't contain an unconditional return or label,
     // add llvm.lifetime.end etc at the end of the block.
-    if (!handledInvariantEndThisBlock) {
+    if (!handledBlockExit) {
       codegenLifetimeEndInvariantEndForBlock(
           info->currentStackVariables.back());
     }
