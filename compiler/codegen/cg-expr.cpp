@@ -6012,6 +6012,26 @@ DEFINE_PRIM(INVARIANT_START) {
   }
 }
 
+DEFINE_PRIM(CLEANUP_LOCAL_VARIABLE) {
+#ifdef HAVE_LLVM
+  // emit llvm.invariant.end if we have an llvm.invariant.start
+  // for the variable already.
+  Expr* arg = call->get(1);
+  INT_ASSERT(arg);
+  if (SymExpr* se = toSymExpr(arg)) {
+    if (VarSymbol* var = toVarSymbol(se->symbol())) {
+      if (var->isConstValWillNotChange()) {
+        if (GenVariable* v = findGenVariable(var)) {
+          if (v->invariantStartInst != nullptr) {
+            codegenInvariantEnd(*v);
+          }
+        }
+      }
+    }
+  }
+#endif
+}
+
 DEFINE_PRIM(DEAD_FROM_ELIDED_COPY) {
 #ifdef HAVE_LLVM
   // mark the lifetime ending for the now-dead variable

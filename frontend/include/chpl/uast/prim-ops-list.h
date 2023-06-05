@@ -369,6 +369,7 @@ PRIMITIVE_R(TO_NON_NILABLE_CLASS, "to non nilable class")
 PRIMITIVE_R(SET_ALIASING_ARRAY_ON_TYPE, "set aliasing array on type")
 
 PRIMITIVE_G(INVARIANT_START, "invariant start")
+PRIMITIVE_G(CLEANUP_LOCAL_VARIABLE, "cleanup local variable")
 PRIMITIVE_G(DEAD_FROM_ELIDED_COPY, "dead from elided copy")
 PRIMITIVE_G(NO_ALIAS_SET, "no alias set")
 PRIMITIVE_G(COPIES_NO_ALIAS_SET, "copies no alias set")

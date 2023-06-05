@@ -1569,11 +1569,18 @@ void FindInvalidNonNilables::visitSymExpr(SymExpr* se) {
   if (isNonNilableVariable(sym)) {
     if (Expr* e = varsToNil[sym]) {
       bool error = true;
+      // Don't worry about PRIM_CLEANUP_LOCAL_VARIABLE
+      // or PRIM_DEAD_FROM_ELIDED_COPY
+      //
       // Don't worry about a PRIM_END_OF_STATEMENT if it follows the
       // expression
+      //
       // Don't worry about autoDestroy calls
       if (CallExpr* parentCall = toCallExpr(se->getStmtExpr())) {
-        if (parentCall->isPrimitive(PRIM_END_OF_STATEMENT)) {
+        if (parentCall->isPrimitive(PRIM_CLEANUP_LOCAL_VARIABLE) ||
+            parentCall->isPrimitive(PRIM_DEAD_FROM_ELIDED_COPY)) {
+          error = false;
+        } else if (parentCall->isPrimitive(PRIM_END_OF_STATEMENT)) {
           error = false;
           for (Expr* cur = e; cur != NULL; cur = cur->next) {
             if (CallExpr* curCall = toCallExpr(cur)) {

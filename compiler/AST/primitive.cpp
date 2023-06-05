@@ -1226,6 +1226,13 @@ initPrimitive() {
   // takes in a pointer/reference argument that is the invariant thing
   prim_def(PRIM_INVARIANT_START, "invariant start", returnInfoVoid, false, false);
 
+  // After callDestructors, AST should include this just before a call
+  // to destroy a local variable.
+  // It takes in a SymExpr referring to the variable that will be deinited.
+  // This enables llvm.invariant.end to be emitted before destroying
+  // the local variable.
+  prim_def(PRIM_CLEANUP_LOCAL_VARIABLE, "cleanup local variable", returnInfoVoid, false, false);
+
   // When a copy is elided, during resolution we have
   // PRIM_ASSIGN_ELIDED_COPY, but after that, it turns into
   // PRIM_ASSIGN / PRIM_DEAD_FROM_ELIDED_COPY. The PRIM_DEAD_FROM_ELIDED_COPY

@@ -395,6 +395,7 @@ static bool isUse(SymExpr* se)
 
      case PRIM_ADDR_OF:
      case PRIM_SET_REFERENCE:
+     case PRIM_CLEANUP_LOCAL_VARIABLE:
       return false; // See Note #2.
 
      case PRIM_PRIVATE_BROADCAST:

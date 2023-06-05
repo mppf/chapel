@@ -536,6 +536,7 @@ CallResolutionResult resolvePrimCall(Context* context,
     case PRIM_CHECK_ERROR:
     case PRIM_SET_ALIASING_ARRAY_ON_TYPE:
     case PRIM_INVARIANT_START:
+    case PRIM_CLEANUP_LOCAL_VARIABLE:
     case PRIM_GET_TEST_BY_NAME:
     case PRIM_GET_TEST_BY_INDEX:
     case PRIM_DEAD_FROM_ELIDED_COPY:

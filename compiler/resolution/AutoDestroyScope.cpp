@@ -330,11 +330,15 @@ static void deinitialize(Expr* before, Expr* after, VarSymbol* var) {
 
   BaseAST* useLoc = before?before:after;
   SET_LINENO(useLoc);
+  CallExpr* marker = new CallExpr(PRIM_CLEANUP_LOCAL_VARIABLE, var);
   CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
-  if (before)
+  if (before) {
+    before->insertBefore(marker);
     before->insertBefore(autoDestroy);
-  else
+  } else {
     after->insertAfter(autoDestroy);
+    after->insertAfter(marker);
+  }
 }
 
 void AutoDestroyScope::destroyVariable(Expr* after, VarSymbol* var,

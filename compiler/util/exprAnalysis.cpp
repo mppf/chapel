@@ -241,6 +241,7 @@ bool SafeExprAnalysis::isSafePrimitive(CallExpr* ce) {
       return !isRefStore;
     }
     case PRIM_DEAD_FROM_ELIDED_COPY:
+    case PRIM_CLEANUP_LOCAL_VARIABLE:
       return false;
     case PRIM_SIZEOF_BUNDLE:
     case PRIM_SIZEOF_DDATA_ELEMENT:
