@@ -1222,23 +1222,25 @@ initPrimitive() {
   // 2) field symbol or param-string name of the field in the _RuntimeTypeInfo
   prim_def(PRIM_GET_RUNTIME_TYPE_FIELD, "get runtime type field", returnInfoRuntimeTypeField, false, false);
 
-  // Corresponds to LLVM's invariant start
-  // takes in a pointer/reference argument that is the invariant thing
-  prim_def(PRIM_INVARIANT_START, "invariant start", returnInfoVoid, false, false);
+  // Corresponds to llvm.invariant.start
+  // takes in a SymExpr referring to a 'const' local variable
+  // and should be added just after initializing such a local variable
+  prim_def(PRIM_INVARIANT_START_LOCAL_VARIABLE, "invariant start local variable", returnInfoVoid, false, false);
 
-  // After callDestructors, AST should include this just before a call
-  // to destroy a local variable.
-  // It takes in a SymExpr referring to the variable that will be deinited.
-  // This enables llvm.invariant.end to be emitted before destroying
-  // the local variable.
-  prim_def(PRIM_CLEANUP_LOCAL_VARIABLE, "cleanup local variable", returnInfoVoid, false, false);
+  // Corresponds to llvm.invariant.end
+  // takes in a SymExpr referring to a 'const' local variable
+  // and should be added just before deinitializing such a local variable
+  prim_def(PRIM_INVARIANT_END_LOCAL_VARIABLE, "invariant end local variable", returnInfoVoid, false, false);
 
-  // When a copy is elided, during resolution we have
-  // PRIM_ASSIGN_ELIDED_COPY, but after that, it turns into
-  // PRIM_ASSIGN / PRIM_DEAD_FROM_ELIDED_COPY. The PRIM_DEAD_FROM_ELIDED_COPY
-  // can be used by the LLVM backend to mark that the variable's
-  // lifetime has ended.
-  prim_def(PRIM_DEAD_FROM_ELIDED_COPY, "dead from elided copy", returnInfoVoid, false, false);
+  // Corresponds to llvm.lifetime.end
+  // (llvm.lifetime.start can be emitted for a DefExpr declaring a variable)
+  // takes in a SymExpr referring to a local variable
+  // it should be added just after deinitializing a local variable,
+  // or whenever the variable goes out of scope in the event it does not
+  // need to be deinitialized. This primitive can serve as the matching
+  // counterpart to PRIM_INVARIANT_START_LOCAL_VARIABLE since it can
+  // generate llvm.invariant.end along with llvm.lifetime.end if needed.
+  prim_def(PRIM_LIFETIME_END_LOCAL_VARIABLE, "lifetime end local variable", returnInfoVoid, false, false);
 
   // variable number of arguments
   // 1st argument is a SymExpr referring to a Symbol indicating which

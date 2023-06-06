@@ -2555,7 +2555,7 @@ void FnSymbol::codegenDef() {
     info->irBuilder->SetInsertPoint(block);
 
     info->lvt->addLayer();
-    info->currentStackVariables.push_back(GenVariablesByBlock(body));
+    info->currentStackVariables.push_back(GenVariablesByBlock(&body->body));
 
     if(debug_info) {
       llvm::DISubprogram* dbgScope = debug_info->get_function(this);
@@ -2796,6 +2796,10 @@ void FnSymbol::codegenDef() {
 #endif
   }
 
+  /* disabling to get lifetime start at variable def point.
+     allocas should still go to the top of the fn.
+
+TODO: re-enable it for the C backend
   {
     std::vector<BaseAST*> asts;
     collect_top_asts(body, asts);
@@ -2807,7 +2811,7 @@ void FnSymbol::codegenDef() {
           flushStatements();
         }
     }
-  }
+  }*/
 
   body->codegen();
   flushStatements();
@@ -2817,7 +2821,7 @@ void FnSymbol::codegenDef() {
 #ifdef HAVE_LLVM
     info->lvt->removeLayer();
     INT_ASSERT(info->currentStackVariables.size() == 1 &&
-               info->currentStackVariables.back().block == body);
+               info->currentStackVariables.back().list == &body->body);
     info->currentStackVariables.clear();
     info->currentFunctionABI = NULL;
 

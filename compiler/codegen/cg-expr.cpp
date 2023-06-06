@@ -229,6 +229,8 @@ GenRet DefExpr::codegen() {
       std::string str = sym->cname;
       str += ":;\n"; // ; avoids 'label at end of compound statement' error
       info->cStatements.push_back(str);
+    } else {
+      // regular local vars are generated in FnSymbol::codegenDef
     }
   } else {
 #ifdef HAVE_LLVM
@@ -247,6 +249,12 @@ GenRet DefExpr::codegen() {
 
       func->getBasicBlockList().push_back(blockLabel);
       info->irBuilder->SetInsertPoint(blockLabel);
+    } else if (VarSymbol* var = toVarSymbol(sym)) {
+      // code-generate alloca and llvm.lifetime.start for
+      // function locals
+      if (parentSymbol == var->getFunction()) {
+        sym->codegenDef();
+      }
     }
 #endif
   }
@@ -278,9 +286,7 @@ llvm::AllocaInst* createVarLLVM(llvm::Type* type,
 
   val = makeAllocaAndLifetimeStart(irBuilder, layout, ctx, type, name);
   // Add it to currentStackVariables to track lifetime start / end
-  INT_ASSERT(info->currentStackVariables.size() > 0);
-  info->currentStackVariables.back().vars.push_back(
-      GenVariable(val, type, var));
+  noteAllocaAndLifetimeStartGenerated(val, type, var);
 
   return val;
 }
@@ -300,9 +306,8 @@ llvm::Value *convertValueToType(llvm::Value *value, llvm::Type *newType,
 
   if (alloca != NULL) {
     // Add it to currentStackVariables to track lifetime start / end
-    INT_ASSERT(info->currentStackVariables.size() > 0);
-    info->currentStackVariables.back().vars.push_back(
-      GenVariable(alloca, newType, /* VarSymbol */ nullptr));
+    noteAllocaAndLifetimeStartGenerated(alloca, newType,
+                                        /* VarSymbol */ nullptr);
   }
 
   return val;
@@ -5992,7 +5997,7 @@ DEFINE_PRIM(VIRTUAL_METHOD_CALL) {
 
 DEFINE_BASIC_PRIM(LOOKUP_FILENAME)
 
-DEFINE_PRIM(INVARIANT_START) {
+DEFINE_PRIM(INVARIANT_START_LOCAL_VARIABLE) {
 
   GenInfo* info = gGenInfo;
   if (info->cfile) {
@@ -6003,16 +6008,14 @@ DEFINE_PRIM(INVARIANT_START) {
     INT_ASSERT(arg);
     if (SymExpr* se = toSymExpr(arg)) {
       if (VarSymbol* var = toVarSymbol(se->symbol())) {
-        if (GenVariable* v = findGenVariable(var)) {
-          codegenInvariantStart(*v);
-        }
+        noteInvariantStartShouldBeEmitted(var);
       }
     }
 #endif
   }
 }
 
-DEFINE_PRIM(CLEANUP_LOCAL_VARIABLE) {
+DEFINE_PRIM(INVARIANT_END_LOCAL_VARIABLE) {
 #ifdef HAVE_LLVM
   // emit llvm.invariant.end if we have an llvm.invariant.start
   // for the variable already.
@@ -6032,7 +6035,7 @@ DEFINE_PRIM(CLEANUP_LOCAL_VARIABLE) {
 #endif
 }
 
-DEFINE_PRIM(DEAD_FROM_ELIDED_COPY) {
+DEFINE_PRIM(LIFETIME_END_LOCAL_VARIABLE) {
 #ifdef HAVE_LLVM
   // mark the lifetime ending for the now-dead variable
   Expr* arg = call->get(1);
@@ -6040,12 +6043,7 @@ DEFINE_PRIM(DEAD_FROM_ELIDED_COPY) {
   if (SymExpr* se = toSymExpr(arg)) {
     if (VarSymbol* var = toVarSymbol(se->symbol())) {
       if (GenVariable* v = findGenVariable(var)) {
-        if (v->invariantStartInst != nullptr) {
-          codegenInvariantEnd(*v);
-        }
-        if (v->localVariable != nullptr) {
-          codegenLifetimeEnd(*v);
-        }
+        codegenLifetimeEnd(*v);
       }
     }
   }

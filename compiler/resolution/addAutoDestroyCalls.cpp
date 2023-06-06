@@ -63,7 +63,7 @@ static void walkBlockWithScope(AutoDestroyScope& scope,
                                std::set<VarSymbol*>& ignoredVariables,
                                LastMentionMap&   lmm);
 
-static bool isAutoDestroyedOrSplitInitedVariable(VarSymbol* var);
+static bool isTrackedVariable(VarSymbol* var);
 
 void addAutoDestroyCalls() {
   std::set<VarSymbol*> ignoredVariables;
@@ -231,7 +231,7 @@ static Expr* walkBlockStmt(FnSymbol*         fn,
     // Note any variables as they are declared
     if (DefExpr* def = toDefExpr(stmt)) {
       if (VarSymbol* v = toVarSymbol(def->sym))
-        if (isAutoDestroyedOrSplitInitedVariable(v))
+        if (isTrackedVariable(v))
           scope.variableAdd(v);
 
     // Collect defer statements to run during cleanup
@@ -260,28 +260,31 @@ static Expr* walkBlockStmt(FnSymbol*         fn,
                             ignoredVariables, lmm);
       }
 
-      CallExpr* fCall = NULL;
+      CallExpr* fCall = nullptr;
+      VarSymbol* initedVariable = nullptr;
+
+      if (stmt->id == 1860122) {
+        gdbShouldBreakHere();
+      }
+
       // Check for returned variable
       if (VarSymbol* v = initsVariable(stmt, fCall))
-        if (isAutoDestroyedOrSplitInitedVariable(v))
-          scope.addInitialization(v);
+        initedVariable = v;
 
       // workaround for issue #1833
       if (CallExpr* c = toCallExpr(stmt))
         if (c->isPrimitive(PRIM_SET_MEMBER))
           if (SymExpr* lhs = toSymExpr(c->get(1)))
             if (VarSymbol* v = toVarSymbol(lhs->symbol()))
-              if (isAutoDestroyedOrSplitInitedVariable(v))
-                if (v->hasFlag(FLAG_COERCE_TEMP) &&
-                    v->type->symbol->hasFlag(FLAG_TUPLE))
-                  scope.addInitialization(v);
+              if (v->hasFlag(FLAG_COERCE_TEMP) &&
+                  v->type->symbol->hasFlag(FLAG_TUPLE))
+                initedVariable = v;
 
-      if (fCall != NULL) {
+      if (fCall != nullptr) {
         // Check also for out intent in a called function
         for_formals_actuals(formal, actual, fCall) {
           if (VarSymbol* v = initsVariableOut(formal, actual))
-            if (isAutoDestroyedOrSplitInitedVariable(v))
-              scope.addInitialization(v);
+            initedVariable = v;
         }
 
         // and check for variables used before initialized
@@ -293,12 +296,28 @@ static Expr* walkBlockStmt(FnSymbol*         fn,
         }
       }
 
+      if (initedVariable != nullptr) {
+        if (isTrackedVariable(initedVariable)) {
+          // Record the initialization
+          scope.addInitialization(initedVariable);
+          // Additionally, add PRIM_INVARIANT_START_LOCAL_VARIABLE
+          // just after the initialization for const variables.
+          if (initedVariable->isConstValWillNotChange()) {
+            // add a marker to record the initialization point,
+            SET_LINENO(stmt);
+            auto c = new CallExpr(PRIM_INVARIANT_START_LOCAL_VARIABLE,
+                                  initedVariable);
+            stmt->insertAfter(c);
+          }
+        }
+      }
+
       // mark elided copies as deinitialized
       if (CallExpr* call = toCallExpr(stmt))
         if (call->isPrimitive(PRIM_ASSIGN_ELIDED_COPY))
           if (SymExpr* se = toSymExpr(call->get(2)))
             if (VarSymbol* var = toVarSymbol(se->symbol()))
-              if (isAutoDestroyedOrSplitInitedVariable(var))
+              if (isTrackedVariable(var))
                 scope.addEarlyDeinit(var);
 
     // Recurse in to a BlockStmt (or sub-classes of BlockStmt e.g. a loop)
@@ -380,7 +399,7 @@ static Expr* walkBlockStmt(FnSymbol*         fn,
       const std::vector<VarSymbol*>& vars = lmmIt->second;
       for_vector(VarSymbol, var, vars) {
 
-        if (isAutoDestroyedOrSplitInitedVariable(var)) {
+        if (isTrackedVariable(var)) {
           scope.destroyVariable(stmt, var, ignoredVariables);
           scope.addEarlyDeinit(var);
         }
@@ -970,9 +989,13 @@ bool isAutoDestroyedVariable(Symbol* sym) {
   return retval;
 }
 
-static bool isAutoDestroyedOrSplitInitedVariable(VarSymbol* var) {
+static bool isTrackedVariable(VarSymbol* var) {
   return isAutoDestroyedVariable(var) ||
-         var->hasFlag(FLAG_SPLIT_INITED);
+         var->hasFlag(FLAG_SPLIT_INITED) ||
+         // also track const variables to handle invariant end,
+         // unless they are not tracked for other reasons & are temps with 1 use
+         (var->isConstValWillNotChange() &&
+          !(var->hasFlag(FLAG_TEMP) && var->countUses(2) <= 1));
 }
 
 // For a yield of a variable, such as iter f() { var x=...; yield x; },

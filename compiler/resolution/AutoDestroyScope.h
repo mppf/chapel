@@ -42,6 +42,8 @@ public:
   // adds an initialization
   void                     addInitialization(VarSymbol* var);
 
+  //void                     addInvariantStart(VarSymbol* var);
+
   void                     addEarlyDeinit(VarSymbol* var);
 
   VarSymbol*               findVariableUsedBeforeInitialized(Expr* stmt);
@@ -111,6 +113,10 @@ private:
   // Which outer variables have been initialized in this scope?
   // This vector lists them in initialization order.
   std::vector<VarSymbol*>  mInitedOuterVars;
+
+  // For which variables have we generated PRIM_INVARIANT_START_LOCAL_VARIABLE
+  // in this scope (possibly including outer variables)?
+  //std::set<VarSymbol*>     mInvariantStartVars;
 
   // Which variables have been deinitialized early in this scope
   // (possibly including outer variables)?

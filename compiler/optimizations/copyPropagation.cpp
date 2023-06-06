@@ -395,8 +395,12 @@ static bool isUse(SymExpr* se)
 
      case PRIM_ADDR_OF:
      case PRIM_SET_REFERENCE:
-     case PRIM_CLEANUP_LOCAL_VARIABLE:
       return false; // See Note #2.
+
+     case PRIM_INVARIANT_START_LOCAL_VARIABLE:
+     case PRIM_INVARIANT_END_LOCAL_VARIABLE:
+     case PRIM_LIFETIME_END_LOCAL_VARIABLE:
+      return false; // used more like an address than a value
 
      case PRIM_PRIVATE_BROADCAST:
       // The operand is used by name (it must be a manifest constant).

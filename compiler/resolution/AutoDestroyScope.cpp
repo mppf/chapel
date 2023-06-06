@@ -155,6 +155,9 @@ void AutoDestroyScope::addInitialization(VarSymbol* var) {
   }
 }
 
+/*void AutoDestroyScope::addInvariantStart(VarSymbol* var) {
+}*/
+
 void AutoDestroyScope::addEarlyDeinit(VarSymbol* var) {
   for (AutoDestroyScope* cur = this; cur != NULL; cur = cur->mParent) {
     cur->mDeinitedVars.insert(var);
@@ -318,27 +321,69 @@ void AutoDestroyScope::insertAutoDestroys(FnSymbol* fn, Expr* refStmt,
   mLocalsHandled = true;
 }
 
+static void addLifetimeEnd(Expr* before, Expr* after, VarSymbol* var) {
+  BaseAST* useLoc = before?before:after;
+  SET_LINENO(useLoc);
+
+  CallExpr* end = new CallExpr(PRIM_LIFETIME_END_LOCAL_VARIABLE, var);
+
+  if (before) {
+    before->insertBefore(end);
+  } else {
+    after->insertAfter(end);
+  }
+}
+
 static void deinitialize(Expr* before, Expr* after, VarSymbol* var) {
-  if (isAutoDestroyedVariable(var) == false)
-    return; // nothing to do for variables not to be auto-destroyed
+  if (isAutoDestroyedVariable(var) == false) {
+    addLifetimeEnd(before, after, var);
+    return; // nothing else to do for variables not to be auto-destroyed
+  }
 
   FnSymbol* autoDestroyFn = autoDestroyMap.get(var->type);
-  if (autoDestroyFn == NULL)
-    return; // nothing to do if there is no auto-destroy fn
+  if (autoDestroyFn == NULL) {
+    addLifetimeEnd(before, after, var);
+    return; // nothing else to do if there is no auto-destroy fn
+  }
 
   INT_ASSERT(autoDestroyFn->hasFlag(FLAG_AUTO_DESTROY_FN));
 
+  // Look inside of the autoDestroy function. Is it calling 'deinit'
+  // on a record, where 'deinit' accepts 'this' with mutable 'ref' intent?
+  // If that is the case, need to distinguish between llvm.invariant.end
+  // and llvm.lifetime.end, so will add an additional primitive.
+  // If not, it's sufficient to just use PRIM_LIFETIME_END_LOCAL_VARIABLE
+  // whether or not it is 'const'.
+  bool needInvariantEnd = false;
+  for_alist(expr, autoDestroyFn->body->body) {
+    if (CallExpr* call = toCallExpr(expr)) {
+      if (call->isNamedAstr(astrDeinit)) {
+        if (FnSymbol* deinitFn = call->resolvedOrVirtualFunction()) {
+          if (deinitFn->_this &&
+              deinitFn->_this->isRef() &&
+              !deinitFn->_this->isConstant()) {
+            needInvariantEnd = true;
+          }
+        }
+        break;
+      }
+    }
+  }
   BaseAST* useLoc = before?before:after;
   SET_LINENO(useLoc);
-  CallExpr* marker = new CallExpr(PRIM_CLEANUP_LOCAL_VARIABLE, var);
   CallExpr* autoDestroy = new CallExpr(autoDestroyFn, var);
   if (before) {
-    before->insertBefore(marker);
     before->insertBefore(autoDestroy);
   } else {
     after->insertAfter(autoDestroy);
-    after->insertAfter(marker);
   }
+
+  if (needInvariantEnd) {
+    CallExpr* invEnd = new CallExpr(PRIM_INVARIANT_END_LOCAL_VARIABLE, var);
+    autoDestroy->insertBefore(invEnd);
+  }
+
+  addLifetimeEnd(/*before*/ nullptr, autoDestroy, var);
 }
 
 void AutoDestroyScope::destroyVariable(Expr* after, VarSymbol* var,

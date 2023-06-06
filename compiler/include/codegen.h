@@ -21,6 +21,7 @@
 #ifndef CODEGEN_H
 #define CODEGEN_H
 
+#include "alist.h"
 #include "baseAST.h"
 #include "LayeredValueTable.h"
 
@@ -73,7 +74,7 @@ struct LoopData
 
 /* A variable for use in VariablesByBlock */
 struct GenVariable {
-  llvm::AllocaInst* localVariable = nullptr;
+  llvm::AllocaInst* alloc = nullptr;
 
   // TODO: add support for reasoning about globals/outer variables
   // and fields for use with llvm.invariant.start
@@ -85,18 +86,33 @@ struct GenVariable {
   VarSymbol* var = nullptr;
   llvm::Value* invariantStartInst = nullptr;
 
-  GenVariable(llvm::AllocaInst* localVariable, llvm::Type* type, VarSymbol* var)
-    : localVariable(localVariable), type(type), var(var) { }
+  GenVariable(llvm::AllocaInst* alloc, llvm::Type* type, VarSymbol* var)
+    : alloc(alloc), type(type), var(var) { }
 };
+
+enum struct VarLifetimeStatus {
+  NONE = 0,
+  LIFETIME_START,
+  NEEDS_INVARIANT_START,
+  INVARIANT_START,
+  INVARIANT_END,
+  LIFETIME_END
+};
+
 
 /* This class helps to keep track of variables declared by the
    block in which they are declared */
 struct GenVariablesByBlock {
-  BlockStmt* block = nullptr; // just for debugging
-  std::vector<GenVariable> vars;
-  std::vector<size_t> needsInvariantStart; // indexes into the above
+  AList* list = nullptr;
+  std::vector<GenVariable> varsDeclaredHere;
 
-  GenVariablesByBlock(BlockStmt* block) : block(block) { }
+  // the key for these maps is a VarSymbol* if one exists,
+  // and an AllocaInts* otherwise
+  std::map<void*, size_t> declaredHereIdx; // index into varsDeclaredHere
+  std::map<void*, VarLifetimeStatus> varStatus; // status
+  std::map<void*, VarLifetimeStatus> statusUpdates; // from nested block
+
+  GenVariablesByBlock(AList* list) : list(list) { }
 };
 
 /* GenInfo is meant to be a global variable which stores
@@ -185,6 +201,10 @@ extern std::map<std::string, int> commIDMap;
 
 #ifdef HAVE_LLVM
 void setupClang(GenInfo* info, std::string rtmain);
+
+void noteAllocaAndLifetimeStartGenerated(llvm::AllocaInst* alloca,
+                                         llvm::Type* type,
+                                         VarSymbol* var);
 
 void codegenLifetimeEnd(GenVariable& v);
 void codegenInvariantStart(GenVariable& v);

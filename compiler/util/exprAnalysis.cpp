@@ -240,8 +240,9 @@ bool SafeExprAnalysis::isSafePrimitive(CallExpr* ce) {
       bool isRefStore = ce->get(1)->isRefOrWideRef() && !ce->get(2)->isRefOrWideRef();
       return !isRefStore;
     }
-    case PRIM_DEAD_FROM_ELIDED_COPY:
-    case PRIM_CLEANUP_LOCAL_VARIABLE:
+    case PRIM_INVARIANT_START_LOCAL_VARIABLE:
+    case PRIM_INVARIANT_END_LOCAL_VARIABLE:
+    case PRIM_LIFETIME_END_LOCAL_VARIABLE:
       return false;
     case PRIM_SIZEOF_BUNDLE:
     case PRIM_SIZEOF_DDATA_ELEMENT:
@@ -301,7 +302,6 @@ bool SafeExprAnalysis::isSafePrimitive(CallExpr* ce) {
     case PRIM_GET_SVEC_MEMBER_VALUE:
     case PRIM_STACK_ALLOCATE_CLASS:
     case PRIM_GET_DYNAMIC_END_COUNT:
-    case PRIM_INVARIANT_START:
     case PRIM_NO_ALIAS_SET:
     case PRIM_COPIES_NO_ALIAS_SET:
       return true;

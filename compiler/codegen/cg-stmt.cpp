@@ -117,91 +117,8 @@ GenRet ImportStmt::codegen() {
 
 #ifdef HAVE_LLVM
 
-// generate llvm.lifetime.end
-// (note, llvm.lifetime.start is normally generated at the same time as
-//  the alloca in makeAllocaAndLifetimeStart)
-void codegenLifetimeEnd(GenVariable& v) {
-  // cannot do this if we don't have the pointed-to type or
-  // if it's not a local variable
-  INT_ASSERT(v.type != nullptr && v.localVariable != nullptr);
 
-  llvm::Value *addr = v.localVariable;
-
-  // Nothing to do if it's not about a local variable!
-  if (addr == nullptr) return;
-
-  llvm::Type *valType = v.type;
-  GenInfo *info = gGenInfo;
-  const llvm::DataLayout& dataLayout = info->module->getDataLayout();
-
-  int64_t sizeInBytes = -1;
-  if (valType->isSized())
-    sizeInBytes = dataLayout.getTypeStoreSize(valType);
-  else
-    return;
-
-  llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
-    llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
-
-  info->irBuilder->CreateLifetimeEnd(addr, size);
-}
-
-// generate llvm.invariant.start
-void codegenInvariantStart(GenVariable& v) {
-  // cannot do this if we don't have the pointed-to type
-  INT_ASSERT(v.type != nullptr);
-  // should have a VarSymbol
-  INT_ASSERT(v.var);
-
-  llvm::Value *addr = v.localVariable;
-
-  GenInfo *info = gGenInfo;
-  const llvm::DataLayout& dataLayout = info->module->getDataLayout();
-
-  uint64_t sizeInBytes;
-  if (v.type->isSized())
-    sizeInBytes = dataLayout.getTypeSizeInBits(v.type)/8;
-  else
-    return;
-
-  llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
-      llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
-
-  llvm::Value* ivStart = info->irBuilder->CreateInvariantStart(addr, size);
-  v.invariantStartInst = ivStart;
-}
-
-// generate llvm.invariant.end
-void codegenInvariantEnd(GenVariable& v) {
-  // cannot do this if we don't have an llvm.invariant.start instruction
-  // and type as well
-  INT_ASSERT(v.invariantStartInst != nullptr && v.type != nullptr);
-
-  llvm::Value *addr = v.localVariable;
-
-  GenInfo *info = gGenInfo;
-  llvm::Module* M = info->module;
-  // Work around lack of IRBuilder::CreateInvariantEnd
-  llvm::Type* ObjectPtr[1] = {addr->getType()};
-  llvm::Function* f = llvm::Intrinsic::getDeclaration(
-                             M, llvm::Intrinsic::invariant_end, ObjectPtr);
-
-  llvm::Type *valType = v.type;
-  const llvm::DataLayout& dataLayout = M->getDataLayout();
-
-  int64_t sizeInBytes = -1;
-  if (valType->isSized())
-    sizeInBytes = dataLayout.getTypeStoreSize(valType);
-  else
-    return;
-
-  llvm::ConstantInt *size = llvm::ConstantInt::getSigned(
-    llvm::Type::getInt64Ty(info->llvmContext), sizeInBytes);
-
-  llvm::Value* Ops[] = {v.invariantStartInst, size, addr};
-  info->irBuilder->CreateCall(f, Ops);
-}
-
+/*
 static
 void codegenLifetimeEndInvariantEndForBlock(GenVariablesByBlock& vbb) {
   // Handle each variable in reverse declaration order
@@ -216,7 +133,6 @@ void codegenLifetimeEndInvariantEndForBlock(GenVariablesByBlock& vbb) {
     }
   }
 }
-
 GenVariable* findGenVariable(VarSymbol* var) {
   GenInfo *info = gGenInfo;
   // find the variable, which is hopefully one recently declared
@@ -251,9 +167,10 @@ void noteInvariantStartShouldBeEmitted(VarSymbol* var) {
   }
 }
 
+*/
 #endif
 
-
+/*
 enum struct ControlFlowType {
   NONE,
   LABEL,
@@ -303,7 +220,7 @@ static ControlFlowType characterizeControlFlow(Expr* expr, BlockStmt*& tgt) {
 
   return ControlFlowType::NONE;
 }
-
+*/
 
 GenRet BlockStmt::codegen() {
   GenInfo* info    = gGenInfo;
@@ -352,11 +269,7 @@ GenRet BlockStmt::codegen() {
 
     info->lvt->addLayer();
 
-/*TODO -- inline functions collapses blocks, and then all the info
-        about lifetimes is lost. As a result, I am thinking it's best
-        to add invariant end and lifetime end primitives within
-        call destructors.*/
-
+#if 0
     bool handledBlockExit = false;
     bool addedToCurrentStackVars = false;
     bool inIterator = this->getFunction()->hasFlag(FLAG_AUTO_II);
@@ -410,16 +323,17 @@ GenRet BlockStmt::codegen() {
         }
       }
 
+      // The main activity here: code generate the statement
       node->codegen();
 
-      if (!inIterator) {
-        // control flow in iterators is complex and that makes
-        // getting llvm.invariant.start to dominate llvm.invariant.end
-        // challenging. So just skip llvm.invariant.start for iterators.
-        if (CallExpr* call = toCallExpr(node)) {
-          SymExpr* lhsSe = nullptr;
-          CallExpr* initOrCtor = nullptr;
-          if (isInitOrReturn(call, lhsSe, initOrCtor)) {
+      // For simple cases (references, ints, etc),
+      // note when a 'const' local variable is initialized.
+      // Record cases have a more complex initialization and these
+      // are handled with PRIM_INVARIANT_START_LOCAL_VARIABLE.
+      if (CallExpr* call = toCallExpr(node)) {
+        if (call->isPrimitive(PRIM_MOVE) ||
+            call->isPrimitive(PRIM_ASSIGN)) {
+          if (SymExpr* lhsSe = toSymExpr(call->get(1))) {
             if (VarSymbol* var = toVarSymbol(lhsSe->symbol())) {
               if (var->isConstValWillNotChange()) {
                 // Record that the block in which the variable is
@@ -438,18 +352,26 @@ GenRet BlockStmt::codegen() {
         }
       }
 
-      // if the statement we just generated initialized a const variable
+      // If the statement we just generated initialized a const variable
       // owned by this block, we can emit an invariant start.
       // Note that b.needsInvariantStart might contain redundant entries
       // in the event of a conditional with split-init.
+      // This strategy makes it easier to ensure that the llvm.invariant.start
+      // dominates the llvm.invariant.end instructions when split-init is used.
       INT_ASSERT(info->currentStackVariables.size() > 0);
       GenVariablesByBlock& b = info->currentStackVariables.back();
       INT_ASSERT(b.block == this);
-      for (auto idx : b.needsInvariantStart) {
-        INT_ASSERT(0 <= idx && idx < b.vars.size());
-        GenVariable& v = b.vars[idx];
-        if (v.invariantStartInst == nullptr) {
-          codegenInvariantStart(v);
+      if (!inIterator) {
+        // control flow in iterators is complex and that makes
+        // getting llvm.invariant.start to dominate llvm.invariant.end
+        // challenging. So just skip llvm.invariant.start for iterators.
+        for (auto idx : b.needsInvariantStart) {
+          INT_ASSERT(0 <= idx && idx < b.vars.size());
+          GenVariable& v = b.vars[idx];
+          if (v.invariantStartInst == nullptr) {
+            codegenInvariantStart(v);
+            // note: the above call sets v.invariantStartInst.
+          }
         }
       }
       b.needsInvariantStart.clear();
@@ -468,6 +390,10 @@ GenRet BlockStmt::codegen() {
     if (addedToCurrentStackVars) {
       info->currentStackVariables.pop_back();
     }
+#endif
+
+    body.codegen("");
+
     info->lvt->removeLayer();
 
     INT_ASSERT(blockStmtBody->getParent() == func);

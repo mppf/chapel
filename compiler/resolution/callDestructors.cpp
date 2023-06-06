@@ -2009,7 +2009,7 @@ void CallDestructorsCallCleanup::process(CallExpr* call) {
     SET_LINENO(call);
     SymExpr* rhsSe = toSymExpr(call->get(2));
     INT_ASSERT(rhsSe);
-    call->insertAfter(new CallExpr(PRIM_DEAD_FROM_ELIDED_COPY,
+    call->insertAfter(new CallExpr(PRIM_LIFETIME_END_LOCAL_VARIABLE,
                                    new SymExpr(rhsSe->symbol())));
   } else {
     call->remove();
