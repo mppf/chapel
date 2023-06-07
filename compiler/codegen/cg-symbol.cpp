@@ -2796,11 +2796,11 @@ void FnSymbol::codegenDef() {
 #endif
   }
 
-  /* disabling to get lifetime start at variable def point.
-     allocas should still go to the top of the fn.
-
-TODO: re-enable it for the C backend
-  {
+  if (outfile) {
+    // For the C backend, generate the local variable declarations at
+    // the top of the function.
+    // (The LLVM backend will add allocas to the top of the function
+    //  along with llvm.lifetime.start at the position of the DefExpr)
     std::vector<BaseAST*> asts;
     collect_top_asts(body, asts);
 
@@ -2811,7 +2811,7 @@ TODO: re-enable it for the C backend
           flushStatements();
         }
     }
-  }*/
+  }
 
   body->codegen();
   flushStatements();
@@ -2833,11 +2833,7 @@ TODO: re-enable it for the C backend
       if( ! debug_info )
         problems = llvm::verifyFunction(*func, &llvm::errs());
       if( problems ) {
-        if (developer) {
-          nprint_view(this);
-          print_llvm(func);
-        }
-        //INT_FATAL(this, "LLVM function verification failed");
+        INT_FATAL(this, "LLVM function verification failed");
       }
     }
 

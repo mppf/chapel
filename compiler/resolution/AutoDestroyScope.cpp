@@ -155,9 +155,6 @@ void AutoDestroyScope::addInitialization(VarSymbol* var) {
   }
 }
 
-/*void AutoDestroyScope::addInvariantStart(VarSymbol* var) {
-}*/
-
 void AutoDestroyScope::addEarlyDeinit(VarSymbol* var) {
   for (AutoDestroyScope* cur = this; cur != NULL; cur = cur->mParent) {
     cur->mDeinitedVars.insert(var);

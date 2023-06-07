@@ -263,10 +263,6 @@ static Expr* walkBlockStmt(FnSymbol*         fn,
       CallExpr* fCall = nullptr;
       VarSymbol* initedVariable = nullptr;
 
-      if (stmt->id == 1860122) {
-        gdbShouldBreakHere();
-      }
-
       // Check for returned variable
       if (VarSymbol* v = initsVariable(stmt, fCall))
         initedVariable = v;

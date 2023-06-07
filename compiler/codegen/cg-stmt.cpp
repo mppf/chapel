@@ -115,113 +115,6 @@ GenRet ImportStmt::codegen() {
 *                                                                   *
 ********************************* | ********************************/
 
-#ifdef HAVE_LLVM
-
-
-/*
-static
-void codegenLifetimeEndInvariantEndForBlock(GenVariablesByBlock& vbb) {
-  // Handle each variable in reverse declaration order
-  for (auto vIt = vbb.vars.rbegin(); vIt != vbb.vars.rend(); ++vIt) {
-    GenVariable& v = *vIt;
-
-    if (v.invariantStartInst != nullptr) {
-      codegenInvariantEnd(v);
-    }
-    if (v.localVariable != nullptr) {
-      codegenLifetimeEnd(v);
-    }
-  }
-}
-GenVariable* findGenVariable(VarSymbol* var) {
-  GenInfo *info = gGenInfo;
-  // find the variable, which is hopefully one recently declared
-  // Handle each block with innermost blocks first
-  auto& blocks = info->currentStackVariables;
-  for (auto bIt = blocks.rbegin(); bIt != blocks.rend(); ++bIt) {
-    GenVariablesByBlock& vbb = *bIt;
-    for (auto vIt = vbb.vars.rbegin(); vIt != vbb.vars.rend(); ++vIt) {
-      GenVariable& v = *vIt;
-      if (v.var == var) return &v;
-    }
-  }
-  return nullptr;
-}
-
-void noteInvariantStartShouldBeEmitted(VarSymbol* var) {
-  // find the block containing the variable and record the TODO
-  // in the GenVariablesByBlock.needsInvariantStart for that block.
-  GenInfo *info = gGenInfo;
-
-  auto& blocks = info->currentStackVariables;
-  for (auto bIt = blocks.rbegin(); bIt != blocks.rend(); ++bIt) {
-    GenVariablesByBlock& vbb = *bIt;
-    ssize_t n = vbb.vars.size();
-    for (ssize_t i = n - 1; i >= 0; i--) {
-      GenVariable& v = vbb.vars[i];
-      if (v.var == var) {
-        vbb.needsInvariantStart.push_back(i);
-        return;
-      }
-    }
-  }
-}
-
-*/
-#endif
-
-/*
-enum struct ControlFlowType {
-  NONE,
-  LABEL,
-  FUNCTION_EXIT,
-  OTHER
-};
-
-static ControlFlowType characterizeControlFlow(Expr* expr, BlockStmt*& tgt) {
-  if (GotoStmt* g = toGotoStmt(expr)) {
-    LabelSymbol* tgtLabel = g->gotoTarget();
-    BlockStmt* tgtBlock = toBlockStmt(tgtLabel->defPoint->parentExpr);
-    INT_ASSERT(tgtBlock);
-    tgt = tgtBlock;
-
-    switch (g->gotoTag) {
-      case GOTO_NORMAL:
-      case GOTO_BREAK:
-      case GOTO_CONTINUE:
-      case GOTO_GETITER_END:
-      case GOTO_ITER_RESUME:
-      case GOTO_ITER_END:
-      case GOTO_ERROR_HANDLING:
-      case GOTO_BREAK_ERROR_HANDLING:
-        return ControlFlowType::OTHER;
-      case GOTO_RETURN:
-      case GOTO_ERROR_HANDLING_RETURN:
-        return ControlFlowType::FUNCTION_EXIT;
-    }
-  }
-
-  if (DefExpr* def = toDefExpr(expr)) {
-    if (isLabelSymbol(def->sym)) {
-      BlockStmt* tgtBlock = toBlockStmt(def->parentExpr);
-      INT_ASSERT(tgtBlock);
-      tgt = tgtBlock;
-
-      return ControlFlowType::LABEL;
-    }
-  }
-
-  if (CallExpr* call = toCallExpr(expr)) {
-    if (call->isPrimitive(PRIM_RETURN)) {
-      tgt = call->getFunction()->body;
-      return ControlFlowType::FUNCTION_EXIT;
-    }
-  }
-
-  return ControlFlowType::NONE;
-}
-*/
-
 GenRet BlockStmt::codegen() {
   GenInfo* info    = gGenInfo;
   FILE*    outfile = info->cfile;
@@ -268,129 +161,6 @@ GenRet BlockStmt::codegen() {
     info->irBuilder->SetInsertPoint(blockStmtBody);
 
     info->lvt->addLayer();
-
-#if 0
-    bool handledBlockExit = false;
-    bool addedToCurrentStackVars = false;
-    bool inIterator = this->getFunction()->hasFlag(FLAG_AUTO_II);
-
-    if (info->currentStackVariables.size() > 0 &&
-        info->currentStackVariables.back().block == this) {
-      // OK, it's the body block for an FnSymbol, so the
-      // currentStackVariables entry was added in processing the FnSymbol
-      // to work with any argument processing items.
-    } else {
-      addedToCurrentStackVars = true;
-      info->currentStackVariables.push_back(GenVariablesByBlock(this));
-    }
-
-    for_alist(node, this->body) {
-      // When exiting a block early (with break, return, continue, etc),
-      // emit llvm.invariant.end for any variables declared in blocks
-      // that are exited.
-      BlockStmt* tgtBlock = nullptr;
-      ControlFlowType cfType = characterizeControlFlow(node, tgtBlock);
-      if (cfType != ControlFlowType::NONE) {
-        // generate llvm.invariant.end for all variables declared
-        // in blocks that will be exited on the way to the target block.
-        auto& blocks = info->currentStackVariables;
-        for (auto bIt = blocks.rbegin(); bIt != blocks.rend(); ++bIt) {
-          GenVariablesByBlock& vbb = *bIt;
-          if (cfType == ControlFlowType::OTHER && vbb.block == tgtBlock) {
-            // stop before we reach the target block for e.g. break
-            break;
-          }
-          // if we got this far, we handled block exit for this block
-          handledBlockExit = true;
-          for (auto vIt = vbb.vars.rbegin(); vIt != vbb.vars.rend(); ++vIt) {
-            GenVariable& v = *vIt;
-            if (v.invariantStartInst) {
-              codegenInvariantEnd(v);
-              if (handledBlockExit) {
-                // clear out the invariant start ptr so we don't
-                // try to emit more invariant ends later.
-                v.invariantStartInst = nullptr;
-              }
-            }
-            if (cfType != ControlFlowType::OTHER) {
-              codegenLifetimeEnd(v);
-            }
-          }
-          if (cfType != ControlFlowType::LABEL && vbb.block == tgtBlock) {
-            // stop after reaching the target block for e.g. label end
-            break;
-          }
-        }
-      }
-
-      // The main activity here: code generate the statement
-      node->codegen();
-
-      // For simple cases (references, ints, etc),
-      // note when a 'const' local variable is initialized.
-      // Record cases have a more complex initialization and these
-      // are handled with PRIM_INVARIANT_START_LOCAL_VARIABLE.
-      if (CallExpr* call = toCallExpr(node)) {
-        if (call->isPrimitive(PRIM_MOVE) ||
-            call->isPrimitive(PRIM_ASSIGN)) {
-          if (SymExpr* lhsSe = toSymExpr(call->get(1))) {
-            if (VarSymbol* var = toVarSymbol(lhsSe->symbol())) {
-              if (var->isConstValWillNotChange()) {
-                // Record that the block in which the variable is
-                // declared should emit the invariant start once
-                // it has emitted whatever contains this statement
-                // (e.g. the current BlockStmt could be within a conditional
-                //  when the variable is split-inited)
-                // It could happen here, but for now we are using a simpler
-                // model where the block containing the variable is the
-                // one that must include the main llvm.invariant.start
-                // and llvm.invariant.end.
-                noteInvariantStartShouldBeEmitted(var);
-              }
-            }
-          }
-        }
-      }
-
-      // If the statement we just generated initialized a const variable
-      // owned by this block, we can emit an invariant start.
-      // Note that b.needsInvariantStart might contain redundant entries
-      // in the event of a conditional with split-init.
-      // This strategy makes it easier to ensure that the llvm.invariant.start
-      // dominates the llvm.invariant.end instructions when split-init is used.
-      INT_ASSERT(info->currentStackVariables.size() > 0);
-      GenVariablesByBlock& b = info->currentStackVariables.back();
-      INT_ASSERT(b.block == this);
-      if (!inIterator) {
-        // control flow in iterators is complex and that makes
-        // getting llvm.invariant.start to dominate llvm.invariant.end
-        // challenging. So just skip llvm.invariant.start for iterators.
-        for (auto idx : b.needsInvariantStart) {
-          INT_ASSERT(0 <= idx && idx < b.vars.size());
-          GenVariable& v = b.vars[idx];
-          if (v.invariantStartInst == nullptr) {
-            codegenInvariantStart(v);
-            // note: the above call sets v.invariantStartInst.
-          }
-        }
-      }
-      b.needsInvariantStart.clear();
-    }
-
-    INT_ASSERT(info->currentStackVariables.size() > 0 &&
-               info->currentStackVariables.back().block == this);
-
-    // If the block didn't contain an unconditional return or label,
-    // add llvm.lifetime.end etc at the end of the block.
-    if (!handledBlockExit) {
-      codegenLifetimeEndInvariantEndForBlock(
-          info->currentStackVariables.back());
-    }
-
-    if (addedToCurrentStackVars) {
-      info->currentStackVariables.pop_back();
-    }
-#endif
 
     body.codegen("");
 
@@ -508,40 +278,16 @@ CondStmt::codegen() {
     func->getBasicBlockList().push_back(condStmtThen);
     info->irBuilder->SetInsertPoint(condStmtThen);
 
-    // Note the current position in initializedInvariantVariables
-    //auto nInvariantsBeforeThen = info->initializedInvariantVariables.size();
-
     info->lvt->addLayer();
     thenStmt->codegen();
 
     info->lvt->removeLayer();
-
-    // Mark anything declared as invariant within the 'then' block
-    // as no longer invariant.
-    /*for (size_t i = nInvariantsBeforeThen;
-         i < info->initializedInvariantVariables.size();
-         i++) {
-      VarSymbol* invVar = info->initializedInvariantVariables[i];
-      if (GenVariable* g = findGenVariable(invVar)) {
-        if (g->invariantStartInst && !g->emittedInvariantEnd) {
-          codegenInvariantEnd(*g);
-          // for any split-inited outer variables, we will add a new
-          // invariant end after the conditional, and additionally
-          // we want to ignore the fact this one has been emitted
-          // when we handle the 'else' block.
-          g->emittedInvariantEnd = false;
-          g->invariantStartInst = nullptr;
-        }
-      }
-    }*/
 
     // branch to the end of the cond statement
     info->irBuilder->CreateBr(condStmtEnd);
 
     if (elseStmt != nullptr) {
       // handle the else part
-
-      //auto nInvariantsBeforeElse = info->initializedInvariantVariables.size();
 
       func->getBasicBlockList().push_back(condStmtElse);
       info->irBuilder->SetInsertPoint(condStmtElse);
@@ -550,45 +296,12 @@ CondStmt::codegen() {
       elseStmt->codegen();
       info->lvt->removeLayer();
 
-      // Mark anything declared as invariant within the 'else' block
-      // as no longer invariant.
-      /*for (size_t i = nInvariantsBeforeElse;
-           i < info->initializedInvariantVariables.size();
-           i++) {
-        VarSymbol* invVar = info->initializedInvariantVariables[i];
-        if (GenVariable* g = findGenVariable(invVar)) {
-          if (g->invariantStartInst && !g->emittedInvariantEnd) {
-            codegenInvariantEnd(*g);
-            // forget what we just did so as not to confuse emitting
-            // invariant start after the then/else parts.
-            g->emittedInvariantEnd = false;
-            g->invariantStartInst = nullptr;
-          }
-        }
-      }*/
       // branch to the end of the cond statement
       info->irBuilder->CreateBr(condStmtEnd);
     }
 
     func->getBasicBlockList().push_back(condStmtEnd);
     info->irBuilder->SetInsertPoint(condStmtEnd);
-
-    // Mark any outer variables initialized by the 'then' or 'else'
-    // blocks as invariant if we did that within the 'then' or 'else' block.
-    // This only works if the split-init assumptions are checked elsewhere.
-    // (Outer variables initialized within a 'then' or an 'else' block
-    //  would be split-inited & control flow shouldn't able to proceed
-    //  through the function if they are not inited).
-    /*for (size_t i = nInvariantsBeforeThen;
-         i < info->initializedInvariantVariables.size();
-         i++) {
-      VarSymbol* invVar = info->initializedInvariantVariables[i];
-      if (GenVariable* g = findGenVariable(invVar)) {
-        if (g->invariantStartInst == nullptr) {
-          codegenInvariantStart(*g);
-        }
-      }
-    }*/
 
     info->lvt->removeLayer();
 #endif
