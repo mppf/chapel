@@ -83,8 +83,6 @@ GenRet DoWhileStmt::codegen()
 
     body.codegen("");
 
-    info->lvt->removeLayer();
-
     // Add the condition block.
     blockStmtEndCond = llvm::BasicBlock::Create(info->module->getContext(), FNAME("blk_end_cond"));
 
@@ -111,6 +109,8 @@ GenRet DoWhileStmt::codegen()
     func->getBasicBlockList().push_back(blockStmtEnd);
 
     info->irBuilder->SetInsertPoint(blockStmtEnd);
+
+    info->lvt->removeLayer();
 
     if (blockStmtBody   ) INT_ASSERT(blockStmtBody->getParent()    == func);
     if (blockStmtEndCond) INT_ASSERT(blockStmtEndCond->getParent() == func);
