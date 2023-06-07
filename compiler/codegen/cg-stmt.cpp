@@ -281,10 +281,10 @@ CondStmt::codegen() {
     info->lvt->addLayer();
     thenStmt->codegen();
 
-    info->lvt->removeLayer();
-
     // branch to the end of the cond statement
     info->irBuilder->CreateBr(condStmtEnd);
+
+    info->lvt->removeLayer();
 
     if (elseStmt != nullptr) {
       // handle the else part
@@ -294,10 +294,9 @@ CondStmt::codegen() {
 
       info->lvt->addLayer();
       elseStmt->codegen();
-      info->lvt->removeLayer();
-
       // branch to the end of the cond statement
       info->irBuilder->CreateBr(condStmtEnd);
+      info->lvt->removeLayer();
     }
 
     func->getBasicBlockList().push_back(condStmtEnd);
