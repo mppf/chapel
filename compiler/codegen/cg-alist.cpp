@@ -29,55 +29,6 @@
 
 #ifdef HAVE_LLVM
 
-enum struct ControlFlowType {
-  NONE,
-  LABEL,
-  FUNCTION_EXIT,
-  OTHER
-};
-
-static ControlFlowType characterizeControlFlow(Expr* expr, BlockStmt*& tgt) {
-  if (GotoStmt* g = toGotoStmt(expr)) {
-    LabelSymbol* tgtLabel = g->gotoTarget();
-    BlockStmt* tgtBlock = toBlockStmt(tgtLabel->defPoint->parentExpr);
-    INT_ASSERT(tgtBlock);
-    tgt = tgtBlock;
-
-    switch (g->gotoTag) {
-      case GOTO_NORMAL:
-      case GOTO_BREAK:
-      case GOTO_CONTINUE:
-      case GOTO_GETITER_END:
-      case GOTO_ITER_RESUME:
-      case GOTO_ITER_END:
-      case GOTO_ERROR_HANDLING:
-      case GOTO_BREAK_ERROR_HANDLING:
-        return ControlFlowType::OTHER;
-      case GOTO_RETURN:
-      case GOTO_ERROR_HANDLING_RETURN:
-        return ControlFlowType::FUNCTION_EXIT;
-    }
-  }
-
-  if (DefExpr* def = toDefExpr(expr)) {
-    if (isLabelSymbol(def->sym)) {
-      BlockStmt* tgtBlock = toBlockStmt(def->parentExpr);
-      INT_ASSERT(tgtBlock);
-      tgt = tgtBlock;
-
-      return ControlFlowType::LABEL;
-    }
-  }
-  if (CallExpr* call = toCallExpr(expr)) {
-    if (call->isPrimitive(PRIM_RETURN)) {
-      tgt = call->getFunction()->body;
-      return ControlFlowType::FUNCTION_EXIT;
-    }
-  }
-
-  return ControlFlowType::NONE;
-}
-
 static VarLifetimeStatus doGetVariableStatus(void* v) {
   GenInfo* info = gGenInfo;
   auto& blocks = info->currentStackVariables;
@@ -284,77 +235,6 @@ GenVariable* findGenVariable(VarSymbol* var) {
   return nullptr;
 }
 
-
-// returns 'true' if the basic block ends before the end of this alist
-static bool handleLifetimesForBasicBlockExit(Expr* node, AList* list) {
-  GenInfo *info = gGenInfo;
-  bool basicBlockEnded = false;
-
-  // When exiting a block early (with break, return, continue, etc),
-  // emit llvm.invariant.end for any variables declared in blocks
-  // that are exited. And, remove such entries from varsMap
-  // to indicate that the actions of this block should be ignored
-  // when processing subsequent blocks.
-  BlockStmt* tgtBlock = nullptr;
-  ControlFlowType cfType = characterizeControlFlow(node, tgtBlock);
-  if (cfType != ControlFlowType::NONE) {
-    basicBlockEnded = true;
-    // generate llvm.invariant.end for all variables declared
-    // in blocks that will be exited on the way to the target block.
-    auto& blocks = info->currentStackVariables;
-    for (auto bIt = blocks.rbegin(); bIt != blocks.rend(); ++bIt) {
-      GenVariablesByBlock& vbb = *bIt;
-      BlockStmt* vbbBlock = toBlockStmt(vbb.list->parent);
-      INT_ASSERT(vbbBlock);
-      if (cfType == ControlFlowType::OTHER && vbbBlock == tgtBlock) {
-        // stop before we reach the target block for e.g. break
-        break;
-      }
-      for (auto vIt = vbb.varsDeclaredHere.rbegin();
-          vIt != vbb.varsDeclaredHere.rend();
-          ++vIt) {
-        GenVariable& v = *vIt;
-        codegenLifetimeEnd(v);
-      }
-      if (cfType != ControlFlowType::LABEL && vbbBlock == tgtBlock) {
-        // stop after reaching the target block for e.g. label end
-        break;
-      }
-    }
-    // since the basic block ended, clear the varsMap status
-    // for this block, to avoid propagating it to the parent block.
-  }
-  return basicBlockEnded;
-}
-
-static void handleSimpleConstInit(Expr* node, AList* list) {
-  // For simple cases (references, ints, etc),
-  // note when a 'const' local variable is initialized.
-  // Record cases have a more complex initialization and these
-  // are handled with PRIM_INVARIANT_START_LOCAL_VARIABLE.
-  if (CallExpr* call = toCallExpr(node)) {
-    if (call->isPrimitive(PRIM_MOVE) ||
-        call->isPrimitive(PRIM_ASSIGN)) {
-      if (SymExpr* lhsSe = toSymExpr(call->get(1))) {
-        if (VarSymbol* var = toVarSymbol(lhsSe->symbol())) {
-          if (var->isConstValWillNotChange()) {
-            // Record that the block in which the variable is
-            // declared should emit the invariant start once
-            // it has emitted whatever contains this statement
-            // (e.g. the current BlockStmt could be within a conditional
-            //  when the variable is split-inited)
-            // It could happen here, but for now we are using a simpler
-            // model where the block containing the variable is the
-            // one that must include the main llvm.invariant.start
-            // and llvm.invariant.end.
-            noteInvariantStartShouldBeEmitted(var);
-          }
-        }
-      }
-    }
-  }
-}
-
 static void handleLifetimesForNestedExpressions(Expr* node, AList* list) {
   GenInfo *info = gGenInfo;
   auto& blocks = info->currentStackVariables;
@@ -404,26 +284,24 @@ GenRet AList::codegen(const char* separator) {
       info->currentStackVariables.push_back(GenVariablesByBlock(this));
     }
 
-    bool blockExited = false;
-
     for_alist(node, *this) {
-      blockExited |= handleLifetimesForBasicBlockExit(node, this);
       node->codegen();
-      handleSimpleConstInit(node, this);
       handleLifetimesForNestedExpressions(node, this);
     }
 
-    // If the basic block did not exit, update the parent GenVariablesByBlock
-    // entry to process lifetime statements for variables defined in that
-    // block.
+    // Update the parent GenVariablesByBlock entry to process lifetime
+    // statements for variables defined in that block.
     size_t nBlocks = info->currentStackVariables.size();
-    if (!blockExited && nBlocks >= 2) {
+    if (nBlocks >= 2) {
       GenVariablesByBlock& mine = info->currentStackVariables[nBlocks-1];
       GenVariablesByBlock& parent = info->currentStackVariables[nBlocks-2];
 
       for (const auto& pair : mine.varStatus) {
         if (mine.declaredHereIdx.count(pair.first) > 0) {
-          // it was declared in this block, so no need to propagate
+          // it was declared in this block, so no need to propagate,
+          // but do go ahead with lifetime end
+          size_t idx = mine.declaredHereIdx[pair.first];
+          codegenLifetimeEnd(mine.varsDeclaredHere[idx]);
         } else {
           // otherwise, request an update in the parent map.
           parent.statusUpdates[pair.first] = pair.second;
