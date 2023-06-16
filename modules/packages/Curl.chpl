@@ -547,7 +547,7 @@ module Curl {
         length = this.length;
         return 0;
       }
-      override proc getpath(out path:c_ptrConst(c_uchar), out len:int(64)):errorCode {
+      override proc getpath(out path:c_ptrConst(uint(8)), out len:int(64)):errorCode {
         path = qio_strdup(this.url_c);
         len = __primitive("string_length_bytes", url_c);
         return 0;

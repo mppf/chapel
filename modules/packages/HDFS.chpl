@@ -431,7 +431,7 @@ module HDFS {
         writeln("HDFSFile.filelength length=", length);
       return 0;
     }
-    override proc getpath(out path:c_ptrConst(c_uchar), out len:int(64)):errorCode {
+    override proc getpath(out path:c_ptrConst(uint(8)), out len:int(64)):errorCode {
       if verbose then
         writeln("HDFSFile.getpath path=", this.path);
       path = qio_strdup(c_ptrToConst_helper(this.path));
