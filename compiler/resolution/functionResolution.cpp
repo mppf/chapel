@@ -12817,6 +12817,7 @@ static void resolvePrimInit(CallExpr* call) {
 
   if (SymExpr* se = toSymExpr(typeExpr)) {
     if (se->symbol()->hasFlag(FLAG_TYPE_VARIABLE) == true) {
+      checkSurprisingGenericDecls(val, typeExpr, /*isField*/ false);
       resolvePrimInit(call, val, resolveTypeAlias(se));
     } else {
       USR_FATAL(call, "invalid type specification");
@@ -13686,30 +13687,19 @@ void checkDuplicateDecorators(Type* decorator, Type* decorated, Expr* ctx) {
   }
 }
 
-void checkSurprisingGenericDecls(DefExpr* def, bool isField) {
-  if (def == nullptr) {
+void checkSurprisingGenericDecls(Symbol* sym, Expr* typeExpr, bool isField) {
+  if (sym == nullptr || typeExpr == nullptr) {
     return;
   }
 
-  Symbol* sym = def->sym;
-
-  bool hasQuestionArg = false;
-  if (sym && def->exprType) {
-    if (CallExpr* call = toCallExpr(def->exprType)) {
-      for_actuals(actual, call) {
-        if (SymExpr* act = toSymExpr(actual)) {
-          if (act->symbol() == gUninstantiated) {
-            hasQuestionArg = true;
-          }
-        }
-      }
+  if (typeExpr) {
+    Type* declType = nullptr;
+    if (SymExpr* se = toSymExpr(typeExpr)) {
+      declType = resolveTypeAlias(se);
+    } else {
+      declType = typeExpr->typeInfo();
     }
-  }
-
-  if (def->exprType) {
-    Type* declType = def->exprType->typeInfo();
     if (declType->symbol->hasFlag(FLAG_GENERIC) &&
-        !hasQuestionArg &&
         !sym->hasFlag(FLAG_MARKED_GENERIC) &&
         !sym->hasFlag(FLAG_TYPE_VARIABLE)) {
       if (isField && isClassLikeOrManaged(declType)) {
@@ -13719,11 +13709,54 @@ void checkSurprisingGenericDecls(DefExpr* def, bool isField) {
           USR_PRINT("consider adding 'owned', 'shared', or 'borrowed'");
           USR_PRINT("if generic memory management is desired, "
                     "use a 'type' field to store the class type");
+          // consider the class type ignoring management for
+          // the rest of the checks.
+          declType = canonicalClassType(declType);
         }
       }
-      if (declType->symbol->hasFlag(FLAG_DOMAIN)) {
-        USR_WARN(sym, "please use 'domain(?)' for the type of a generic %s "
-                      "storing any domain", isField?"field":"variable");
+
+      bool hasQuestionArg = false;
+
+      // if it is a variable, the type would end up in a type-expr-temp,
+      // so find our way through that.
+      Expr* src = typeExpr;
+      while (true) {
+        if (SymExpr* se = toSymExpr(src)) {
+          if (se->symbol()->hasFlag(FLAG_MARKED_GENERIC)) {
+            hasQuestionArg = true;
+            break;
+          }
+
+          if (SymExpr* singleDef = se->symbol()->getSingleDef()) {
+            // Figure out the RHS of the singleDef
+            if (CallExpr* call = toCallExpr(singleDef->parentExpr)) {
+              if (call->isPrimitive(PRIM_MOVE) && call->get(1) == singleDef) {
+                  src = call->get(2);
+                  continue;
+              }
+            }
+          }
+        }
+        break;
+      }
+
+      if (CallExpr* call = toCallExpr(typeExpr)) {
+        for_actuals(actual, call) {
+          if (SymExpr* act = toSymExpr(actual)) {
+            if (act->symbol() == gUninstantiated) {
+              hasQuestionArg = true;
+            }
+          }
+        }
+      }
+
+      if (declType->symbol->hasFlag(FLAG_GENERIC) && !hasQuestionArg) {
+        if (declType->symbol->hasFlag(FLAG_DOMAIN)) {
+          USR_WARN(sym, "please use 'domain(?)' for the type of a generic %s "
+                        "storing any domain", isField?"field":"variable");
+        } else {
+          USR_WARN(sym, "boooooo");
+        }
       }
     }
   }
