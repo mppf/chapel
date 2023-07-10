@@ -158,9 +158,9 @@ module HDFS {
   @chpldoc.nodoc
   extern type tPort = uint(16);
 
-  private extern proc hdfsConnect(nn:c_ptrConst(c_uchar), port:tPort):hdfsFS;
+  private extern proc hdfsConnect(nn:c_ptrConst(c_char), port:tPort):hdfsFS;
   private extern proc hdfsDisconnect(fs:hdfsFS):c_int;
-  private extern proc hdfsOpenFile(fs:hdfsFS, path:c_ptrConst(c_uchar), flags:c_int,
+  private extern proc hdfsOpenFile(fs:hdfsFS, path:c_ptrConst(c_char), flags:c_int,
                                    bufferSize:c_int, replication:c_short,
                                    blockSize:tSize):hdfsFile;
   private extern proc hdfsCloseFile(fs:hdfsFS, file:hdfsFile):c_int;
@@ -169,11 +169,11 @@ module HDFS {
   private extern proc hdfsWrite(fs:hdfsFS, file:hdfsFile,
                                 buffer:c_ptr(void), length:tSize):tSize;
   private extern proc hdfsFlush(fs:hdfsFS, file:hdfsFile):c_int;
-  private extern proc hdfsGetPathInfo(fs:hdfsFS, path:c_ptrConst(c_uchar)):c_ptr(hdfsFileInfo);
+  private extern proc hdfsGetPathInfo(fs:hdfsFS, path:c_ptrConst(c_char)):c_ptr(hdfsFileInfo);
   private extern proc hdfsFreeFileInfo(info:c_ptr(hdfsFileInfo), numEntries:c_int);
 
   // QIO extern stuff
-  private extern proc qio_strdup(s: c_ptrConst(c_uchar)): c_ptrConst(c_uchar);
+  private extern proc qio_strdup(s: c_ptrConst(c_char)): c_ptrConst(c_char);
   private extern proc qio_mkerror_errno():errorCode;
   private extern proc qio_channel_get_allocated_ptr_unlocked(ch:qio_channel_ptr_t, amt_requested:int(64), ref ptr_out:c_ptr(void), ref len_out:c_ssize_t, ref offset_out:int(64)):errorCode;
   private extern proc qio_channel_advance_available_end_unlocked(ch:qio_channel_ptr_t, len:c_ssize_t);
@@ -460,7 +460,7 @@ module HDFS {
       return 0;
     }
     override proc getLocalesForRegion(start:int(64), end:int(64), out
-        localeNames:c_ptr(c_ptrConst(c_uchar)), ref nLocales:int(64)):errorCode {
+        localeNames:c_ptr(c_ptrConst(c_char)), ref nLocales:int(64)):errorCode {
       if verbose then
         writeln("HDFSFile.getLocalesForRegion");
       return ENOSYS;
