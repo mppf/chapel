@@ -1461,4 +1461,15 @@ module CTypes {
     memset(s, c.safeCast(c_int), n.safeCast(c_size_t));
     return s;
   }
+
+  inline proc string.c_ptr_c_char() : c_ptrConst(c_char) {
+    use BytesStringCommon;
+    return get_c_char_const_ptr_common(this);
+  }
+
+  inline proc bytes.c_ptr_c_char() : c_ptrConst(c_char) {
+    use BytesStringCommon;
+    return get_c_char_const_ptr_common(this);
+  }
+
 }

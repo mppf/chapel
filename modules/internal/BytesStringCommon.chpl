@@ -97,6 +97,17 @@ module BytesStringCommon {
     return asCString;
   }
 
+
+  inline proc get_c_char_const_ptr_common(const ref x: ?t): c_ptrConst(c_char) {
+    assertArgType(t, "get_c_char_const_ptr_common");
+    if _local == false && x.locale_id != chpl_nodeID then
+      halt("Cannot call .c_ptr_c_char() on a remote " + t:string);
+
+    var buff: bufferType = x.buff;
+    var ptr = c_ptrToConst_helper(x):c_ptrConst(c_char);
+    return ptr;
+  }
+
   /*
    This function is called by `bytes.decode` and string factory functions that
    take a C array as the buffer.
