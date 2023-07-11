@@ -726,6 +726,15 @@ FnSymbol* instantiateFunction(FnSymbol*  fn,
     if (Symbol* value = subs.get(formal)) {
       INT_ASSERT(formal->intent == INTENT_PARAM || isTypeSymbol(value));
 
+      // warn for generic types passed to type formals
+      if (formal->hasFlag(FLAG_TYPE_VARIABLE) &&
+          value->hasFlag(FLAG_TYPE_VARIABLE) &&
+          value->hasFlag(FLAG_GENERIC) &&
+          formal->getModule()->modTag == MOD_USER) {
+        USR_WARN(call, "generic type is passed to formal '%s'", formal->name);
+        USR_PRINT(formal, "formal declared here");
+      }
+
       if (formal->intent == INTENT_PARAM) {
         newFormal->intent = INTENT_BLANK;
 
