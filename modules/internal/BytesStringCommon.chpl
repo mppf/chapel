@@ -86,7 +86,7 @@ module BytesStringCommon {
 
   // 2019/8/22 Engin: This proc needs to be inlined to avoid an Intel compiler
   // issue (#448 chapel-private)
-  @deprecated("the type 'c_string' is deprecated; use 'c_ptrConst(c_uchar)' instead")
+  @deprecated("the type 'c_string' is deprecated; use 'c_ptrConst(c_char)' instead")
   inline proc getCStr(const ref x: ?t): c_string {
     assertArgType(t, "getCStr");
     if _local == false && x.locale_id != chpl_nodeID then
