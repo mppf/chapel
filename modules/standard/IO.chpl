@@ -1099,7 +1099,7 @@ class QioPluginFile {
      The caller has the responsibility to free the returned c_ptrConst(c_char).
    */
   // TODO: use Chapel strings for this, one day
-  proc getpath(out path:c_ptrConst(uint(8)), out len:int(64)):errorCode {
+  proc getpath(out path:c_ptrConst(c_char), out len:int(64)):errorCode {
     return ENOSYS;
   }
 
@@ -1172,7 +1172,7 @@ export proc chpl_qio_filelength(file:c_ptr(void), ref length:int(64)):errorCode 
   var f=(file:unmanaged QioPluginFile?)!;
   return f.filelength(length);
 }
-export proc chpl_qio_getpath(file:c_ptr(void), ref str:c_ptrConst(uint(8)), ref len:int(64)):errorCode {
+export proc chpl_qio_getpath(file:c_ptr(void), ref str:c_ptrConst(c_char), ref len:int(64)):errorCode {
   var f=(file:unmanaged QioPluginFile?)!;
   return f.getpath(str, len);
 }
