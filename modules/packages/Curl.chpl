@@ -547,7 +547,7 @@ module Curl {
         length = this.length;
         return 0;
       }
-      override proc getpath(out path:c_ptrConst(uint(8)), out len:int(64)):errorCode {
+      override proc getpath(out path:c_ptrConst(c_char), out len:int(64)):errorCode {
         path = qio_strdup(this.url_c);
         len = __primitive("string_length_bytes", url_c);
         return 0;
@@ -771,7 +771,7 @@ module Curl {
 
         extern proc strstr(haystack:c_ptrConst(c_char), needle:c_ptrConst(c_char)):c_ptrConst(c_char);
         // Does this URL accept range requests?
-        if strstr(buf.mem, "Accept-Ranges: bytes".c_ptr_c_char()):c_ptr(void) == nil:c_ptr(void) {
+        if strstr(buf.mem:c_ptrConst(c_char), "Accept-Ranges: bytes".c_ptr_c_char()):c_ptr(void) == nil:c_ptr(void) {
           ret = false;
         } else {
           ret = true;
