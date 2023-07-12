@@ -1,6 +1,6 @@
 use CTypes;
 extern proc get_string(ref string_out:c_ptr(c_uchar));
-extern proc modify_string(ref string_out:c_ptr(c_uchar), string_in:c_ptrConst(c_uchar));
+extern proc modify_string(ref string_out:c_ptr(c_uchar), string_in:c_ptrConst(c_char));
 
 var a:string;
 var b:string;
