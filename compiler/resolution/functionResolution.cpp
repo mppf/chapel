@@ -912,6 +912,14 @@ bool canInstantiate(Type* actualType, Type* formalType) {
     return true;
   }
 
+  // allow c_string actual to be passed to c_ptrConst(c_uchar) formals
+  if (formalType->symbol->hasFlag(FLAG_C_PTRCONST_CLASS) &&
+      actualType == dtStringC) {
+      if (auto agg = toAggregateType(formalType)) {
+        if (agg->instantiatedFrom == NULL) return true;
+      }
+  }
+
   if (formalType                                        == dtIteratorRecord &&
       actualType->symbol->hasFlag(FLAG_ITERATOR_RECORD) == true) {
     return true;
@@ -1532,6 +1540,12 @@ bool canCoerceAsSubtype(Type*     actualType,
 
   // coerce raw_c_void_ptr to c_ptr(void)
   if (actualType == dtCVoidPtr && isCVoidPtr(formalType))
+    return true;
+  // coerce dtStringC to c_void_ptr
+  if (actualType == dtStringC && isCVoidPtr(formalType))
+    return true;
+  // coerce c_ptr to c_void_ptr
+  if (actualType->symbol->hasFlag(FLAG_C_PTR_CLASS) && isCVoidPtr(formalType))
     return true;
 
   // coerce c_ptr(t) to c_ptr(void)
@@ -3545,6 +3559,14 @@ static void warnForPartialInstantiationNoQ(CallExpr* call, Type* t) {
   }
 }
 
+static bool isCptrConstUint8(CallExpr* call) {
+  if (call->isNamed("c_ptrConst") &&
+      call->get(1) &&
+      call->get(1)->typeInfo() == dtUInt[INT_SIZE_8]) {
+    return true;
+  }
+  return false;
+}
 
 static Type* resolveTypeSpecifier(CallInfo& info) {
   CallExpr* call = info.call;
@@ -3583,6 +3605,8 @@ static Type* resolveTypeSpecifier(CallInfo& info) {
     if (FnSymbol* fn = createTupleSignature(NULL, subs, call)) {
       ret = fn->retType;
     }
+  } else if (isCptrConstUint8(info.call)) {
+    ret = dtStringC;
   } else {
     ret = at->generateType(info.call, info.toString());
     if (ret && decorated) {

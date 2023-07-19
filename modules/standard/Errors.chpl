@@ -588,7 +588,7 @@ module Errors {
   pragma "always propagate line file info"
   proc assert(test: bool) {
     if !test then
-      __primitive("chpl_error", c_ptrToConst_helper("assert failed"):c_string);
+      __primitive("chpl_error", c_ptrToConst_helper("assert failed"));
   }
 
 

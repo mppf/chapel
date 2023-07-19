@@ -24,6 +24,7 @@ Functions related to predefined types.
 pragma "module included by default"
 module Types {
   import HaltWrappers;
+  use CTypes;
 
 @chpldoc.nodoc // joint documentation with the next one
 proc isType(type t) param do return true;
