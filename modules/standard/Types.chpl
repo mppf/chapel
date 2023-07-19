@@ -44,14 +44,17 @@ proc isParam(e)       param do return false;
 
 // TODO eliminate this; beware of isPrimitive()
 @chpldoc.nodoc
-proc _isPrimitiveType(type t) param do return
-  isBoolType(t)  ||
-  isIntegralType(t) ||
-  isRealType(t)     ||
-//To allow imag, need to define casts from primitive types into imag.
-//isImagType(t)     ||
-  (t == c_string);
+proc _isPrimitiveType(type t) param {
+  use CTypes;
+  return
+    isBoolType(t)  ||
+    isIntegralType(t) ||
+    isRealType(t)     ||
+    //To allow imag, need to define casts from primitive types into imag.
+    //isImagType(t)     ||
+    (t == c_string);
 
+}
 /*
 Returns ``true`` if the type ``t`` is a primitive type,
 as defined by the language specification.

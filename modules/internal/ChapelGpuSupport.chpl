@@ -21,6 +21,7 @@
 module ChapelGpuSupport {
   use ChapelBase;
   use ChplConfig;
+  use CTypes;
 
   extern var chpl_gpu_debug : bool;
   config const debugGpu = false;

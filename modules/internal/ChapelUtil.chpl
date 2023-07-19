@@ -23,8 +23,7 @@
 // Internal data structures module
 //
 module ChapelUtil {
-  private use ChapelStandard;
-  use CTypes;
+  private use ChapelStandard, CTypes;
 
   //
   // safeAdd: If a and b are of type t, return true iff no

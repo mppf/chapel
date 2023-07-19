@@ -22,7 +22,7 @@
    be called without IO and not cause circular dependencies.
 */
 module ChapelIOStringifyHelper {
-  private use ChapelStandard;
+  private use ChapelStandard, CTypes;
   private use BytesStringCommon only decodePolicy;
   private use CTypes;
 

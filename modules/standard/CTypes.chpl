@@ -53,8 +53,8 @@ module CTypes {
                                       // can be replaced with c_FILE when deprecation is complete
 
   // TODO: maybe rename this to chpl_something
-  @deprecated("the type 'c_string' is deprecated; please use c_ptrConst(c_uchar) instead")
-  type c_string = c_ptrConstUint8;
+  @deprecated("the type 'c_string' is deprecated; please use c_ptrConst(c_char) instead")
+  type c_string = c_ptrConstInt8;
 
   /* Controls whether :type:`c_FILE` represents a ``FILE*`` or a ``FILE``.
 

@@ -1054,7 +1054,7 @@ void initPrimitiveTypes() {
   dtInt[INT_SIZE_64]                   = createPrimitiveType("int",      "int64_t");
   dtReal[FLOAT_SIZE_64]                = createPrimitiveType("real",     "_real64");
 
-  dtStringC                            = createPrimitiveType("c_ptrConstUint8", "c_string");
+  dtStringC                            = createPrimitiveType("c_ptrConstInt8", "c_string");
   dtStringC->symbol->addFlag(FLAG_NO_CODEGEN);
 
   dtObject                             = new AggregateType(AGGREGATE_CLASS);
