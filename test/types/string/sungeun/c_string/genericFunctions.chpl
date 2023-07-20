@@ -58,7 +58,7 @@ var vs: string;
   f(real, s=vs);
 }
 
-// s should be c_string for these
+// s should be c_ptrConst(c_char) for these
 {
   proc g(s) {
     checkType(c_ptrConst(c_char), s.type);
@@ -105,7 +105,7 @@ var vs: string;
 
 {
   proc g(param s) {
-    checkType(c_string, s.type);
+    checkType(c_ptrConst(c_char), s.type);
   }
 
   g(c"bye");
