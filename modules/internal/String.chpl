@@ -420,13 +420,13 @@ module String {
 
     :returns: A new `string`
   */
-  // @deprecated("createStringWithBorrowedBuffer is deprecated - please use :proc:`string.createBorrowingBuffer` instead")
-  // inline proc createStringWithBorrowedBuffer(x: c_string,
-  //                                            length=x.size) : string throws {
-  //   return string.createBorrowingBuffer(x:c_ptr(uint(8)),
-  //                                       length=length,
-  //                                       size=length+1);
-  // }
+  @deprecated("createStringWithBorrowedBuffer is deprecated - please use :proc:`string.createBorrowingBuffer` instead")
+  inline proc createStringWithBorrowedBuffer(x: c_string,
+                                             length=x.size) : string throws {
+    return string.createBorrowingBuffer(x:c_ptr(uint(8)),
+                                        length=length,
+                                        size=length+1);
+  }
 
   /*
     Creates a new string which borrows the internal buffer of a `c_string`. If

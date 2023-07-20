@@ -1,3 +1,5 @@
+use CTypes;
+
 enum color {red, green, blue};
 
 config param abool1 = false;
@@ -7,7 +9,7 @@ config param aint2: int = 3;
 config param areal1 = 3.14;
 config param areal2: real = 3.14;
 config param ac_string1 = "hi";
-config param ac_string2: c_string = "hi";
+config param ac_string2: c_ptrConst(c_char) = "hi";
 //config param acomplex1 = 3.14+2.72i;
 //config param acomplex2: complex = 3.14+2.72i;
 config param aimag1 = 3.4i;

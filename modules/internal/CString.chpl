@@ -241,14 +241,14 @@ module CString {
   }
 
   proc c_string.writeThis(x) throws {
-    compilerError("Cannot write a c_ptrConstUint8, cast to a string first.");
+    compilerError("Cannot write a c_string (or c_ptrConst(c_char)), cast to a string first.");
   }
   proc c_string.serialize(writer, ref serializer) throws {
     writeThis(writer);
   }
 
   proc c_string.readThis(x) throws {
-    compilerError("Cannot read a c_ptrConstUint8, use string.");
+    compilerError("Cannot read a c_string (or c_ptrConst(c_char)), use string.");
   }
 
 }
