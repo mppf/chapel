@@ -18,8 +18,8 @@ proc main() {
   intStruct_print(x);
 
   var y : stringStruct;
-  y.a = "Hello".c_ptr_c_char();
-  y.b = "World".c_ptr_c_char();
+  y.a = "Hello".c_str();
+  y.b = "World".c_str();
   stringStruct_print(y);
 
   // var yy : stringStruct;

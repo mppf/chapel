@@ -7,7 +7,7 @@ proc main() {
 
   test_unsigned(1:uint, 42:uint);
 
-  test_strings("hello world".c_ptr_c_char());
+  test_strings("hello world".c_str());
 
   var x = 42;
   writeln("x before = ", x);

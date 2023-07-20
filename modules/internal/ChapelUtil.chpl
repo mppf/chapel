@@ -138,7 +138,7 @@ module ChapelUtil {
       compilerError("config variables of atomic type are not supported");
 
     try! {
-      var str = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      var str = string.createCopyingBuffer(x);
       if t == string {
         return str;
       } else {
@@ -211,7 +211,7 @@ module ChapelUtil {
   // in compiler/resolution/functionResolution.cpp:resolveSupportForModuleDeinits()
   proc chpl_addModule(moduleName: c_ptrConst(c_char), deinitFun: c_fn_ptr) {
     chpl_moduleDeinitFuns =
-      new unmanaged chpl_ModuleDeinit(moduleName:c_ptrConst(c_char), deinitFun, chpl_moduleDeinitFuns);
+      new unmanaged chpl_ModuleDeinit(moduleName, deinitFun, chpl_moduleDeinitFuns);
   }
 
   export proc chpl_deinitModules() {
@@ -220,12 +220,12 @@ module ChapelUtil {
     extern proc chpl_execute_module_deinit(deinitFun:c_fn_ptr);
 
     if printModuleDeinitOrder then
-      printf(("Deinitializing Modules:\n").c_ptr_c_char());
+      printf("Deinitializing Modules:\n".c_str());
     var prev = chpl_moduleDeinitFuns;
     while prev {
       const curr = prev!;
       if printModuleDeinitOrder then
-        printf(("  %s\n").c_ptr_c_char(), curr.moduleName);
+        printf("  %s\n".c_str(), curr.moduleName);
       chpl_execute_module_deinit(curr.deinitFun);
       prev = curr.prevModule;
       delete curr;

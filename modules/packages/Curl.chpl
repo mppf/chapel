@@ -771,7 +771,7 @@ module Curl {
 
         extern proc strstr(haystack:c_ptrConst(c_char), needle:c_ptrConst(c_char)):c_ptrConst(c_char);
         // Does this URL accept range requests?
-        if strstr(buf.mem:c_ptrConst(c_char), "Accept-Ranges: bytes".c_ptr_c_char()):c_ptr(void) == nil:c_ptr(void) {
+        if strstr(buf.mem:c_ptrConst(c_char), "Accept-Ranges: bytes".c_str()):c_ptr(void) == nil:c_ptr(void) {
           ret = false;
         } else {
           ret = true;

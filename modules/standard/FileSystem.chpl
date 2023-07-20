@@ -1407,8 +1407,8 @@ proc sameFile(file1: file, file2: file): bool throws {
 proc symlink(oldName: string, newName: string) throws {
   extern proc chpl_fs_symlink(orig: c_ptrConst(c_char), linkName: c_ptrConst(c_char)): errorCode;
 
-  var err = chpl_fs_symlink(unescape(oldName).c_ptr_c_char(),
-                            unescape(newName).c_ptr_c_char());
+  var err = chpl_fs_symlink(unescape(oldName).c_str(),
+                            unescape(newName).c_str());
   if err then try ioerror(err, "in symlink " + oldName, newName);
 }
 
