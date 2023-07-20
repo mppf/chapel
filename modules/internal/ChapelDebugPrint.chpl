@@ -50,7 +50,7 @@ module ChapelDebugPrint {
   proc chpl_debug_writeln(args...) {
     extern proc printf(fmt:c_ptrConst(c_char), f:c_ptrConst(c_char));
     var str = chpl_debug_stringify((...args));
-    printf(c_ptrToConst_helper("%s\n"), c_ptrToConst_helper(str));
+    printf("%s\n".c_str(), str.c_str());
   }
 
   //

@@ -908,7 +908,7 @@ module CTypes {
   }
 
   @chpldoc.nodoc
-  inline proc c_ptrToConst_helper(const ref s: string): c_ptrConst(c_char)
+  inline proc c_ptrToConst_helper(const ref s: string): c_ptrConst(c_uchar)
   {
     if _local == false && s.locale_id != chpl_nodeID then
       halt("Cannot call c_ptrToConst() on a remote string");
@@ -917,11 +917,11 @@ module CTypes {
         return nil;
       }
     }
-    return c_pointer_return_const(s.buff[0]):c_ptrConst(c_char);
+    return c_pointer_return_const(s.buff[0]);
   }
 
   @chpldoc.nodoc
-  inline proc c_ptrToConst_helper(const ref b: bytes): c_ptrConst(c_char)
+  inline proc c_ptrToConst_helper(const ref b: bytes): c_ptrConst(c_uchar)
   {
     if _local == false && b.locale_id != chpl_nodeID then
       halt("Cannot call c_ptrToConst() on a remote bytes");
@@ -930,7 +930,7 @@ module CTypes {
         return nil;
       }
     }
-    return c_pointer_return_const(b.buff[0]):c_ptrConst(c_char);
+    return c_pointer_return_const(b.buff[0]);
   }
 
   @chpldoc.nodoc

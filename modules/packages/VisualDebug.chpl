@@ -102,9 +102,10 @@ private proc VDebugTree (what: vis_op, name: string, time: real, tagno: int,
          if rid < n then
              on Locales[rid] do VDebugTree (what, name, time, tagno, rid, n, offset >> shift);
 
+     var localName = name.localize();
      /* Do the op at the root  */
      select what {
-         when vis_op.v_start    do chpl_vdebug_start (c_ptrToConst_helper(name.localize()), time);
+         when vis_op.v_start    do chpl_vdebug_start (localName.c_str(), time);
          when vis_op.v_stop     do chpl_vdebug_stop ();
          when vis_op.v_tag      do chpl_vdebug_tag (tagno);
          when vis_op.v_pause    do chpl_vdebug_pause (tagno);
@@ -147,7 +148,7 @@ private proc VDebugTree (what: vis_op, name: string, time: real, tagno: int,
   proc tagVdebug ( tagname : string ) {
     if (VisualDebugOn) {
        var ttag = tagno.fetchAdd(1);
-       chpl_vdebug_tagname (c_ptrToConst_helper(tagname), ttag);
+       chpl_vdebug_tagname (tagname.c_str(), ttag);
        VDebugTree (vis_op.v_tag, "", 0, ttag);
     }
   }

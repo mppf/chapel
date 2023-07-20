@@ -261,7 +261,8 @@ module BigInteger {
     @deprecated(notes="bigint initializers that halt are deprecated, please set the config param :param:`bigintInitThrows` to 'true' to opt in to using the new initializer that throws")
     proc init(str: string, base: int = 0) where bigintInitThrows == false {
       this.complete();
-      const ref str_  = c_ptrToConst_helper(str.localize());
+      var localStr = str.localize();
+      const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
       if mpz_init_set_str(this.mpz, str_, base_) != 0 {
@@ -277,7 +278,8 @@ module BigInteger {
     proc init(str: string, base: int = 0, out error: errorCode) {
 
       this.complete();
-      const ref str_  = c_ptrToConst_helper(str.localize());
+      var localStr = str.localize();
+      const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
       if mpz_init_set_str(this.mpz, str_, base_) != 0 {
@@ -312,7 +314,8 @@ module BigInteger {
      */
     proc init(str: string, base: int = 0) throws where bigintInitThrows == true {
       this.complete();
-      const ref str_  = c_ptrToConst_helper(str.localize());
+      var localStr = str.localize();
+      const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
       if mpz_init_set_str(this.mpz, str_, base_) != 0 {
@@ -4594,18 +4597,19 @@ module BigInteger {
 
   proc bigint.set(str: string, base: int = 0) {
     const base_ = base.safeCast(c_int);
-
+    var localStr = str.localize();
     if _local {
-      mpz_set_str(this.mpz, c_ptrToConst_helper(str.localize()), base_);
-
+      var localStr = str.localize();
+      mpz_set_str(this.mpz, localStr.c_str(), base_);
     } else if this.localeId == chpl_nodeID {
-      mpz_set_str(this.mpz, c_ptrToConst_helper(str.localize()), base_);
-
+      var localStr = str.localize();
+      mpz_set_str(this.mpz, localStr.c_str(), base_);
     } else {
       const thisLoc = chpl_buildLocaleID(this.localeId, c_sublocid_any);
 
       on __primitive("chpl_on_locale_num", thisLoc) {
-        mpz_set_str(this.mpz, c_ptrToConst_helper(str.localize()), base_);
+        var localStr = str.localize();
+        mpz_set_str(this.mpz, localStr.c_str(), base_);
       }
     }
   }

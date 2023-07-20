@@ -5,7 +5,7 @@
     s += i:string;
 
   on Locales[numLocales-1] {
-    var cs = c_ptrToConst_helper(s);
+    var cs = s.c_str();
     var s2 = string.createCopyingBuffer(cs);
     writeln(s2);
   }

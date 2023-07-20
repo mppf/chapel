@@ -39,5 +39,5 @@ module OuterModule {
   //  at least one argument. I.e., printf must
   //  include at least one argument in addition
   //  to the format string.
-  C.printf(c_ptrToConst_helper("%s, world!\n"):c_string, C.greet_str);
+  C.printf("%s, world!\n".c_str(), C.greet_str);
 }

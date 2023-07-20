@@ -47,7 +47,7 @@ iter listdir(path: string, hidden=false, dirs=true, files=true,
 
   var dir: DIRptr;
   var ent: direntptr;
-  dir = opendir(c_ptrToConst_helper(path):c_string);
+  dir = opendir(path.c_str());
   if (dir != nil) {
     ent = readdir(dir);
     while (ent != nil) {

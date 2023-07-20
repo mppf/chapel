@@ -7,7 +7,7 @@ writeln(string.createCopyingBuffer(x:c_ptrConst(c_char)), " ", x.type:string);
 
 use CTypes;
 proc f_ptr():c_ptrConst(c_char) {
-  return c_ptrToConst_helper("Hello");
+  return "Hello".c_str();
 }
 
 var x_ptr = f_ptr();

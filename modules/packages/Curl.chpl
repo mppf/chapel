@@ -265,8 +265,9 @@ module Curl {
         var tmp:c_ptr(void) = arg.list:c_ptr(void);
         err = curl_easy_setopt_ptr(curl, opt:CURLoption, tmp);
       } else if arg.type == string || arg.type == bytes {
+        var localArg = arg.localize();
         err = curl_easy_setopt_ptr(curl, opt:CURLoption,
-                                   c_ptrToConst_helper(arg.localize()):c_ptr(void));
+                                   localArg.c_str():c_ptr(void));
       }
     } else {
       // Must be CURLOPTTYPE_OFF_T or CURLOPTTYPE_BLOB
@@ -332,7 +333,8 @@ module Curl {
   proc slist.append(str:string) throws {
     var err: errorCode = 0;
     on this.home {
-      this.list = curl_slist_append(this.list, c_ptrToConst_helper(str.localize()));
+      var localStr = str.localize();
+      this.list = curl_slist_append(this.list, localStr.c_str());
       if this.list == nil then
         err = EINVAL;
     }
@@ -745,7 +747,7 @@ module Curl {
       var buf:curl_str_buf;
       var ret = false;
 
-      if startsWith(fl.url_c, c_ptrToConst_helper("http://")) || startsWith(fl.url_c, c_ptrToConst_helper("https://")) {
+      if startsWith(fl.url_c, "http://".c_str()) || startsWith(fl.url_c, "https://".c_str()) {
         // We're on HTTP/HTTPS so we should look for byte ranges to see if we
         // can request them
 
@@ -789,7 +791,7 @@ module Curl {
       }
 
       // FTP always supports CURLOPT_RESUME_FROM_LARGE
-      if startsWith(fl.url_c, c_ptrToConst_helper("ftp://")) || startsWith(fl.url_c, c_ptrToConst_helper("sftp://")) then
+      if startsWith(fl.url_c, "ftp://".c_str()) || startsWith(fl.url_c, "sftp://".c_str()) then
         ret = true;
 
       return ret;
@@ -1152,7 +1154,8 @@ module Curl {
 
       // Save the url requested
       var url_c = allocate(uint(8), url.size:c_size_t+1, clear=true);
-      memcpy(url_c:c_ptr(void), c_ptrToConst_helper(url.localize()):c_ptr(void), url.size.safeCast(c_size_t));
+      var localUrl = url.localize();
+      memcpy(url_c:c_ptr(void), localUrl.c_str():c_ptr(void), url.size.safeCast(c_size_t));
 
       fl.url_c = url_c:c_ptrConst(c_char);
 

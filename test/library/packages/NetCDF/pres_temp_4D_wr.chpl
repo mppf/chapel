@@ -84,15 +84,15 @@ proc main {
       }
 
   /* Create the file. */
-  cdfError(nc_create(c_ptrToConst_helper(filename):c_ptrConst(c_char), NC_CLOBBER, ncid));
+  cdfError(nc_create(filename.c_str(), NC_CLOBBER, ncid));
 
   /* Define the dimensions. The record dimension is defined to have
    * unlimited length - it can grow as needed. In this example it is
    * the time dimension.*/
-  cdfError(nc_def_dim(ncid, c_ptrToConst_helper(lvlName):c_ptrConst(c_char), nlvl, lvl_dimid));
-  cdfError(nc_def_dim(ncid, c_ptrToConst_helper(latName):c_ptrConst(c_char), nlat, lat_dimid));
-  cdfError(nc_def_dim(ncid, c_ptrToConst_helper(lonName):c_ptrConst(c_char), nlon, lon_dimid));
-  cdfError(nc_def_dim(ncid, c_ptrToConst_helper(recName):c_ptrConst(c_char), NC_UNLIMITED: c_size_t, rec_dimid));
+  cdfError(nc_def_dim(ncid, lvlName.c_str(), nlvl, lvl_dimid));
+  cdfError(nc_def_dim(ncid, latName.c_str(), nlat, lat_dimid));
+  cdfError(nc_def_dim(ncid, lonName.c_str(), nlon, lon_dimid));
+  cdfError(nc_def_dim(ncid, recName.c_str(), NC_UNLIMITED: c_size_t, rec_dimid));
 
   /* Define the coordinate variables. We will only define coordinate
      variables for lat and lon.  Ordinarily we would need to provide
@@ -100,16 +100,16 @@ proc main {
      since coordinate variables only have one dimension, we can
      simply provide the address of that dimension ID (&lat_dimid) and
      similarly for (&lon_dimid). */
-  cdfError(nc_def_var(ncid, c_ptrToConst_helper(latName):c_ptrConst(c_char), NC_FLOAT, 1, lat_dimid,
+  cdfError(nc_def_var(ncid, latName.c_str(), NC_FLOAT, 1, lat_dimid,
            lat_varid));
-  cdfError(nc_def_var(ncid, c_ptrToConst_helper(lonName):c_ptrConst(c_char), NC_FLOAT, 1, lon_dimid,
+  cdfError(nc_def_var(ncid, lonName.c_str(), NC_FLOAT, 1, lon_dimid,
            lon_varid));
 
   /* Assign units attributes to coordinate variables. */
-  cdfError(nc_put_att_text(ncid, lat_varid, c_ptrToConst_helper(units):c_ptrConst(c_char),
-                           degreesNorth.numBytes, c_ptrToConst_helper(degreesNorth):c_ptrConst(c_char)));
-  cdfError(nc_put_att_text(ncid, lon_varid, c_ptrToConst_helper(units):c_ptrConst(c_char),
-                           degreesEast.numBytes, c_ptrToConst_helper(degreesEast):c_ptrConst(c_char)));
+  cdfError(nc_put_att_text(ncid, lat_varid, units.c_str(),
+                           degreesNorth.numBytes, degreesNorth.c_str()));
+  cdfError(nc_put_att_text(ncid, lon_varid, units.c_str(),
+                           degreesEast.numBytes, degreesEast.c_str()));
 
   /* The dimids array is used to pass the dimids of the dimensions of
      the netCDF variables. Both of the netCDF variables we are
@@ -122,16 +122,16 @@ proc main {
 
   /* Define the netCDF variables for the pressure and temperature
    * data. */
-  cdfError(nc_def_var(ncid, c_ptrToConst_helper(presName):c_ptrConst(c_char), NC_FLOAT, ndims,
+  cdfError(nc_def_var(ncid, presName.c_str(), NC_FLOAT, ndims,
                       dimids[0], pres_varid));
-  cdfError(nc_def_var(ncid, c_ptrToConst_helper(tempName):c_ptrConst(c_char), NC_FLOAT, ndims,
+  cdfError(nc_def_var(ncid, tempName.c_str(), NC_FLOAT, ndims,
                       dimids[0], temp_varid));
 
   /* Assign units attributes to the netCDF variables. */
-  cdfError(nc_put_att_text(ncid, pres_varid, c_ptrToConst_helper(units):c_ptrConst(c_char),
-                           presUnits.numBytes, c_ptrToConst_helper(presUnits):c_ptrConst(c_char)));
-  cdfError(nc_put_att_text(ncid, temp_varid, c_ptrToConst_helper(units):c_ptrConst(c_char),
-                           tempUnits.numBytes, c_ptrToConst_helper(tempUnits):c_ptrConst(c_char)));
+  cdfError(nc_put_att_text(ncid, pres_varid, units.c_str(),
+                           presUnits.numBytes, presUnits.c_str()));
+  cdfError(nc_put_att_text(ncid, temp_varid, units.c_str(),
+                           tempUnits.numBytes, tempUnits.c_str()));
 
   /* End define mode. */
   cdfError(nc_enddef(ncid));

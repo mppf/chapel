@@ -123,7 +123,7 @@ proc generateDirectoryFiles(errorFiles: bool = true) {
     w.writeln("echo 'Compiler correctly threw an error' >$2");
     w.writeln("fi");
     w.close();
-    OS.chmod(c_ptrToConst_helper(prediff), 0o755:OS.mode_t);
+    OS.chmod(prediff.c_str(), 0o755:OS.mode_t);
   }
 }
 

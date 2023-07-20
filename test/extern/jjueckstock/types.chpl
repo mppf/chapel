@@ -31,10 +31,10 @@ module OuterModule {
   use CTypes;
 
   //NOTE: either C.my_struct or my_struct will work with the use C; statement.
-  var strct: C.my_struct = new my_struct(42, c_ptrToConst_helper("bar"):c_string);
+  var strct: C.my_struct = new my_struct(42, "bar".c_str());
   writeln(strct.foo);
   try {
-    writeln(string.createCopyingBuffer(strct.bar:c_ptrConst(c_char)));
+    writeln(string.createCopyingBuffer(strct.bar));
   }
   catch e: DecodeError {
     writeln("Decode error creating string");
@@ -56,7 +56,7 @@ module OuterModule {
   td_strct2.x = 8;
 
   var b: bar;
-  b.c = c_ptrToConst_helper("Hello"):c_string;
+  b.c = "Hello".c_str();
   b.foo = 42;
 
   var q:my_int;
@@ -66,6 +66,6 @@ module OuterModule {
   write(q);
   writeln();
 
-  printf(c_ptrToConst_helper("%.1f, %d\n"):c_string, td_strct.d, td_strct2.x);
-  printf(c_ptrToConst_helper("%s, %d\n"):c_string, b.c, b.foo);
+  printf("%.1f, %d\n".c_str(), td_strct.d, td_strct2.x);
+  printf("%s, %d\n".c_str(), b.c, b.foo);
 }

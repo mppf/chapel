@@ -173,7 +173,7 @@ writeln(name, " with seed ", seed, " using RandomStream type:");
 writeln(rs.type:string);
 writeln("RNG:");
 writeln(rs);
-
+const localName = name.localize();
 if testReal {
   writeln("testing real RNG");
   for i in 1..10 {
@@ -182,9 +182,9 @@ if testReal {
   // start over, don't count above as run-up
   rs = getRNG();
   if crush then
-    run_crush_testu01_double(c_ptrToConst_helper(name.localize()):c_string);
+    run_crush_testu01_double(localName.c_str());
   else
-    run_smallcrush_testu01_double(c_ptrToConst_helper(name.localize()):c_string);
+    run_smallcrush_testu01_double(localName.c_str());
 } else {
   writeln("testing uint ", testUintBits, " RNG");
   for i in 1..10 {
@@ -193,9 +193,9 @@ if testReal {
   // start over, don't count above as run-up
   rs = getRNG();
   if crush then
-    run_crush_testu01_uint(c_ptrToConst_helper(name.localize()):c_string);
+    run_crush_testu01_uint(localName.c_str());
   else
-    run_smallcrush_testu01_uint(c_ptrToConst_helper(name.localize()):c_string);
+    run_smallcrush_testu01_uint(localName.c_str());
 }
 
 

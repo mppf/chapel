@@ -647,7 +647,8 @@ record regex {
     opts.nongreedy = nonGreedy;
 
     /*var ret: regex(t);*/
-    qio_regex_create_compile(c_ptrToConst_helper(pattern.localize()), pattern.numBytes, opts,
+    var localPattern = pattern.localize();
+    qio_regex_create_compile(localPattern.c_str(), pattern.numBytes, opts,
                              this._regex);
     if !qio_regex_ok(this._regex) {
       const patternStr = if t==string then pattern
@@ -711,7 +712,7 @@ record regex {
   @chpldoc.nodoc
   proc _deserialize(data) {
     const pattern = exprType.chpl__deserialize(data.pattern);
-    qio_regex_create_compile(c_ptrToConst_helper(pattern),
+    qio_regex_create_compile(pattern.c_str(),
                              pattern.numBytes,
                              data.options,
                              this._regex);
@@ -879,7 +880,8 @@ record regex {
     param nmatches = if has_captures then 1 + captures.size else 1;
     var matches: c_array(qio_regex_string_piece_t, nmatches);
     var got:bool;
-    got = qio_regex_match(localRegex, c_ptrToConst_helper(text.localize()), text.numBytes,
+    var localText = text.localize();
+    got = qio_regex_match(localRegex, localText.c_str(), text.numBytes,
                           pos:int, endpos:int, anchor,
                           matches[0], nmatches);
     // Now try to coerce the read strings into the captures.
@@ -925,7 +927,7 @@ record regex {
     if maxsplit == 0 then maxsplits = max(int);
 
     while splits < maxsplits && pos <= endpos {
-      var got = qio_regex_match(localRegex, c_ptrToConst_helper(localText), localText.numBytes,
+      var got = qio_regex_match(localRegex, localText.c_str(), localText.numBytes,
                                 pos:int, endpos:int, QIO_REGEX_ANCHOR_UNANCHORED,
                                 matches[0], nmatches);
 
@@ -984,7 +986,7 @@ record regex {
     var cur = 0;
 
     while nFound < maxMatches && cur <= endPos {
-      var got = qio_regex_match(localRegex, c_ptrToConst_helper(localText), textLength,
+      var got = qio_regex_match(localRegex, localText.c_str(), textLength,
                                 cur:int, endPos:int, QIO_REGEX_ANCHOR_UNANCHORED,
                                 matches[0], nMatches);
       if !got then break;
@@ -1082,7 +1084,7 @@ record regex {
         var opts: qio_regex_options_t;
 
         qio_regex_init_default_options(opts);
-        qio_regex_create_compile(c_ptrToConst_helper(localPattern),
+        qio_regex_create_compile(localPattern.c_str(),
                                   localPattern.numBytes,
                                   opts,
                                   this._regex);
@@ -1250,7 +1252,7 @@ private proc doReplaceAndCountSlow(x: ?t, pattern: regex(t), replacement: t,
   for i in 0..<count {
     if i == matchesDom.size then matchesDom = {0..#matchesDom.size*2};
 
-    var got = qio_regex_match(localRegex, c_ptrToConst_helper(localX), x.numBytes,
+    var got = qio_regex_match(localRegex, localX.c_str(), x.numBytes,
                               startpos=curIdx, endpos=x.numBytes,
                               QIO_REGEX_ANCHOR_UNANCHORED, matches[i], 1);
     if !got then break;
@@ -1314,8 +1316,10 @@ private proc doReplaceAndCountFast(x: ?t, pattern: regex(t), replacement: t,
 
   var replaced:c_ptr(c_uchar);
   var replaced_len:int(64);
-  var nreplaced: int = qio_regex_replace(localRegex, c_ptrToConst_helper(replacement.localize()),
-                                    replacement.numBytes, c_ptrToConst_helper(x.localize()),
+  var localReplacement = replacement.localize();
+  var localX = x.localize();
+  var nreplaced: int = qio_regex_replace(localRegex, localReplacement.c_str(),
+                                    replacement.numBytes, localX.c_str(),
                                     x.numBytes, pos:int, endpos:int, global,
                                     replaced, replaced_len);
 

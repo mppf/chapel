@@ -45,7 +45,7 @@ inline proc chpl__autoCopy(ref r: myRptr) {
 
 
 var s1: myRptr;
-s1.base = c_ptrToConst_helper("s1");
+s1.base = "s1".c_str();
 sync {
   begin writeln(string.createCopyingBuffer(s1.base));
 }

@@ -13,4 +13,4 @@ proc bad(type t, x:c_ptrConst(c_char)) {
   }
 }
 
-bad(string, c_ptrToConst_helper("1")); // OK
+bad(string, "1".c_str()); // OK

@@ -1,5 +1,5 @@
 use CTypes;
-const pathPrefixEnvName = c_ptrToConst_helper("CHPL_HDF5_FILE_PREFIX");
+const pathPrefixEnvName = "CHPL_HDF5_FILE_PREFIX".c_str();
 
 // The prefix read from the environment variable will be added
 // to the path for HDF5 files. Make sure to include the trailing slash!

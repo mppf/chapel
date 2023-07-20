@@ -514,7 +514,7 @@ module Errors {
     var s = "uncaught " + chpl_describe_error(err) +
             "\n  " + thrownFileS + ":" + thrownLine:string + ": thrown here" +
             "\n  " + myFileS + ":" + myLine:string + ": uncaught here";
-    chpl_error_preformatted(c_ptrToConst_helper(s));
+    chpl_error_preformatted(s.c_str());
   }
   // This is like the above, but it is only ever added by the
   // compiler. In case of iterator inlining (say), this call
@@ -588,7 +588,7 @@ module Errors {
   pragma "always propagate line file info"
   proc assert(test: bool) {
     if !test then
-      __primitive("chpl_error", c_ptrToConst_helper("assert failed"));
+      __primitive("chpl_error", "assert failed".c_str());
   }
 
 

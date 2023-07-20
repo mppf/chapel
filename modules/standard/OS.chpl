@@ -1560,12 +1560,12 @@ module OS {
     // 34 is ASCII double quote
     var err: errorCode = qio_quote_string(34:uint(8), 34:uint(8),
                                       QIO_STRING_FORMAT_CHPL,
-                                      c_ptrToConst_helper(s.localize()), len, ret, nil);
+                                      s.localize().c_str(), len, ret, nil);
     // This doesn't handle the case where ret==NULL as did the previous
     // version in QIO, but I'm not sure how that was used.
 
     try! {
-      if err then return string.createAdoptingBuffer(qio_strdup(c_ptrToConst_helper("<error>")));
+      if err then return string.createAdoptingBuffer(qio_strdup("<error>".c_str()));
       return string.createAdoptingBuffer(ret);
     }
 }
