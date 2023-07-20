@@ -2650,7 +2650,7 @@ module String {
       return string.createCopyingBuffer(cs:c_ptrConst(c_char));
     }
     catch {
-      halt("Casting a non-UTF-8 c_string to string");
+      halt("Casting a non-UTF-8 c_ptrConst(c_char) to string");
     }
   }
 
