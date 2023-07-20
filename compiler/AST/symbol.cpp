@@ -468,7 +468,11 @@ const char* Symbol::getSanitizedMsg(std::string msg) const {
 
 void Symbol::maybeGenerateDeprecationWarning(Expr* context) {
   if (!this->hasFlag(FLAG_DEPRECATED)) return;
-
+  // TODO: Remove this exclusion once c_string is deprecated fully
+  // special case handling to stop emitting deprecation warnings about c_string
+  // from within the module that supports c_string.
+  if (strcmp(this->getModule()->name, "CTypes") == 0 &&
+      strcmp(this->name, "c_string") == 0 ) return;
   Symbol* contextParent = context->parentSymbol;
   bool parentDeprecated = contextParent->hasFlag(FLAG_DEPRECATED);
   bool compilerGenerated = contextParent->hasFlag(FLAG_COMPILER_GENERATED);

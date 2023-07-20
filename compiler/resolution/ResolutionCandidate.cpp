@@ -777,6 +777,14 @@ static Type* getBasicInstantiationType(Type* actualType, Symbol* actualSym,
       return baseType;
   }
 
+  if (formalType->symbol->hasFlag(FLAG_C_PTRCONST_CLASS) &&
+      actualType == dtStringC &&
+      formalType->symbol->hasFlag(FLAG_GENERIC) &&
+      formalSym->hasFlag(FLAG_TYPE_VARIABLE) == false) {
+        return actualType;
+  }
+
+
   return NULL;
 }
 

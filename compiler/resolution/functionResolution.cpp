@@ -913,12 +913,12 @@ bool canInstantiate(Type* actualType, Type* formalType) {
   }
 
   // allow c_string actual to be passed to c_ptrConst(c_char) formals
-  if (formalType->symbol->hasFlag(FLAG_C_PTRCONST_CLASS) &&
-      actualType == dtStringC) {
-      if (auto agg = toAggregateType(formalType)) {
-        if (agg->instantiatedFrom == NULL) return true;
-      }
-  }
+  // if (formalType->symbol->hasFlag(FLAG_C_PTRCONST_CLASS) &&
+  //     actualType == dtStringC) {
+  //     if (auto agg = toAggregateType(formalType)) {
+  //       if (agg->instantiatedFrom == NULL) return true;
+  //     }
+  // }
 
   if (formalType                                        == dtIteratorRecord &&
       actualType->symbol->hasFlag(FLAG_ITERATOR_RECORD) == true) {
@@ -1543,9 +1543,6 @@ bool canCoerceAsSubtype(Type*     actualType,
     return true;
   // coerce dtStringC to c_void_ptr
   if (actualType == dtStringC && isCVoidPtr(formalType))
-    return true;
-  // coerce c_ptr to c_void_ptr
-  if (actualType->symbol->hasFlag(FLAG_C_PTR_CLASS) && isCVoidPtr(formalType))
     return true;
 
   // coerce c_ptr(t) to c_ptr(void)
@@ -3559,10 +3556,10 @@ static void warnForPartialInstantiationNoQ(CallExpr* call, Type* t) {
   }
 }
 
-static bool isCptrConstInt8(CallExpr* call) {
+static bool isCptrConstChar(CallExpr* call) {
   if (call->isNamed("c_ptrConst") &&
       call->get(1) &&
-      call->get(1)->typeInfo() == dtInt[INT_SIZE_8]) {
+      call->get(1)->typeInfo() == dt_c_char) {
     return true;
   }
   return false;
@@ -3605,7 +3602,7 @@ static Type* resolveTypeSpecifier(CallInfo& info) {
     if (FnSymbol* fn = createTupleSignature(NULL, subs, call)) {
       ret = fn->retType;
     }
-  } else if (isCptrConstInt8(info.call)) {
+  } else if (isCptrConstChar(info.call)) {
     ret = dtStringC;
   } else {
     ret = at->generateType(info.call, info.toString());
@@ -4606,6 +4603,7 @@ void printResolutionErrorUnresolved(CallInfo&       info,
                          toString(srcType),
                          toString(dstType));
         } else {
+          debuggerBreakHere();
           USR_FATAL_CONT(call,
                          "illegal cast from %s to %s",
                          toString(srcType),
