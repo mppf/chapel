@@ -62,9 +62,9 @@ module StringCasts {
   operator :(x: integral, type t:string) {
     //TODO: switch to using qio's writef somehow
     pragma "fn synchronization free"
-    extern proc integral_to_c_string(x:int(64), size:uint(32), isSigned: bool, ref err: bool) : c_string;
+    extern proc integral_to_c_string(x:int(64), size:uint(32), isSigned: bool, ref err: bool) : c_ptrConst(c_char);
     pragma "fn synchronization free"
-    extern proc strlen(const str: c_string) : c_size_t;
+    extern proc strlen(const str: c_ptrConst(c_char)) : c_size_t;
 
     var isErr: bool;
     var csc = integral_to_c_string(x:int(64), numBytes(x.type), isIntType(x.type), isErr);
@@ -87,28 +87,28 @@ module StringCasts {
     //TODO: switch to using qio's readf somehow
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_int8_t  (x:c_string, ref err: bool) : int(8);
+    extern proc c_string_to_int8_t  (x:c_ptrConst(c_char), ref err: bool) : int(8);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_int16_t (x:c_string, ref err: bool) : int(16);
+    extern proc c_string_to_int16_t (x:c_ptrConst(c_char), ref err: bool) : int(16);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_int32_t (x:c_string, ref err: bool) : int(32);
+    extern proc c_string_to_int32_t (x:c_ptrConst(c_char), ref err: bool) : int(32);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_int64_t (x:c_string, ref err: bool) : int(64);
+    extern proc c_string_to_int64_t (x:c_ptrConst(c_char), ref err: bool) : int(64);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_uint8_t (x:c_string, ref err: bool) : uint(8);
+    extern proc c_string_to_uint8_t (x:c_ptrConst(c_char), ref err: bool) : uint(8);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_uint16_t(x:c_string, ref err: bool) : uint(16);
+    extern proc c_string_to_uint16_t(x:c_ptrConst(c_char), ref err: bool) : uint(16);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_uint32_t(x:c_string, ref err: bool) : uint(32);
+    extern proc c_string_to_uint32_t(x:c_ptrConst(c_char), ref err: bool) : uint(32);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_uint64_t(x:c_string, ref err: bool) : uint(64);
+    extern proc c_string_to_uint64_t(x:c_ptrConst(c_char), ref err: bool) : uint(64);
 
     var retVal: t;
     var isErr: bool;
@@ -126,18 +126,18 @@ module StringCasts {
 
     if isIntType(t) {
       select numBits(t) {
-        when 8  do retVal = c_string_to_int8_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 16 do retVal = c_string_to_int16_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 32 do retVal = c_string_to_int32_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 64 do retVal = c_string_to_int64_t(c_ptrToConst_helper(localX):c_string, isErr);
+        when 8  do retVal = c_string_to_int8_t(localX.c_str(), isErr);
+        when 16 do retVal = c_string_to_int16_t(localX.c_str(), isErr);
+        when 32 do retVal = c_string_to_int32_t(localX.c_str(), isErr);
+        when 64 do retVal = c_string_to_int64_t(localX.c_str(), isErr);
         otherwise compilerError("Unsupported bit width ", numBits(t), " in cast from string to " + t:string);
       }
     } else {
       select numBits(t) {
-        when 8  do retVal = c_string_to_uint8_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 16 do retVal = c_string_to_uint16_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 32 do retVal = c_string_to_uint32_t(c_ptrToConst_helper(localX):c_string, isErr);
-        when 64 do retVal = c_string_to_uint64_t(c_ptrToConst_helper(localX):c_string, isErr);
+        when 8  do retVal = c_string_to_uint8_t(localX.c_str(), isErr);
+        when 16 do retVal = c_string_to_uint16_t(localX.c_str(), isErr);
+        when 32 do retVal = c_string_to_uint32_t(localX.c_str(), isErr);
+        when 64 do retVal = c_string_to_uint64_t(localX.c_str(), isErr);
         otherwise compilerError("Unsupported bit width ", numBits(t), " in cast from string to " + t:string);
       }
     }
@@ -153,9 +153,9 @@ module StringCasts {
   //
   proc _real_cast_helper(x: real(64), param isImag: bool) : string {
     pragma "fn synchronization free"
-    extern proc real_to_c_string(x:real(64), isImag: bool) : c_string;
+    extern proc real_to_c_string(x:real(64), isImag: bool) : c_ptrConst(c_char);
     pragma "fn synchronization free"
-    extern proc strlen(const str: c_string) : c_size_t;
+    extern proc strlen(const str: c_ptrConst(c_char)) : c_size_t;
 
     var csc = real_to_c_string(x:real(64), isImag);
 
@@ -182,10 +182,10 @@ module StringCasts {
   operator :(x: string, type t:chpl_anyreal) throws {
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_real32(x: c_string, ref err: bool) : real(32);
+    extern proc c_string_to_real32(x: c_ptrConst(c_char), ref err: bool) : real(32);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_real64(x: c_string, ref err: bool) : real(64);
+    extern proc c_string_to_real64(x: c_ptrConst(c_char), ref err: bool) : real(64);
 
     var retVal: t;
     var isErr: bool;
@@ -198,8 +198,8 @@ module StringCasts {
     _cleanupForNumericCast(localX);
 
     select numBits(t) {
-      when 32 do retVal = c_string_to_real32(c_ptrToConst_helper(localX):c_string, isErr);
-      when 64 do retVal = c_string_to_real64(c_ptrToConst_helper(localX):c_string, isErr);
+      when 32 do retVal = c_string_to_real32(localX.c_str(), isErr);
+      when 64 do retVal = c_string_to_real64(localX.c_str(), isErr);
       otherwise compilerError("Unsupported bit width ", numBits(t), " in cast to string");
     }
 
@@ -212,10 +212,10 @@ module StringCasts {
   operator :(x: string, type t:chpl_anyimag) throws {
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_imag32(x: c_string, ref err: bool) : imag(32);
+    extern proc c_string_to_imag32(x: c_ptrConst(c_char), ref err: bool) : imag(32);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_imag64(x: c_string, ref err: bool) : imag(64);
+    extern proc c_string_to_imag64(x: c_ptrConst(c_char), ref err: bool) : imag(64);
 
     var retVal: t;
     var isErr: bool;
@@ -228,8 +228,8 @@ module StringCasts {
     _cleanupForNumericCast(localX);
 
     select numBits(t) {
-      when 32 do retVal = c_string_to_imag32(c_ptrToConst_helper(localX):c_string, isErr);
-      when 64 do retVal = c_string_to_imag64(c_ptrToConst_helper(localX):c_string, isErr);
+      when 32 do retVal = c_string_to_imag32(localX.c_str(), isErr);
+      when 64 do retVal = c_string_to_imag64(localX.c_str(), isErr);
       otherwise compilerError("Unsupported bit width ", numBits(t), " in cast to string");
     }
 
@@ -282,10 +282,10 @@ inline operator :(x: string, type t:c_ptrConst(?eltType))
 operator :(x: string, type t:chpl_anycomplex) throws {
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_complex64(x:c_string, ref err: bool) : complex(64);
+    extern proc c_string_to_complex64(x:c_ptrConst(c_char), ref err: bool) : complex(64);
     pragma "fn synchronization free"
     pragma "insert line file info"
-    extern proc c_string_to_complex128(x:c_string, ref err: bool) : complex(128);
+    extern proc c_string_to_complex128(x:c_ptrConst(c_char), ref err: bool) : complex(128);
 
     var retVal: t;
     var isErr: bool;
@@ -295,8 +295,8 @@ operator :(x: string, type t:chpl_anycomplex) throws {
       throw new owned IllegalArgumentError("bad cast from empty string to complex(" + numBits(t):string + ")");
 
     select numBits(t) {
-      when 64 do retVal = c_string_to_complex64(c_ptrToConst_helper(localX):c_string, isErr);
-      when 128 do retVal = c_string_to_complex128(c_ptrToConst_helper(localX):c_string, isErr);
+      when 64 do retVal = c_string_to_complex64(localX.c_str(), isErr);
+      when 128 do retVal = c_string_to_complex128(localX.c_str(), isErr);
       otherwise compilerError("Unsupported bit width ", numBits(t), " in cast to string");
     }
 

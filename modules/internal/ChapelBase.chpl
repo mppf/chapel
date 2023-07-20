@@ -38,8 +38,8 @@ module ChapelBase {
   config param enablePostfixBangChecks = false;
 
   // These two are called by compiler-generated code.
-  extern proc chpl_config_has_value(name:c_string, module_name:c_string): bool;
-  extern proc chpl_config_get_value(name:c_string, module_name:c_string): c_string;
+  extern proc chpl_config_has_value(name:c_ptrConst(c_char), module_name:c_ptrConst(c_char)): bool;
+  extern proc chpl_config_get_value(name:c_ptrConst(c_char), module_name:c_ptrConst(c_char)): c_ptrConst(c_char);
 
   // the default low bound to use for arrays, tuples, etc.
   config param defaultLowBound = 0;

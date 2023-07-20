@@ -88,7 +88,7 @@ module CString {
   // for a to be a valid c_string after this function it must be on the same
   // locale as b
   inline operator c_string.=(ref a: c_string, b: string) {
-    __primitive("=", a, c_ptrToConst_helper(b):c_string);
+    __primitive("=", a, c_ptrToConst_helper(b));
   }
 
   //
@@ -150,7 +150,7 @@ module CString {
   inline operator :(x:c_string, type t:chpl_anybool) throws {
     var chplString: string;
     try! {
-      chplString = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      chplString = string.createCopyingBuffer(x);
     }
     return try (chplString.strip()): t;
   }
@@ -161,7 +161,7 @@ module CString {
   inline operator :(x:c_string, type t:integral) throws {
     var chplString: string;
     try! {
-      chplString = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      chplString = string.createCopyingBuffer(x);
     }
     return try (chplString.strip()): t;
   }
@@ -172,7 +172,7 @@ module CString {
   inline operator :(x:c_string, type t:chpl_anyreal)  throws {
     var chplString: string;
     try! {
-      chplString = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      chplString = string.createCopyingBuffer(x);
     }
     return try (chplString.strip()): t;
   }
@@ -180,7 +180,7 @@ module CString {
   inline operator :(x:c_string, type t:chpl_anyimag) throws {
     var chplString: string;
     try! {
-      chplString = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      chplString = string.createCopyingBuffer(x);
     }
     return try (chplString.strip()): t;
   }
@@ -191,7 +191,7 @@ module CString {
   inline operator :(x:c_string, type t:chpl_anycomplex)  throws {
     var chplString: string;
     try! {
-      chplString = string.createCopyingBuffer(x:c_ptrConst(c_char));
+      chplString = string.createCopyingBuffer(x);
     }
     return try (chplString.strip()): t;
   }
@@ -241,14 +241,14 @@ module CString {
   }
 
   proc c_string.writeThis(x) throws {
-    compilerError("Cannot write a c_string, cast to a string first.");
+    compilerError("Cannot write a c_ptrConstUint8, cast to a string first.");
   }
   proc c_string.serialize(writer, ref serializer) throws {
     writeThis(writer);
   }
 
   proc c_string.readThis(x) throws {
-    compilerError("Cannot read a c_string, use string.");
+    compilerError("Cannot read a c_ptrConstUint8, use string.");
   }
 
 }

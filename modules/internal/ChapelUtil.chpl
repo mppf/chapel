@@ -129,7 +129,7 @@ module ChapelUtil {
   // TODO: How to get rid of this param c_string?
   // param s is used for error reporting
   pragma "command line setting"
-  proc _command_line_cast(param s: c_string, type t, x:c_string) {
+  proc _command_line_cast(param s: c_ptrConst(c_char), type t, x:c_ptrConst(c_char)) {
     if isSyncType(t) then
       compilerError("config variables of sync type are not supported");
     if isSingleType(t) then
@@ -209,7 +209,7 @@ module ChapelUtil {
   // TODO: Removing c_string here requires changing some compiler generated
   // code in resolution. Specifically we generate calls to this function
   // in compiler/resolution/functionResolution.cpp:resolveSupportForModuleDeinits()
-  proc chpl_addModule(moduleName: c_string, deinitFun: c_fn_ptr) {
+  proc chpl_addModule(moduleName: c_ptrConst(c_char), deinitFun: c_fn_ptr) {
     chpl_moduleDeinitFuns =
       new unmanaged chpl_ModuleDeinit(moduleName:c_ptrConst(c_char), deinitFun, chpl_moduleDeinitFuns);
   }

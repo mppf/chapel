@@ -78,7 +78,7 @@ module ChapelDebugPrint {
       // from DefaultRectangular. This way of writing it works
       // around resolution ordering issues (such as stdout not
       // yet defined).
-      const file_cs : c_string = __primitive("chpl_lookupFilename",
+      const file_cs  = __primitive("chpl_lookupFilename",
                                         __primitive("_get_user_file"));
       var file: string;
       try! {
@@ -92,7 +92,7 @@ module ChapelDebugPrint {
   }
   proc chpl__testParWriteln(args...) {
     if chpl__testParFlag && chpl__testParOn {
-      const file_cs : c_string = __primitive("chpl_lookupFilename",
+      const file_cs  = __primitive("chpl_lookupFilename",
                                                  __primitive("_get_user_file"));
       var file: string;
       try! {
