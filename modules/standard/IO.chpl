@@ -1172,7 +1172,7 @@ export proc chpl_qio_filelength(file:c_ptr(void), ref length:int(64)):errorCode 
   var f=(file:unmanaged QioPluginFile?)!;
   return f.filelength(length);
 }
-export proc chpl_qio_getpath(file:c_ptr(void), ref str:c_ptrConst(int(8)), ref len:int(64)):errorCode {
+export proc chpl_qio_getpath(file:c_ptr(void), ref str:c_ptrConst(c_char), ref len:int(64)):errorCode {
   var f=(file:unmanaged QioPluginFile?)!;
   return f.getpath(str, len);
 }
