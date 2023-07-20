@@ -3656,11 +3656,6 @@ module HDF5 {
       when real(32) do hdf5Type = C_HDF5.H5T_IEEE_F32LE;
       when real(64) do hdf5Type = C_HDF5.H5T_IEEE_F64LE;
 
-      when c_string {
-        hdf5Type = C_HDF5.H5Tcopy(C_HDF5.H5T_C_S1);
-        C_HDF5.H5Tset_size(hdf5Type, C_HDF5.H5T_VARIABLE);
-      }
-
       when c_ptrConst(c_char) {
         hdf5Type = C_HDF5.H5Tcopy(C_HDF5.H5T_C_S1);
         C_HDF5.H5Tset_size(hdf5Type, C_HDF5.H5T_VARIABLE);

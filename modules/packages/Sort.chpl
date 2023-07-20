@@ -3663,14 +3663,14 @@ record DefaultComparator {
    :returns: ``(0, byte i of string)`` or ``(-1, 0)`` if byte ``i`` is ``0``
    */
 
-  @deprecated(notes="the type 'c_string' is deprecated; use the variant of 'keyPart' that accepts 'c_ptrConst(c_char)' instead")
-  inline
-  proc keyPart(x:c_string, i:int):(int(8), uint(8)) {
-    return keyPart(c_ptrToConst_helper(x), i);
-  }
+  // @deprecated(notes="the type 'c_string' is deprecated; use the variant of 'keyPart' that accepts 'c_ptrConst(c_char)' instead")
+  // inline
+  // proc keyPart(x:c_string, i:int):(int(8), uint(8)) {
+  //   return keyPart(c_ptrToConst_helper(x), i);
+  // }
 
   /*
-   Default ``keyPart`` method for sorting `c_string`.
+   Default ``keyPart`` method for sorting `c_ptrConst(c_char)`.
    See also `The .keyPart method`_.
 
    :arg x: the `c_ptrConst(c_char)` to sort
