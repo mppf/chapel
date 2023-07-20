@@ -54,7 +54,7 @@ module CTypes {
 
   // TODO: maybe rename this to chpl_something
   @deprecated("the type 'c_string' is deprecated; please use c_ptrConst(c_char) instead")
-  type c_string = c_ptrConstInt8;
+  type c_string = c_ptrConst(c_char);
 
   /* Controls whether :type:`c_FILE` represents a ``FILE*`` or a ``FILE``.
 
@@ -466,10 +466,10 @@ module CTypes {
         // if from and to are both pointer types themselves, recurse into their
         // respective pointee types (strip a layer of indirection)
         return pointeeCastStrictAliasingAllowed(from.eltType, to.eltType);
-      } else if (from == c_string) {
+      } else if (from == c_ptrConst(c_char)) {
         // a c_string can be interpreted as a pointer to c_char for this purpose
         return pointeeCastStrictAliasingAllowed(c_char, to.eltType);
-      } else if (to == c_string) {
+      } else if (to == c_ptrConst(c_char)) {
         return pointeeCastStrictAliasingAllowed(from.eltType, c_char);
       }
     }
@@ -510,6 +510,10 @@ module CTypes {
   pragma "last resort"
   @chpldoc.nodoc
   inline operator :(x:c_ptr(void), type t:c_ptr) {
+    return __primitive("cast", t, x);
+  }
+  @chpldoc.nodoc
+  inline operator :(x:c_ptrConst(c_uchar), type t:c_ptrConst(c_char)) {
     return __primitive("cast", t, x);
   }
   @chpldoc.nodoc

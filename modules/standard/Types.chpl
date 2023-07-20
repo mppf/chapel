@@ -52,7 +52,7 @@ proc _isPrimitiveType(type t) param {
     isRealType(t)     ||
     //To allow imag, need to define casts from primitive types into imag.
     //isImagType(t)     ||
-    (t == c_string);
+    (t == c_ptrConst(c_char));
 
 }
 /*
