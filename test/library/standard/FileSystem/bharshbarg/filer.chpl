@@ -35,12 +35,12 @@ iter listdir(path: string, hidden=false, dirs=true, files=true,
 
   extern type DIRptr = c_ptr(opaque);
   extern type direntptr = c_ptr(opaque);
-  extern proc opendir(name: c_string): DIRptr;
+  extern proc opendir(name: c_ptrConst(c_char)): DIRptr;
   extern proc readdir(dirp: DIRptr): direntptr;
   extern proc closedir(dirp: DIRptr): c_int;
 
-  proc direntptr.d_name(): c_string {
-    extern proc chpl_rt_direntptr_getname(d: direntptr): c_string;
+  proc direntptr.d_name(): c_ptrConst(c_char) {
+    extern proc chpl_rt_direntptr_getname(d: direntptr): c_ptrConst(c_char);
 
     return chpl_rt_direntptr_getname(this);
   }
@@ -86,7 +86,7 @@ iter listdir(path: string, hidden=false, dirs=true, files=true,
     }
     closedir(dir);
   } else {
-    extern proc perror(s: c_string);
+    extern proc perror(s: c_ptrConst(c_char));
     perror("error in listdir(): ");
   }
 }
