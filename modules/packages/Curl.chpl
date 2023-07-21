@@ -265,7 +265,7 @@ module Curl {
         var tmp:c_ptr(void) = arg.list:c_ptr(void);
         err = curl_easy_setopt_ptr(curl, opt:CURLoption, tmp);
       } else if arg.type == string || arg.type == bytes {
-        var localArg = arg.localize();
+        const localArg = arg.localize();
         err = curl_easy_setopt_ptr(curl, opt:CURLoption,
                                    localArg.c_str():c_ptr(void));
       }
@@ -333,7 +333,7 @@ module Curl {
   proc slist.append(str:string) throws {
     var err: errorCode = 0;
     on this.home {
-      var localStr = str.localize();
+      const localStr = str.localize();
       this.list = curl_slist_append(this.list, localStr.c_str());
       if this.list == nil then
         err = EINVAL;
@@ -550,8 +550,9 @@ module Curl {
         return 0;
       }
       override proc getpath(out path:c_ptrConst(c_char), out len:int(64)):errorCode {
+        use OS.POSIX;
         path = qio_strdup(this.url_c);
-        len = __primitive("string_length_bytes", url_c);
+        len = strlen(url_c):int(64);
         return 0;
       }
 
@@ -713,8 +714,9 @@ module Curl {
 
     private proc startsWith(haystack:c_ptrConst(c_char), needle:c_ptrConst(c_char)) {
       extern proc strncmp(s1: c_ptrConst(c_char), s2: c_ptrConst(c_char), n:c_size_t):c_int;
-      var len = __primitive("string_length_bytes", needle);
-      return strncmp(haystack, needle, len:c_size_t) == 0;
+      use OS.POSIX;
+      const len = strlen(needle);
+      return strncmp(haystack, needle, len) == 0;
     }
 
     private proc curl_write_string(contents: c_ptr(void), size:c_size_t, nmemb:c_size_t, userp: c_ptr(void)) {
@@ -1154,7 +1156,7 @@ module Curl {
 
       // Save the url requested
       var url_c = allocate(uint(8), url.size:c_size_t+1, clear=true);
-      var localUrl = url.localize();
+      const localUrl = url.localize();
       memcpy(url_c:c_ptr(void), localUrl.c_str():c_ptr(void), url.size.safeCast(c_size_t));
 
       fl.url_c = url_c:c_ptrConst(c_char);

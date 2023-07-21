@@ -359,7 +359,7 @@ module HDFS {
 
       if verbose then
         writeln("hdfsOpenFile");
-      var localPath = path.localize();
+      const localPath = path.localize();
       var hfile = hdfsOpenFile(this.hfs, localPath.c_str(),
                                flags, bufferSize, replication, blockSize);
 

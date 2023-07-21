@@ -22,11 +22,6 @@ proc main() {
   y.b = "World".c_str();
   stringStruct_print(y);
 
-  // var yy : stringStruct;
-  // yy.a = c_ptrToConst_helper("Hello");
-  // yy.b = c_ptrToConst_helper("World");
-  // stringStruct_print(yy);
-
   var z : fnStruct;
   z.fn = c_ptrTo(foo);
   fnStruct_call(z);

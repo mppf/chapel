@@ -1,4 +1,3 @@
-use CTypes;
 proc getNameFromClass(obj:borrowed RootClass) : string
 {
   var cid =  __primitive("getcid", obj);

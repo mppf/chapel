@@ -13,4 +13,4 @@ iter g() {
 }
 
 for i in g() do
-  printf("%s\n".c_str(), (here.id:string + ":i=" + i:string).c_str());
+  printf("%s\n", (here.id:string + ":i=" + i:string).c_str());

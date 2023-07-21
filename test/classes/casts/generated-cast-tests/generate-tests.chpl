@@ -19,7 +19,6 @@ use IO;
 use List;
 import FileSystem as FS;
 import OS.POSIX as OS;
-use CTypes;
 
 // controls whether this generates error test cases or no error test cases
 config var generateErrorCases: bool = true;

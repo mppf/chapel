@@ -76,7 +76,7 @@ extern proc cs_trial(n: int);
 proc lstr_trial() {
   extern proc printf(format: c_ptrConst(c_char), arg...);
   for 1..n do
-    printf("%s".c_str(), "\n");
+    printf("%s", "\n".c_str());
 }
 
 proc lcs_trial() {
@@ -90,7 +90,7 @@ const str_newline_global = "\n";
 proc gstr_trial() {
   extern proc printf(format: c_ptrConst(c_char), arg...);
   for 1..n do
-    printf("%s", str_newline_global);
+    printf("%s", str_newline_global.c_str());
 }
 
 const c_newline_global: c_ptrConst(c_char) = "\n";

@@ -261,7 +261,7 @@ module BigInteger {
     @deprecated(notes="bigint initializers that halt are deprecated, please set the config param :param:`bigintInitThrows` to 'true' to opt in to using the new initializer that throws")
     proc init(str: string, base: int = 0) where bigintInitThrows == false {
       this.complete();
-      var localStr = str.localize();
+      const localStr = str.localize();
       const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
@@ -278,7 +278,7 @@ module BigInteger {
     proc init(str: string, base: int = 0, out error: errorCode) {
 
       this.complete();
-      var localStr = str.localize();
+      const localStr = str.localize();
       const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
@@ -314,7 +314,7 @@ module BigInteger {
      */
     proc init(str: string, base: int = 0) throws where bigintInitThrows == true {
       this.complete();
-      var localStr = str.localize();
+      const localStr = str.localize();
       const ref str_  = localStr.c_str();
       const base_ = base.safeCast(c_int);
 
@@ -4597,18 +4597,18 @@ module BigInteger {
 
   proc bigint.set(str: string, base: int = 0) {
     const base_ = base.safeCast(c_int);
-    var localStr = str.localize();
+    const localStr = str.localize();
     if _local {
-      var localStr = str.localize();
+      const localStr = str.localize();
       mpz_set_str(this.mpz, localStr.c_str(), base_);
     } else if this.localeId == chpl_nodeID {
-      var localStr = str.localize();
+      const localStr = str.localize();
       mpz_set_str(this.mpz, localStr.c_str(), base_);
     } else {
       const thisLoc = chpl_buildLocaleID(this.localeId, c_sublocid_any);
 
       on __primitive("chpl_on_locale_num", thisLoc) {
-        var localStr = str.localize();
+        const localStr = str.localize();
         mpz_set_str(this.mpz, localStr.c_str(), base_);
       }
     }

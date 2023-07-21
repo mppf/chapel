@@ -422,8 +422,8 @@ private extern proc sys_set_sys_sockaddr_in_t(ref addr: sys_sockaddr_t, host:sys
 private extern proc sys_set_sys_sockaddr_in6_t(ref addr: sys_sockaddr_t, host:sys_in6_addr_t, port:c_uint);
 private extern proc sys_host_sys_sockaddr_t(const ref addr: sys_sockaddr_t, host: c_ptr(c_char), hostlen: socklen_t, ref length: c_int) : c_int;
 private extern proc sys_port_sys_sockaddr_t(const ref addr: sys_sockaddr_t, ref port: c_uint) : c_int;
-private extern proc sys_strerror(error:c_int, ref string_out:c_ptr(c_uchar)):c_int;
-private extern proc sys_readlink(path:c_ptrConst(c_char), ref string_out:c_ptr(c_uchar)):c_int;
+private extern proc sys_strerror(error:c_int, ref string_out:c_ptrConst(c_char)):c_int;
+private extern proc sys_readlink(path:c_ptrConst(c_char), ref string_out:c_ptrConst(c_char)):c_int;
 
 extern const AF_INET: c_int;
 extern const AF_INET6: c_int;

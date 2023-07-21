@@ -488,7 +488,7 @@ module Subprocess {
     if CHPL_COMM == "ugni" {
       if stdin != pipeStyle.forward || stdout != pipeStyle.forward || stderr != pipeStyle.forward then
         if numLocales > 1 {
-          var env_c_str:c_ptr(c_uchar);
+          var env_c_str:c_ptrConst(c_char);
           var env_str:string;
           if sys_getenv("PE_PRODUCT_LIST".c_str(), env_c_str)==1 {
             env_str = string.createCopyingBuffer(env_c_str);

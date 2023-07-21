@@ -102,7 +102,7 @@ private proc VDebugTree (what: vis_op, name: string, time: real, tagno: int,
          if rid < n then
              on Locales[rid] do VDebugTree (what, name, time, tagno, rid, n, offset >> shift);
 
-     var localName = name.localize();
+     const localName = name.localize();
      /* Do the op at the root  */
      select what {
          when vis_op.v_start    do chpl_vdebug_start (localName.c_str(), time);

@@ -1553,10 +1553,10 @@ module OS {
     extern const QIO_STRING_FORMAT_CHPL: uint(8);
     extern proc qio_quote_string(s:uint(8), e:uint(8), f:uint(8),
                                  ptr:c_ptrConst(c_char), len:c_ssize_t,
-                                 ref ret:c_ptr(c_uchar), ti: c_ptr(void)): errorCode;
+                                 ref ret:c_ptrConst(c_char), ti: c_ptr(void)): errorCode;
     extern proc qio_strdup(s: c_ptrConst(c_char)): c_ptrConst(c_char);
 
-    var ret: c_ptr(c_uchar);
+    var ret: c_ptrConst(c_char);
     // 34 is ASCII double quote
     var err: errorCode = qio_quote_string(34:uint(8), 34:uint(8),
                                       QIO_STRING_FORMAT_CHPL,
@@ -1565,7 +1565,7 @@ module OS {
     // version in QIO, but I'm not sure how that was used.
 
     try! {
-      if err then return string.createAdoptingBuffer(qio_strdup("<error>".c_str()));
+      if err then return string.createAdoptingBuffer(qio_strdup("<error>"));
       return string.createAdoptingBuffer(ret);
     }
 }

@@ -116,10 +116,9 @@ module MemTracking
       }
 
      } else {
-       ret_memLeaksByDesc = memLeaksByDesc.c_str();
-       ret_memLog = memLog.c_str();
-       ret_memLeaksLog = memLeaksLog.c_str();
-
+      ret_memLeaksByDesc = memLeaksByDesc.c_str();
+      ret_memLog = memLog.c_str();
+      ret_memLeaksLog = memLeaksLog.c_str();
     }
   }
 }

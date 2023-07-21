@@ -266,7 +266,6 @@ module GMP {
 
   extern proc mpz_set_d(ref rop: mpz_t, op: c_double);
 
-
   extern proc mpz_set_str(ref rop: mpz_t, str: c_ptrConst(c_char), base: c_int);
 
   extern proc mpz_swap(ref rop1: mpz_t, ref rop2: mpz_t);
@@ -1119,9 +1118,9 @@ module GMP {
   //
   // printf/scanf
   //
-  extern proc gmp_fprintf(fp: c_FILE, fmt: c_ptrConst(c_char), arg...);
-
   extern proc gmp_printf(fmt: c_ptrConst(c_char), arg...);
+
+  extern proc gmp_fprintf(fp: c_FILE, fmt: c_ptrConst(c_char), arg...);
 
   pragma "last resort"
   @deprecated(notes="the '_file' type is deprecated; use the variant of 'gmp_fprintf' that takes a 'c_FILE'")

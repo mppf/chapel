@@ -206,9 +206,6 @@ module ChapelUtil {
   // Support for module deinit functions.
   config param printModuleDeinitOrder = false;
 
-  // TODO: Removing c_string here requires changing some compiler generated
-  // code in resolution. Specifically we generate calls to this function
-  // in compiler/resolution/functionResolution.cpp:resolveSupportForModuleDeinits()
   proc chpl_addModule(moduleName: c_ptrConst(c_char), deinitFun: c_fn_ptr) {
     chpl_moduleDeinitFuns =
       new unmanaged chpl_ModuleDeinit(moduleName, deinitFun, chpl_moduleDeinitFuns);

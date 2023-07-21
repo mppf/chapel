@@ -369,10 +369,10 @@ module AggregationPrimitives {
 
   proc getEnvInt(name: string, default: int): int {
     extern proc getenv(name : c_ptrConst(c_char)) : c_ptrConst(c_char);
-    var localName = name.localize();
-    var envValue = getenv(localName.c_str());
-    var len = __primitive("string_length_bytes", envValue);
-    var strval = try! string.createAdoptingBuffer(envValue, length=len);
+    const localName = name.localize();
+    const envValue = getenv(localName.c_str());
+    const len = __primitive("string_length_bytes", envValue);
+    const strval = try! string.createAdoptingBuffer(envValue, length=len);
     if strval.isEmpty() { return default; }
     return try! strval: int;
   }

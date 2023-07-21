@@ -372,7 +372,7 @@ extern proc qio_regex_release(ref compiled:qio_regex_t);
 @chpldoc.nodoc
 
 private extern proc qio_regex_get_options(const ref regex:qio_regex_t, ref options: qio_regex_options_t);
-private extern proc qio_regex_borrow_pattern(const ref regex:qio_regex_t, ref pattern: c_ptr(c_uchar), ref len_out:int(64));
+private extern proc qio_regex_borrow_pattern(const ref regex:qio_regex_t, ref pattern: c_ptrConst(c_char), ref len_out:int(64));
 @chpldoc.nodoc
 extern proc qio_regex_get_ncaptures(const ref regex:qio_regex_t):int(64);
 @chpldoc.nodoc
@@ -395,7 +395,7 @@ extern record qio_regex_string_piece_t {
 private extern proc qio_regex_string_piece_isnull(ref sp:qio_regex_string_piece_t):bool;
 
 private extern proc qio_regex_match(const ref re:qio_regex_t, text:c_ptrConst(c_char), textlen:int(64), startpos:int(64), endpos:int(64), anchor:c_int, ref submatch:qio_regex_string_piece_t, nsubmatch:int(64)):bool;
-private extern proc qio_regex_replace(const ref re:qio_regex_t, repl:c_ptrConst(c_char), repllen:int(64), text:c_ptrConst(c_char), textlen:int(64), startpos:int(64), endpos:int(64), global:bool, ref replaced:c_ptr(c_uchar), ref replaced_len:int(64)):int(64);
+private extern proc qio_regex_replace(const ref re:qio_regex_t, repl:c_ptrConst(c_char), repllen:int(64), text:c_ptrConst(c_char), textlen:int(64), startpos:int(64), endpos:int(64), global:bool, ref replaced:c_ptrConst(c_char), ref replaced_len:int(64)):int(64);
 
 // These two could be folded together if we had a way
 // to check if a default argument was supplied
@@ -697,7 +697,7 @@ record regex {
        * long as the regex itself (and eg. doesn't get freed at the end of this
        * function)
        */
-      var patternTemp: c_ptr(c_uchar);
+      var patternTemp: c_ptrConst(c_char);
       var len:int;
       qio_regex_borrow_pattern(_regexCopy, patternTemp, len);
       try! pattern = exprType.createBorrowingBuffer(patternTemp, len).chpl__serialize();
@@ -880,7 +880,7 @@ record regex {
     param nmatches = if has_captures then 1 + captures.size else 1;
     var matches: c_array(qio_regex_string_piece_t, nmatches);
     var got:bool;
-    var localText = text.localize();
+    const localText = text.localize();
     got = qio_regex_match(localRegex, localText.c_str(), text.numBytes,
                           pos:int, endpos:int, anchor,
                           matches[0], nmatches);
@@ -1060,7 +1060,7 @@ record regex {
   proc writeThis(f) throws {
     var pattern:exprType;
     on this.home {
-      var patternTemp:c_ptr(c_uchar);
+      var patternTemp:c_ptrConst(c_char);
       var len:int;
       qio_regex_borrow_pattern(this._regex, patternTemp, len);
       try! pattern = exprType.createCopyingBuffer(patternTemp, len);
@@ -1120,7 +1120,7 @@ operator regex.=(ref ret:regex(?t), x:regex(t))
 inline operator :(x: regex(?exprType), type t: exprType) {
   var pattern: t;
   on x.home {
-    var cs: c_ptr(c_uchar);
+    var cs: c_ptrConst(c_char);
     var len:int;
     qio_regex_borrow_pattern(x._regex, cs, len);
     try! pattern = t.createCopyingBuffer(cs, len);
@@ -1314,10 +1314,10 @@ private proc doReplaceAndCountFast(x: ?t, pattern: regex(t), replacement: t,
   pos = 0;
   endpos = pos + x.numBytes;
 
-  var replaced:c_ptr(c_uchar);
+  var replaced:c_ptrConst(c_char);
   var replaced_len:int(64);
-  var localReplacement = replacement.localize();
-  var localX = x.localize();
+  const localReplacement = replacement.localize();
+  const localX = x.localize();
   var nreplaced: int = qio_regex_replace(localRegex, localReplacement.c_str(),
                                     replacement.numBytes, localX.c_str(),
                                     x.numBytes, pos:int, endpos:int, global,

@@ -499,7 +499,7 @@ module Errors {
                                          __primitive("_get_user_file"));
     var myFileS: string;
     try! {
-      myFileS = string.createCopyingBuffer(myFileC:c_ptrConst(c_char));
+      myFileS = string.createCopyingBuffer(myFileC);
     }
     const myLine = __primitive("_get_user_line");
 
@@ -507,7 +507,7 @@ module Errors {
                                              err.thrownFileId);
     var thrownFileS: string;
     try! {
-      thrownFileS = string.createCopyingBuffer(thrownFileC:c_ptrConst(c_char));
+      thrownFileS = string.createCopyingBuffer(thrownFileC);
     }
     const thrownLine = err.thrownLine;
 

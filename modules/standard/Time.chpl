@@ -140,7 +140,7 @@ enum day       { sunday=0, monday, tuesday, wednesday, thursday, friday, saturda
   private proc tm_zoneType type {
     use ChplConfig;
     if CHPL_TARGET_PLATFORM == "darwin" then
-      return c_ptr(c_uchar); // char *
+      return c_ptr(c_char); // char *
     else
       return c_ptrConst(c_char); // const char *
   }
@@ -487,7 +487,7 @@ enum day       { sunday=0, monday, tuesday, wednesday, thursday, friday, saturda
   proc date.strftime(fmt: string) {
     extern proc strftime(s: c_ptr(void), size: c_size_t, format: c_ptrConst(c_char), ref timeStruct: tm);
     const bufLen: c_size_t = 100;
-    var buf: [1..bufLen] c_uchar;
+    var buf: [1..bufLen] c_char;
     var timeStruct: tm;
 
     timeStruct.tm_sec = 0;
@@ -796,7 +796,7 @@ enum day       { sunday=0, monday, tuesday, wednesday, thursday, friday, saturda
   proc time.strftime(fmt: string) {
     extern proc strftime(s: c_ptr(void), size: c_size_t, format: c_ptrConst(c_char), ref timeStruct: tm);
     const bufLen: c_size_t = 100;
-    var buf: [1..bufLen] c_uchar;
+    var buf: [1..bufLen] c_char;
     var timeStruct: tm;
 
     timeStruct.tm_sec = second: int(32);
@@ -1417,7 +1417,7 @@ enum day       { sunday=0, monday, tuesday, wednesday, thursday, friday, saturda
   proc dateTime.strftime(fmt: string) {
     extern proc strftime(s: c_ptr(void), size: c_size_t, format: c_ptrConst(c_char), ref timeStruct: tm);
     const bufLen: c_size_t = 100;
-    var buf: [1..bufLen] c_uchar;
+    var buf: [1..bufLen] c_char;
     var timeStruct: tm;
 
     timeStruct.tm_hour = hour: int(32);

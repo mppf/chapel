@@ -593,12 +593,12 @@ private proc copyTreeHelper(src: string, dest: string, copySymbolically: bool=fa
    :throws SystemError: Thrown to describe an error if one occurs.
 */
 proc locale.cwd(): string throws {
-  extern proc chpl_fs_cwd(ref working_dir:c_ptr(c_uchar)):errorCode;
+  extern proc chpl_fs_cwd(ref working_dir:c_ptrConst(c_char)):errorCode;
 
   var ret:string;
   var err: errorCode = 0;
   on this {
-    var tmp:c_ptr(c_uchar);
+    var tmp:c_ptrConst(c_char);
     // c_strings can't cross on statements.
     err = chpl_fs_cwd(tmp);
     try! {

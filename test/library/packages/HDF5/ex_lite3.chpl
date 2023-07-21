@@ -20,16 +20,16 @@ proc main {
   space_id = H5Screate_simple(1, c_ptrTo(dims), nil);
 
   /* create a dataset named "dset" */
-  dset_id = H5Dcreate2(file_id, "dset".c_str(), H5T_NATIVE_INT,  space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  dset_id = H5Dcreate2(file_id, "dset", H5T_NATIVE_INT,  space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   H5Dclose(dset_id);
   H5Sclose(space_id);
 
   /* create and write the attribute "attr1" on the dataset "dset" */
-  H5LTset_attribute_int(file_id, "dset".c_str(), "attr1".c_str(), data[0], ATTR_SIZE);
+  H5LTset_attribute_int(file_id, "dset", "attr1", data[0], ATTR_SIZE);
 
   /* get the attribute "attr1" from the dataset "dset" */
-  H5LTget_attribute_int(file_id, "dset".c_str(), "attr1".c_str(), data[0]);
+  H5LTget_attribute_int(file_id, "dset", "attr1", data[0]);
 
   for i in 0..#ATTR_SIZE {
     write("  ", data[i]);

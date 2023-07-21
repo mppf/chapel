@@ -912,14 +912,6 @@ bool canInstantiate(Type* actualType, Type* formalType) {
     return true;
   }
 
-  // allow c_string actual to be passed to c_ptrConst(c_char) formals
-  // if (formalType->symbol->hasFlag(FLAG_C_PTRCONST_CLASS) &&
-  //     actualType == dtStringC) {
-  //     if (auto agg = toAggregateType(formalType)) {
-  //       if (agg->instantiatedFrom == NULL) return true;
-  //     }
-  // }
-
   if (formalType                                        == dtIteratorRecord &&
       actualType->symbol->hasFlag(FLAG_ITERATOR_RECORD) == true) {
     return true;
@@ -4603,7 +4595,6 @@ void printResolutionErrorUnresolved(CallInfo&       info,
                          toString(srcType),
                          toString(dstType));
         } else {
-          debuggerBreakHere();
           USR_FATAL_CONT(call,
                          "illegal cast from %s to %s",
                          toString(srcType),

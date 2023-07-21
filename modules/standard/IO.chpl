@@ -6033,7 +6033,7 @@ proc fileWriter._writeLiteralCommon(x:?t) : void throws {
 
   on this._home {
     try! this.lock(); defer { this.unlock(); }
-    var localX = x.localize();
+    const localX = x.localize();
     const ref cstr = localX.c_str();
     const err = qio_channel_print_literal(false, _channel_internal, cstr,
                                           x.numBytes:c_ssize_t);
@@ -10125,8 +10125,6 @@ proc _setIfPrimitive(ref lhs:?t, rhs:?t2, argi:int):errorCode where t!=bool&&_is
         lhs = rhs.decode(decodePolicy.strict);
       }
       else {
-        // writeln(t2:string);
-        // writeln(t:string);
         lhs = rhs:t;
       }
     }
@@ -10289,7 +10287,7 @@ proc fileReader._format_reader(
 {
   if r != nil then r!.hasRegex = false;
   if !error {
-    var localFmtStr = fmtStr.localize();
+    const localFmtStr = fmtStr.localize();
     const ref fmt = localFmtStr.c_str();
     while cur < len {
       gotConv = false;
@@ -10385,7 +10383,7 @@ proc fileWriter._format_reader(
 {
   if r != nil then r!.hasRegex = false;
   if !error {
-    var localFmtStr = fmtStr.localize();
+    const localFmtStr = fmtStr.localize();
     const ref fmt = localFmtStr.c_str();
     while cur < len {
       gotConv = false;

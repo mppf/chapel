@@ -8,7 +8,7 @@ require "nestedUnion.h";
 use CTypes;
 extern "union first" union first {
   var a : c_int;
-  var b : c_ptr(c_char);
+  var b : c_ptrConst(c_char);
 }
 
 extern "union second" union second {

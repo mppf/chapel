@@ -1,5 +1,4 @@
 module OuterModule {
-  use CTypes;
   // Tests basic external variables and inline functions
   // defined both within the extern "C" module and in an
   // included C header file. Also tests inclusion
@@ -17,7 +16,7 @@ module OuterModule {
   } }
 
   try {
-    writeln(string.createCopyingBuffer(C.greeting():c_ptrConst(c_char)));
+    writeln(string.createCopyingBuffer(C.greeting()));
   }
   catch e: DecodeError {
     writeln("Decode error creating string");

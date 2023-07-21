@@ -285,7 +285,7 @@ module ZMQ {
                                       const option_value: c_ptr(void),
                                       option_len: c_size_t): c_int;
   private extern proc zmq_socket(ctx: c_ptr(void), socktype: c_int): c_ptr(void);
-  private extern proc zmq_strerror(errnum: c_int): c_ptr(c_uchar);
+  private extern proc zmq_strerror(errnum: c_int): c_ptrConst(c_char);
   private extern proc zmq_version(major: c_ptr(c_int),
                                   minor: c_ptr(c_int),
                                   patch: c_ptr(c_int));
@@ -567,7 +567,7 @@ module ZMQ {
   private extern proc zmq_getsockopt_int_helper(s: c_ptr(void), option: c_int,
                                                 ref res: c_int): c_int;
   private extern proc zmq_getsockopt_string_helper(s: c_ptr(void), option: c_int,
-                                                   ref res: c_ptr(c_uchar)): c_int;
+                                                   ref res: c_ptrConst(c_char)): c_int;
 
   /*
     A ZeroMQ socket. See :ref:`more on using Sockets <using-sockets>`.
@@ -688,7 +688,7 @@ module ZMQ {
     proc getLastEndpoint(): string throws {
       var ret: string;
       on classRef.home {
-        var str: c_ptr(c_uchar);
+        var str: c_ptrConst(c_char);
         var err = zmq_getsockopt_string_helper(classRef.socket,
                                                ZMQ_LAST_ENDPOINT, str);
         if err == -1 {

@@ -1,14 +1,14 @@
 use IO;
 
-extern proc return_string_test():c_string;
-extern proc return_string_arg_test(ref c_string);
+extern proc return_string_test():c_ptrConst(c_char);
+extern proc return_string_arg_test(ref c_ptrConst(c_char));
 
 writeln("returned string ",string.createCopyingBuffer(return_string_test()));
 stdout.flush();
 
 var s:string;
 on Locales(1) {
-  var temp_cs: c_string;
+  var temp_cs: c_ptrConst(c_char);
   return_string_arg_test(temp_cs);
   var temp_s:string = string.createCopyingBuffer(temp_cs);
   s = temp_s;
