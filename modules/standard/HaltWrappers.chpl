@@ -24,8 +24,6 @@
  */
 module HaltWrappers {
 
-  use CTypes;
-
   //
   // Halt wrappers for cases where we want error-handling, but error-handling
   // isn't supported yet
