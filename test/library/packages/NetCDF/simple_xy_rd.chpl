@@ -25,7 +25,7 @@ proc main {
   cdfError(nc_open(filename.c_str(), NC_NOWRITE, ncid));
 
   /* Get the varid of the data variable, based on its name. */
-  cdfError(nc_inq_varid(ncid, "data".c_str(), varid));
+  cdfError(nc_inq_varid(ncid, "data", varid));
 
   /* Read the data. */
   cdfError(nc_get_var_int(ncid, varid, data[1,1]));

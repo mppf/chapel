@@ -58,17 +58,17 @@ proc main {
   }
 
   /* Create the file. */
-  cdfError(nc_create(filename.c_str(), NC_CLOBBER, ncid));
+  cdfError(nc_create(filename, NC_CLOBBER, ncid));
 
   /* Define the dimensions. */
-  cdfError(nc_def_dim(ncid, latName.c_str(), nlat, latDimId));
-  cdfError(nc_def_dim(ncid, lonName.c_str(), nlon, lonDimId));
+  cdfError(nc_def_dim(ncid, latName, nlat, latDimId));
+  cdfError(nc_def_dim(ncid, lonName, nlon, lonDimId));
 
   /* Define coordinate netCDF variables.  They will hold the
      coordinate information, that is, the latitudes and longitudes. A
      varid is returned for each. */
-  cdfError(nc_def_var(ncid, latName.c_str(), NC_FLOAT, 1, latDimId, latVarId));
-  cdfError(nc_def_var(ncid, lonName.c_str(), NC_FLOAT, 1, lonDimId, lonVarId));
+  cdfError(nc_def_var(ncid, latName, NC_FLOAT, 1, latDimId, latVarId));
+  cdfError(nc_def_var(ncid, lonName, NC_FLOAT, 1, lonDimId, lonVarId));
 
   /* Define units attributes for coordinate vars. This attaches a
      text attribute to each of the coordinate variables, containing
@@ -77,26 +77,26 @@ proc main {
      not use null-terminated strings. In general it is up to the
      reading C program to ensure that it puts null-terminators on
      strings where necessary. */
-  cdfError(nc_put_att_text(ncid, latVarId, units.c_str(),
-                           degNorth.numBytes, degNorth.c_str()));
-  cdfError(nc_put_att_text(ncid, lonVarId, units.c_str(),
-                           degEast.numBytes, degEast.c_str()));
+  cdfError(nc_put_att_text(ncid, latVarId, units,
+                           degNorth.numBytes, degNorth));
+  cdfError(nc_put_att_text(ncid, lonVarId, units,
+                           degEast.numBytes, degEast));
 
   /* Define the netCDF variables. The dimids array is used to pass
      the dimids of the dimensions of the variables. */
   dimids[0] = latDimId;
   dimids[1] = lonDimId;
 
-  cdfError(nc_def_var(ncid, presName.c_str(), NC_FLOAT,
+  cdfError(nc_def_var(ncid, presName, NC_FLOAT,
                       ndims, dimids[0], presVarId));
-  cdfError(nc_def_var(ncid, tempName.c_str(), NC_FLOAT,
+  cdfError(nc_def_var(ncid, tempName, NC_FLOAT,
                       ndims, dimids[0], tempVarId));
 
   /* Define units attributes for vars. */
-  cdfError(nc_put_att_text(ncid, presVarId, units.c_str(),
-                           presUnits.numBytes:c_size_t, presUnits.c_str()));
-  cdfError(nc_put_att_text(ncid, tempVarId, units.c_str(),
-                           tempUnits.numBytes:c_size_t, tempUnits.c_str()));
+  cdfError(nc_put_att_text(ncid, presVarId, units,
+                           presUnits.numBytes:c_size_t, presUnits));
+  cdfError(nc_put_att_text(ncid, tempVarId, units,
+                           tempUnits.numBytes:c_size_t, tempUnits));
 
   /* End define mode. */
   cdfError(nc_enddef(ncid));

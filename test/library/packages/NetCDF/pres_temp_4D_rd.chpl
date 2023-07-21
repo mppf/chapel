@@ -53,12 +53,12 @@ proc main {
   var lvl, lat, lon, rec, i = 0;
 
   /* Open the file. */
-  cdfError(nc_open(filename.c_str(), NC_NOWRITE, ncid));
+  cdfError(nc_open(filename, NC_NOWRITE, ncid));
 
   /* Get the varids of the latitude and longitude coordinate
    * variables. */
-  cdfError(nc_inq_varid(ncid, latName.c_str(), lat_varid));
-  cdfError(nc_inq_varid(ncid, lonName.c_str(), lon_varid));
+  cdfError(nc_inq_varid(ncid, latName, lat_varid));
+  cdfError(nc_inq_varid(ncid, lonName, lon_varid));
 
   /* Read the coordinate variable data. */
   cdfError(nc_get_var_float(ncid, lat_varid, lats[0]));
@@ -78,8 +78,8 @@ proc main {
 
   /* Get the varids of the pressure and temperature netCDF
    * variables. */
-  cdfError(nc_inq_varid(ncid, presName.c_str(), pres_varid));
-  cdfError(nc_inq_varid(ncid, tempName.c_str(), temp_varid));
+  cdfError(nc_inq_varid(ncid, presName, pres_varid));
+  cdfError(nc_inq_varid(ncid, tempName, temp_varid));
 
   /* Read the data. Since we know the contents of the file we know
    * that the data arrays in this program are the correct size to
