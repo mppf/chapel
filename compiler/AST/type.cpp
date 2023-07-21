@@ -1054,8 +1054,10 @@ void initPrimitiveTypes() {
   dtInt[INT_SIZE_64]                   = createPrimitiveType("int",      "int64_t");
   dtReal[FLOAT_SIZE_64]                = createPrimitiveType("real",     "_real64");
 
-  dtStringC                            = createPrimitiveType("c_ptrConst(c_char)", "c_string");
+  dtStringC                            = createPrimitiveType("c_string", "c_string");
   dtStringC->symbol->addFlag(FLAG_NO_CODEGEN);
+  dtStringC->symbol->addFlag(FLAG_DEPRECATED);
+  dtStringC->symbol->deprecationMsg = "The type 'c_string' has been deprecated - please 'import CTypes' and use the type 'c_ptrConst(c_char)' instead";
 
   dtObject                             = new AggregateType(AGGREGATE_CLASS);
   dtObject->symbol                     = new TypeSymbol("RootClass", dtObject);

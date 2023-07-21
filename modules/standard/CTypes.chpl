@@ -52,11 +52,7 @@ module CTypes {
   extern "_cfiletype" type chpl_cFile; // direct uses of this type in the IO module
                                       // can be replaced with c_FILE when deprecation is complete
 
-  // TODO: maybe rename this to chpl_something
-  @deprecated("the type 'c_string' is deprecated; please use c_ptrConst(c_char) instead")
-  type c_string = c_ptrConst(c_char);
-
-  /* Controls whether :type:`c_FILE` represents a ``FILE*`` or a ``FILE``.
+   /* Controls whether :type:`c_FILE` represents a ``FILE*`` or a ``FILE``.
 
     - If true, ``c_FILE`` represents a ``FILE*``. This behavior is deprecated
       and will be removed in an upcoming release.
