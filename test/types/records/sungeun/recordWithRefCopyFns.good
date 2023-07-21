@@ -1,4 +1,3 @@
 recordWithRefCopyFns.chpl:22: warning: the type 'c_string' is deprecated and with it, C string literals; use 'c_ptrToConst("string")' or 'string.c_str()' from the 'CTypes' module instead
-recordWithRefCopyFns.chpl:24: warning: the type 'c_string' is deprecated; use the variant of 'createCopyingBuffer' that takes a 'c_ptrConst' instead
 s0
 s1

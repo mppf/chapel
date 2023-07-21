@@ -202,7 +202,7 @@ module unitTest {
     const m0 = allMemoryUsed();
     {
       const s: t = "s";
-      const cs: c_string = "0";
+      const cs: c_ptrConst(c_char) = "0";
       try! {
         if useExpr {
           writeMe(s+string.createCopyingBuffer(cs));
@@ -219,7 +219,7 @@ module unitTest {
     writeln("=== concat: c_string + string");
     const m0 = allMemoryUsed();
     {
-      const cs: c_string = "s";
+      const cs: c_ptrConst(c_char) = "s";
       const s: t = "0";
       try! {
         if useExpr {
@@ -239,7 +239,7 @@ module unitTest {
     {
       const s: t = "s";
       on Locales[numLocales-1] {
-        const cs: c_string = "r";
+        const cs: c_ptrConst(c_char) = "r";
         try! {
           if useExpr {
             writeMe(s+string.createCopyingBuffer(cs));
@@ -259,7 +259,7 @@ module unitTest {
     {
       const s: t = "0";
       on Locales[numLocales-1] {
-        const cs: c_string = "s";
+        const cs: c_ptrConst(c_char) = "s";
         try! {
           if useExpr {
             writeMe(string.createCopyingBuffer(cs)+s);

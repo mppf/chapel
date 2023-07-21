@@ -1,9 +1,9 @@
-proc f():c_string {
+proc f():c_ptrConst(c_char) {
   return "Hello";
 }
 
 var x = f();
-writeln(string.createCopyingBuffer(x:c_ptrConst(c_char)), " ", x.type:string);
+writeln(string.createCopyingBuffer(x), " ", x.type:string);
 
 use CTypes;
 proc f_ptr():c_ptrConst(c_char) {

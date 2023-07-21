@@ -4,7 +4,7 @@
 
 
 // support methods, for --minimal-modules
-
+extern type c_string = chpl__c_void_ptr;
 inline operator :(x: int(?w), type t) do
     return __primitive(c"cast", t, x);
 inline operator :(x: uint(?w), type t) do
@@ -113,11 +113,11 @@ proc boz(r:R, count:asSigned(r.x.type)) {
 }
 
 proc boz(r:R, count:asUnsigned(r.x.type)) {
-  return 2:r.x.type; 
+  return 2:r.x.type;
 }
 
 proc boz(r:R, count) {
-  return 0:uint(8); 
+  return 0:uint(8);
 }
 
 

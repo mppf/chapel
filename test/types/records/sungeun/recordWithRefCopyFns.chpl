@@ -1,6 +1,6 @@
 
 record myR {
-  var base: c_string;
+  var base: c_ptrConst(c_char);
 }
 
 pragma "init copy fn"

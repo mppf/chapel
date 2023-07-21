@@ -520,9 +520,8 @@ module Bytes {
     inline proc param numBytes param do
       return __primitive("string_length_bytes", this);
 
-    @deprecated("the type 'c_string' is deprecated and with it, 'bytes.c_str()'; use 'c_ptrToConst(bytes)' or 'c_ptrTo(bytes)' from the 'CTypes' module instead")
-    inline proc param c_str() param : c_string {
-      return this:c_string; // folded out in resolution
+    inline proc param c_str() param : c_ptrConst(c_char) {
+      return this:c_ptrConst(c_char); // folded out in resolution
     }
 
     inline proc param this(param i: int) param : int {

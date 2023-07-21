@@ -4,7 +4,7 @@ param bAnother1 = b"bytes1";
 param b2 = b"bytes2";
 
 writeln(b1, " as ", b1.type:string);
-param b1CStr = b1:c_string;
+param b1CStr = b1:c_ptrConst(c_char);
 writeln(string.createCopyingBuffer(b1CStr:c_ptrConst(c_char)), " as ", b1CStr.type:string);
 
 param numBytes = b1.numBytes;
@@ -87,7 +87,7 @@ writeln(b1.byte(2));
 
 // check casts
 param s1 = "some string";
-param c1 = c"some C string"; //TODO: We need a replacement for param c_string - param c_ptrConst(c_char) does not work
+param c1 = c"some C string";
 param i = 10;
 param r = 10.0;
 param b = true;

@@ -1,2 +1,2 @@
-Hello c_string
-Hello c_ptrConst(int(8))
+Hello c_ptrConst(c_char)
+Hello c_ptrConst(c_char)
