@@ -427,13 +427,13 @@ module CTypes {
     __primitive("=", lhs, rhs);
   }
 
-  @chpldoc.nodoc
-  inline operator c_ptrConst.=(ref lhs:c_ptrConst, rhs:c_ptrConst) {
-    if lhs.eltType != rhs.eltType
-       && lhs.eltType != void && rhs.eltType != void then
-      compilerError("element type mismatch in c_ptrConst assignment");
-    __primitive("=", lhs, rhs);
-  }
+  // @chpldoc.nodoc
+  // inline operator c_ptrConst.=(ref lhs:c_ptrConst, rhs:c_ptrConst) {
+  //   if lhs.eltType != rhs.eltType
+  //      && lhs.eltType != void && rhs.eltType != void then
+  //     compilerError("element type mismatch in c_ptrConst assignment");
+  //   __primitive("=", lhs, rhs);
+  // }
 
   @chpldoc.nodoc
   inline operator c_ptr.=(ref lhs:c_ptr, rhs:_nilType) {
@@ -693,11 +693,11 @@ module CTypes {
   inline operator ==(a: _nilType, b: c_ptr) {
     return __primitive("ptr_eq", a, b);
   }
-  @chpldoc.nodoc
-  inline operator c_ptrConst.==(a: c_ptrConst, b: c_ptrConst)
-      where a.eltType == b.eltType || a.eltType == void || b.eltType == void {
-    return __primitive("ptr_eq", a, b);
-  }
+  // @chpldoc.nodoc
+  // inline operator c_ptrConst.==(a: c_ptrConst, b: c_ptrConst)
+  //     where a.eltType == b.eltType || a.eltType == void || b.eltType == void {
+  //   return __primitive("ptr_eq", a, b);
+  // }
   @chpldoc.nodoc
   inline operator ==(a: c_ptrConst, b: _nilType) {
     return __primitive("ptr_eq", a, b);
@@ -720,11 +720,11 @@ module CTypes {
   inline operator !=(a: _nilType, b: c_ptr) {
     return __primitive("ptr_neq", a, b);
   }
-  @chpldoc.nodoc
-  inline operator c_ptrConst.!=(a: c_ptrConst, b: c_ptrConst)
-      where a.eltType == b.eltType || a.eltType == void || b.eltType == void {
-    return __primitive("ptr_neq", a, b);
-  }
+  // @chpldoc.nodoc
+  // inline operator c_ptrConst.!=(a: c_ptrConst, b: c_ptrConst)
+  //     where a.eltType == b.eltType || a.eltType == void || b.eltType == void {
+  //   return __primitive("ptr_neq", a, b);
+  // }
   @chpldoc.nodoc
   inline operator c_ptrConst.!=(a: c_ptrConst, b: _nilType) {
     return __primitive("ptr_neq", a, b);
