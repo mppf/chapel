@@ -276,6 +276,9 @@ const char* toString(Type* type, bool decorateAllClasses) {
       // de-sugar chpl__c_void_ptr, which is used internally and is a distinct
       // type from c_ptr(void)
       retval = "raw_c_void_ptr";
+    } else if (vt == dtStringC) {
+      // same as above for c_ptrConst(c_char) and c_string/chpl_c_string
+      retval = "c_ptrConst(c_char)";
     }
 
     if (retval == NULL)
@@ -1054,10 +1057,14 @@ void initPrimitiveTypes() {
   dtInt[INT_SIZE_64]                   = createPrimitiveType("int",      "int64_t");
   dtReal[FLOAT_SIZE_64]                = createPrimitiveType("real",     "_real64");
 
-  dtStringC                            = createPrimitiveType("c_string", "c_string");
+  // The Chapel name is prefixed with 'chpl_' to make it internal, but the
+  // C type is 'c_string' which is defined in the runtime as an alias for
+  // 'const char*'. The user-facing alias is defined in 'ChapelBase' so that
+  // it can easily be deprecated.
+  // Note that we actually map to the type 'c_string_rehook' to avoid a
+  // collision with the type alias when '--no-munge-user-idents' is thrown.
+  dtStringC                            = createPrimitiveType("chpl_c_string", "c_string_rehook");
   dtStringC->symbol->addFlag(FLAG_NO_CODEGEN);
-  dtStringC->symbol->addFlag(FLAG_DEPRECATED);
-  dtStringC->symbol->deprecationMsg = "The type 'c_string' has been deprecated - please 'import CTypes' and use the type 'c_ptrConst(c_char)' instead";
 
   dtObject                             = new AggregateType(AGGREGATE_CLASS);
   dtObject->symbol                     = new TypeSymbol("RootClass", dtObject);

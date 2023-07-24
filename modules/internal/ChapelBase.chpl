@@ -23,6 +23,14 @@
 
 module ChapelBase {
 
+  // We deprecate in the module code so that we don't have to modify dyno
+  // to teach it about the 'c_string' type. We perform the deprecation in
+  // ChapelBase so that you don't have to 'import CTypes' to see the type
+  // 'c_string' (which could break a lot of programs). This is OK because
+  // after a release we can just remove 'c_string' entirely.
+  @deprecated(notes="the 'c_string' type is deprecated - please 'import CTypes' and use 'c_ptrConst(c_char)' instead")
+  type c_string = chpl_c_string;
+
   pragma "locale private"
   @chpldoc.nodoc
   var rootLocaleInitialized: bool = false;

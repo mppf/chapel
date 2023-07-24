@@ -3595,6 +3595,9 @@ static Type* resolveTypeSpecifier(CallInfo& info) {
       ret = fn->retType;
     }
   } else if (isCptrConstChar(info.call)) {
+    // allowing this to resolve to dtStringC causes all vars of type c_ptrConst(c_char) to print their .type as
+    // chpl_c_string (the name defined in type.cpp)
+    // is there an alternative we can use to allow c_ptrConst(c_char) to convert to c_string while not literally being c_string?
     ret = dtStringC;
   } else {
     ret = at->generateType(info.call, info.toString());

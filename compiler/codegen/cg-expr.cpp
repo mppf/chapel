@@ -4304,7 +4304,8 @@ DEFINE_PRIM(REF_TO_STRING) {
 
 DEFINE_PRIM(CLASS_NAME_BY_ID) {
     GenRet cid = codegenValue(call->get(1));
-    ret = codegenGlobalArrayElement("chpl_classNames", "c_string", cid);
+    const char* eltType = dtStringC->symbol->cname;
+    ret = codegenGlobalArrayElement("chpl_classNames", eltType, cid);
 }
 
 DEFINE_PRIM(RETURN) {
