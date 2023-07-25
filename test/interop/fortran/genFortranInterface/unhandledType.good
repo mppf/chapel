@@ -1,7 +1,7 @@
 unhandledType.chpl:2: In function 'takesCstring':
 unhandledType.chpl:2: warning: the 'c_string' type is deprecated - please 'import CTypes' and use 'c_ptrConst(c_char)' instead
-unhandledType.chpl:2: warning: Unknown Fortran KIND generating interface for C type: c_string
-unhandledType.chpl:2: warning: Unknown Fortran type generating interface for C type: c_string
+unhandledType.chpl:2: warning: Unknown Fortran KIND generating interface for C type: c_ptrConst(c_char)
+unhandledType.chpl:2: warning: Unknown Fortran type generating interface for C type: c_ptrConst(c_char)
 unhandledType.chpl:6: In function 'takesCptr':
-unhandledType.chpl:6: warning: Unknown Fortran KIND generating interface for C type: c_string
-unhandledType.chpl:6: warning: Unknown Fortran type generating interface for C type: c_string
+unhandledType.chpl:6: warning: Unknown Fortran KIND generating interface for C type: c_ptrConst(c_char)
+unhandledType.chpl:6: warning: Unknown Fortran type generating interface for C type: c_ptrConst(c_char)
