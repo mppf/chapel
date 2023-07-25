@@ -3545,6 +3545,9 @@ module HDF5 {
         filenames.pushBack(f);
       }
     }
+    // TODO: this should check that it found any files and stop if none were
+    // found because the next operation (readAllNamedHDF5Files) gives a poor
+    // error message about an empty bounding box when no files are located.
     var fArray: [1..filenames.size] string;
     for (l, a) in zip(filenames, fArray) {
       a = l;
