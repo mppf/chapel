@@ -8,7 +8,7 @@ require "nestedStruct.h";
 use CTypes;
 extern "struct first" record first {
   var a : c_int;
-  var b : c_ptrConst(c_char);
+  var b : c_ptr(c_char);
 }
 
 extern "struct second" record second {
