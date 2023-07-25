@@ -1,2 +1,3 @@
+c_stringParamInfer.chpl:1: warning: the 'c_string' type is deprecated - please 'import CTypes' and use 'c_ptrConst(c_char)' instead
 string
-c_string
+c_ptrConst(c_char)
