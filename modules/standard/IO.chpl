@@ -9014,7 +9014,7 @@ proc file.fstype():int throws {
    :returns: a set of locales that are best for working with this region
    :rtype: domain(locale)
  */
- @deprecated(notes="file.localesForRegion is deprecated")
+@deprecated(notes="file.localesForRegion is deprecated")
 proc file.localesForRegion(start:int(64), end:int(64)) {
 
   proc findloc(loc:string, locs:c_ptr(c_ptrConst(c_char)), end:int) {

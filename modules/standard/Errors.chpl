@@ -408,7 +408,7 @@ module Errors {
     var nameC = __primitive("class name by id", cid);
     var nameS: string;
     try! {
-      nameS = string.createCopyingBuffer(nameC:c_ptrConst(c_char));
+      nameS = string.createCopyingBuffer(nameC);
     }
     return nameS;
   }
