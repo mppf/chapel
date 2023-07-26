@@ -1,5 +1,5 @@
 use OS.POSIX;
-writeln(getenv(c'GETENV_TEST_ENV_VAR'):string);
+writeln(getenv(c'GETENV_TEST_ENV_VAR'):c_ptrConst(c_char):string);
 const s = getenv(c'_GETENV_TEST_ENV_VAR'); // note underbar
 writeln(if s == nil
         then 'this line is intentionally empty'
