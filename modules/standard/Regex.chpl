@@ -647,7 +647,7 @@ record regex {
     opts.nongreedy = nonGreedy;
 
     /*var ret: regex(t);*/
-    var localPattern = pattern.localize();
+    const localPattern = pattern.localize();
     qio_regex_create_compile(localPattern.c_str(), pattern.numBytes, opts,
                              this._regex);
     if !qio_regex_ok(this._regex) {

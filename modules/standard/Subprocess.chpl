@@ -452,7 +452,7 @@ module Subprocess {
              param kind=iokind.dynamic, param locking=true) throws
   {
     use ChplConfig;
-    extern proc sys_getenv(name:c_ptrConst(c_char), ref string_out:c_ptr(c_uchar)):c_int;
+    extern proc sys_getenv(name:c_ptrConst(c_char), ref string_out:c_ptrConst(c_char)):c_int;
 
     var stdin_fd:c_int = QIO_FD_FORWARD;
     var stdout_fd:c_int = QIO_FD_FORWARD;
