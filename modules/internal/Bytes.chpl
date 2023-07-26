@@ -634,7 +634,6 @@ module Bytes {
         on the same locale as the bytes.
    */
   // @deprecated(notes="the type 'c_string' is deprecated and with it, 'bytes.c_str()'; use 'c_ptrToConst(bytes)' or 'c_ptrTo(bytes)' from the 'CTypes' module instead")
-  @unstable("bytes.c_str() is unstable and may change in a future release")
   inline proc bytes.c_str(): c_ptrConst(c_char) {
     return getCStr(this);
   }

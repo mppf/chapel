@@ -1429,7 +1429,6 @@ module String {
         on the same locale as the string.
    */
   // @deprecated(notes="the type 'c_string' is deprecated and with it, 'string.c_str()'; use 'c_ptrToConst(string)' or 'c_ptrTo(string)' from the 'CTypes' module instead")
-  @unstable("string.c_str() is unstable and may change in a future release")
   inline proc string.c_str() : c_ptrConst(c_char) {
     return getCStr(this);
   }
