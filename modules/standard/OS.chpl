@@ -765,7 +765,7 @@ module OS {
     //
     // stdlib.h
     //
-    extern proc getenv(name:c_ptrConst(c_char)):c_ptrConst(c_char);
+    extern proc getenv(name:c_ptrConst(c_char)):c_ptr(c_char);
 
     //
     // string.h
