@@ -429,31 +429,6 @@ module String {
   }
 
   /*
-    Creates a new string which borrows the internal buffer of a `c_string`. If
-    the buffer is freed before the string returned from this function, accessing
-    it is undefined behavior.
-
-    :arg x: Object to borrow the buffer from
-    :type x: `c_string`
-
-    :arg length: Length of the string stored in `x` in bytes, excluding the
-                 terminating null byte.
-    :type length: `int`
-
-    :throws: Throws a :class:`~Errors.DecodeError`: if `x` contains non-UTF-8
-      characters.
-
-    :returns: A new `string`
-  */
-  // @deprecated("the type 'c_string' is deprecated; use the variant of 'createBorrowingBuffer' that takes a 'c_ptrConst' instead")
-  // inline proc type string.createBorrowingBuffer(x: c_string,
-  //                                               length=x.size) : string throws {
-  //   return string.createBorrowingBuffer(x:bufferType,
-  //                                       length=length,
-  //                                       size=length+1);
-  // }
-
-  /*
     Creates a new string which borrows the memory allocated for a c_ptr. If
     the buffer is freed before the string returned from this function, accessing
     it is undefined behavior.
@@ -612,30 +587,6 @@ module String {
   }
 
   /*
-    Creates a new string which takes ownership of the internal buffer of a
-    `c_string`. The buffer will be freed when the string is deinitialized.
-
-    :arg x: Object to take ownership of the buffer from
-    :type x: `c_string`
-
-    :arg length: Length of the string stored in `x` in bytes, excluding the
-                 terminating null byte.
-    :type length: `int`
-
-    :throws: Throws a :class:`~Errors.DecodeError`: if `x` contains non-UTF-8
-      characters.
-
-    :returns: A new `string`
-  */
-  // @deprecated("the type 'c_string' is deprecated; use the variant of 'createAdoptingBuffer' that takes a 'c_ptrConst' instead")
-  // proc type string.createAdoptingBuffer(x: c_string,
-  //                                       length=x.size) : string throws {
-  //   return string.createAdoptingBuffer(x:bufferType,
-  //                                      length=length,
-  //                                      size=length+1);
-  // }
-
-  /*
     Creates a new string which takes ownership of the memory allocated for a
     `c_ptr`. The buffer will be freed when the string is deinitialized.
 
@@ -781,38 +732,6 @@ module String {
     return string.createCopyingBuffer(x, length, policy);
   }
 
-  /*
-    Creates a new string by creating a copy of the buffer of a `c_string`.
-
-    :arg x: Object to copy the buffer from
-    :type x: `c_string`
-
-    :arg length: Length of the string stored in `x` in bytes, excluding the
-                 terminating null byte.
-    :type length: `int`
-
-    :arg policy: - `decodePolicy.strict` raises an error
-                 - `decodePolicy.replace` replaces the malformed character with
-                   UTF-8 replacement character
-                 - `decodePolicy.drop` drops the data silently
-                 - `decodePolicy.escape` escapes each illegal byte with private
-                   use codepoints
-
-    :throws: Throws a :class:`~Errors.DecodeError`: if `decodePolicy.strict` is
-      passed to the `policy` argument and `x` contains non-UTF-8 characters.
-
-    :returns: A new `string`
-  */
-  // @deprecated("the type 'c_string' is deprecated; use the variant of 'createCopyingBuffer' that takes a 'c_ptrConst' instead")
-  // inline proc type string.createCopyingBuffer(x: c_string,
-  //                                             length=x.size,
-  //                                             policy=decodePolicy.strict
-  //                                             ) : string throws {
-  //   return string.createCopyingBuffer(x: bufferType,
-  //                                     length=length,
-  //                                     size=length+1,
-  //                                     policy);
-  // }
 
     /*
     Creates a new string by creating a copy of the memory allocated for a c_ptrConst.
@@ -904,7 +823,7 @@ module String {
      :returns: A new `string`
   */
   proc type string.createCopyingBuffer(x: c_ptr(?t),
-                                       length=__primitive("string_length_bytes", x): int,
+                                       length=__primitive("string_length_bytes", x),
                                        size=length+1,
                                        policy=decodePolicy.strict) : string throws {
     if t != byteType && t != c_char {
