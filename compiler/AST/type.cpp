@@ -277,7 +277,8 @@ const char* toString(Type* type, bool decorateAllClasses) {
       // type from c_ptr(void)
       retval = "raw_c_void_ptr";
     } else if (vt == dtStringC) {
-      // same as above for c_ptrConst(c_char) and c_string/chpl_c_string
+      // present dtStringC type as c_ptrConst(c_char) instead of the internal
+      // name chpl_c_string or c_string_rehook.
       retval = "c_ptrConst(c_char)";
     }
 
