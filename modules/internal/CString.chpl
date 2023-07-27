@@ -29,6 +29,7 @@ module CString {
   //inline proc c_string.c_str() return this;
 
   pragma "init copy fn"
+  pragma "last resort" // attempt to prevent c_ptrConst(c_char) converting
   inline proc chpl__initCopy(x: c_string, definedConst: bool) : c_string {
     return x;
   }

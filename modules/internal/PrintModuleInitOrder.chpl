@@ -45,9 +45,9 @@ module PrintModuleInitOrder {
 
 
   proc initPrint() {
-    // added a 'fmt' argument to avoid a format-security warning from gcc
-    extern proc printf(fmt: c_ptrConst(c_char), s: c_ptrConst(c_char));
-    printf("%s\n", "Initializing Modules:".c_str());
+    // printf requires a 'fmt' argument to avoid a format-security warning from gcc
+    extern proc printf(fmt, s);
+    printf("%s\n", "Initializing Modules:");
   }
 
   if printModuleInitOrder then initPrint();

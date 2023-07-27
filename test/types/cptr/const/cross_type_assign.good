@@ -1,1 +1,1 @@
-cross_type_assign.chpl:6: error: Cannot assign to c_ptrConst(int(64)) from c_ptrConst(uint(64))
+cross_type_assign.chpl:6: error: element type mismatch in c_ptrConst assignment

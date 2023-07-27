@@ -466,9 +466,10 @@ module Bytes {
     inline proc param numBytes param do
       return __primitive("string_length_bytes", this);
 
-    inline proc param c_str() param : c_ptrConst(c_char) {
-      return this:c_ptrConst(c_char); // folded out in resolution
-    }
+    // TODO: Support param c_ptr/c_ptrConst
+    // inline proc param c_str() param : c_ptrConst(c_char) {
+    //   return this:c_ptrConst(c_char); // folded out in resolution
+    // }
 
     inline proc param this(param i: int) param : int {
       if i < 0 || i > this.size-1 then

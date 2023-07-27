@@ -1554,7 +1554,7 @@ module OS {
     extern proc qio_quote_string(s:uint(8), e:uint(8), f:uint(8),
                                  ptr:c_ptrConst(c_char), len:c_ssize_t,
                                  ref ret:c_ptrConst(c_char), ti: c_ptr(void)): errorCode;
-    extern proc qio_strdup(s: c_ptrConst(c_char)): c_ptrConst(c_char);
+    extern proc qio_strdup(s): c_ptrConst(c_char);
 
     var ret: c_ptrConst(c_char);
     // 34 is ASCII double quote

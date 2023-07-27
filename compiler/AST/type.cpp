@@ -43,6 +43,7 @@
 #include "stringutil.h"
 #include "symbol.h"
 #include "vec.h"
+#include "wellknown.h"
 
 #include "global-ast-vecs.h"
 
@@ -279,7 +280,7 @@ const char* toString(Type* type, bool decorateAllClasses) {
     } else if (vt == dtStringC) {
       // present dtStringC type as c_ptrConst(c_char) instead of the internal
       // name chpl_c_string or c_string_rehook.
-      retval = "c_ptrConst(c_char)";
+      retval = "c_string";
     }
 
     if (retval == NULL)
@@ -1620,6 +1621,13 @@ bool isClassLikeOrPtr(Type* t) {
                             t == dtCVoidPtr ||
                             t == dtStringC ||
                             t == dtCFnPtr);
+}
+
+bool isCPtrConstChar(Type* t) {
+  if (auto dct = getDataClassType(t->symbol))
+    return dct->typeInfo() == dt_c_char &&
+            t->symbol->hasFlag(FLAG_C_PTRCONST_CLASS);
+  return false;
 }
 
 bool isCVoidPtr(Type* t) {

@@ -1537,6 +1537,14 @@ bool canCoerceAsSubtype(Type*     actualType,
   if (actualType == dtStringC && isCVoidPtr(formalType))
     return true;
 
+  // coerce c_ptrConst(c_char) to dtStringC
+  if (formalType == dtStringC && isCPtrConstChar(actualType))
+    return true;
+
+  // coerce dtStringC to c_ptrConst(c_char)
+  if (actualType == dtStringC && isCPtrConstChar(formalType))
+    return true;
+
   // coerce c_ptr(t) to c_ptr(void)
   if (actualType->symbol->hasFlag(FLAG_C_PTR_CLASS) && isCVoidPtr(formalType))
     return true;
@@ -3548,14 +3556,14 @@ static void warnForPartialInstantiationNoQ(CallExpr* call, Type* t) {
   }
 }
 
-static bool isCptrConstChar(CallExpr* call) {
-  if (call->isNamed("c_ptrConst") &&
-      call->get(1) &&
-      call->get(1)->typeInfo() == dt_c_char) {
-    return true;
-  }
-  return false;
-}
+// static bool isCptrConstChar(CallExpr* call) {
+//   if (call->isNamed("c_ptrConst") &&
+//       call->get(1) &&
+//       call->get(1)->typeInfo() == dt_c_char) {
+//     return true;
+//   }
+//   return false;
+// }
 
 static Type* resolveTypeSpecifier(CallInfo& info) {
   CallExpr* call = info.call;
@@ -3594,11 +3602,6 @@ static Type* resolveTypeSpecifier(CallInfo& info) {
     if (FnSymbol* fn = createTupleSignature(NULL, subs, call)) {
       ret = fn->retType;
     }
-  } else if (isCptrConstChar(info.call)) {
-    // allowing this to resolve to dtStringC causes all vars of type c_ptrConst(c_char) to print their .type as
-    // chpl_c_string (the name defined in type.cpp)
-    // is there an alternative we can use to allow c_ptrConst(c_char) to convert to c_string while not literally being c_string?
-    ret = dtStringC;
   } else {
     ret = at->generateType(info.call, info.toString());
     if (ret && decorated) {

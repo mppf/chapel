@@ -28,7 +28,7 @@ var xpconst_uint = xpconst : c_ptrConst(c_uint);
 var xpconst_float = xpconst : c_ptrConst(c_float);
 var xpconst_double = xpconst : c_ptrConst(c_double);
 
-writeln(xpconst_uchar.deref());
+writeln(xpconst_char.deref());
 
 
 // should also warn from non-const to const and vice-versa

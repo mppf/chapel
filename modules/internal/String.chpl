@@ -957,9 +957,10 @@ module String {
 
     inline proc byteIndices do return 0..<this.numBytes;
 
-    inline proc param c_str() param : c_ptrConst(c_char) {
-      return this:c_ptrConst(c_char); // folded out in resolution
-    }
+    // TODO: Support param c_ptr/c_ptrConst
+    // inline proc param c_str() param : c_ptrConst(c_char) {
+    //   return this:c_ptrConst(c_char); // folded out in resolution
+    // }
 
 
     // assumes that 'this' is already localized
