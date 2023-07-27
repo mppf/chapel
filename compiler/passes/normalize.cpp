@@ -2831,7 +2831,7 @@ static CondStmt* assignConfig(VarSymbol* var, VarSymbol* varTmp, Expr* noop) {
   //
   // A fragment for the conditional test
   //
-  SymExpr*   name0    = new SymExpr(new_StringSymbol(var->name));
+  SymExpr*   name0    = new SymExpr(new_CStringSymbol(var->name));
   CallExpr*  hasValue = new CallExpr("chpl_config_has_value", name0, modName);
   CallExpr*  test     = new CallExpr("!", hasValue);
 
@@ -2843,10 +2843,10 @@ static CondStmt* assignConfig(VarSymbol* var, VarSymbol* varTmp, Expr* noop) {
   //
   // The alternative sets the config from the command line
   //
-  SymExpr*   name1    = new SymExpr(new_StringSymbol(var->name));
+  SymExpr*   name1    = new SymExpr(new_CStringSymbol(var->name));
   CallExpr*  typeOf   = new CallExpr(PRIM_TYPEOF, varTmp);
 
-  SymExpr*   name2    = new SymExpr(new_StringSymbol(var->name));
+  SymExpr*   name2    = new SymExpr(new_CStringSymbol(var->name));
   CallExpr*  getValue = new CallExpr("chpl_config_get_value", name2, modName);
 
   CallExpr*  strToVal = new CallExpr("_command_line_cast",

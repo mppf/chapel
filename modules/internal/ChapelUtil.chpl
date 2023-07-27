@@ -128,7 +128,7 @@ module ChapelUtil {
 
   // param s is used for error reporting
   pragma "command line setting"
-  proc _command_line_cast(param s: string, type t, x:c_ptrConst(c_char)) {
+  proc _command_line_cast(param s: c_string, type t, x:c_ptrConst(c_char)) {
     if isSyncType(t) then
       compilerError("config variables of sync type are not supported");
     if isSingleType(t) then
