@@ -472,7 +472,8 @@ void Symbol::maybeGenerateDeprecationWarning(Expr* context) {
   // special handling to stop emitting deprecation warnings about c_string
   // from within the module that supports c_string.
   if (context->getModule()->modTag == MOD_INTERNAL &&
-      strcmp(context->getModule()->name, "CString") == 0 &&
+      (strcmp(context->getModule()->name, "CString") == 0 ||
+       strcmp(context->getModule()->name, "ChapelUtil") == 0 ) &&
       strcmp(this->name, "c_string") == 0) {
         return;
       }
