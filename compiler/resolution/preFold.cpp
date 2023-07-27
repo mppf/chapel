@@ -2467,7 +2467,8 @@ static Expr* preFoldNamed(CallExpr* call) {
 
           bool fromEnum = is_enum_type(oldType);
           bool fromString = (oldType == dtString ||
-                             oldType == dtStringC);
+                             oldType == dtStringC ||
+                             isCPtrConstChar(oldType));
           bool fromBytes = oldType == dtBytes;
           bool fromIntUint = is_int_type(oldType) ||
                              is_uint_type(oldType);
@@ -2478,7 +2479,8 @@ static Expr* preFoldNamed(CallExpr* call) {
 
           bool toEnum = is_enum_type(newType);
           bool toString = (newType == dtString ||
-                           newType == dtStringC);
+                           newType == dtStringC ||
+                           isCPtrConstChar(newType));
           bool toBytes = newType == dtBytes;
           bool toIntUint = is_int_type(newType) ||
                            is_uint_type(newType);
@@ -2538,17 +2540,23 @@ static Expr* preFoldNamed(CallExpr* call) {
             } else {
               retval = call;
             }
-
-          // Handle string:c_string and c_string:string casts
           } else if (imm != NULL && fromString && toString) {
-
-            if (newType == dtStringC)
+            // Handle string:c_string and c_string:string casts
+            if (newType == dtStringC && oldType == dtString) {
               retval = new SymExpr(new_CStringSymbol(imm->v_string.c_str()));
-            else
+            }
+            else if (oldType == dtStringC && newType == dtString) {
               retval = new SymExpr(new_StringSymbol(imm->v_string.c_str()));
+            }
+            // Handle c_ptrConst(c_char):string and string:c_ptrConst(c_char) casts
+            else if (oldType == dtString && isCPtrConstChar(newType)) {
+              retval = new CallExpr("c_str", dtMethodToken, new_StringSymbol(imm->v_string.c_str()));
+            }
+            else {
+              retval = new SymExpr(new_StringSymbol(imm->v_string.c_str()));
+            }
 
             call->replace(retval);
-
           // Handle string:bytes and c_string:bytes casts
           } else if (imm != NULL && fromString && toBytes) {
 

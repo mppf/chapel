@@ -295,7 +295,7 @@ module Collectives {
         if myc<=1 {
           if hackIntoCommBarrier {
             extern proc chpl_comm_barrier(msg: c_ptrConst(c_char));
-            chpl_comm_barrier("local barrier call".c_str());
+            chpl_comm_barrier("local barrier call");
           }
           const alreadySet = done.testAndSet();
           if boundsChecking && alreadySet {

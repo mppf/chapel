@@ -2565,6 +2565,18 @@ module String {
 
   // Cast from c_string to string
   @chpldoc.nodoc
+  @deprecated("the type 'c_string' is deprecated; please import 'CTypes' and use 'c_ptrConst(char)'")
+  operator :(cs: c_string, type t: string)  {
+    try {
+      return string.createCopyingBuffer(cs:c_ptrConst(c_char));
+    }
+    catch {
+      halt("Casting a non-UTF-8 c_string to string");
+    }
+  }
+
+  // Cast from c_ptrConst(c_char) to string
+  @chpldoc.nodoc
   operator :(cs: c_ptrConst(c_char), type t: string)  {
     try {
       return string.createCopyingBuffer(cs:c_ptrConst(c_char));

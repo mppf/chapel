@@ -1041,8 +1041,10 @@ static bool canParamCoerce(Type*   actualType,
     }
   }
 
+  // need to allow converting param string->c_ptrConst(c_char)
   // param strings can coerce between string and c_string
-  if ((formalType == dtString || formalType == dtStringC) &&
+  if ((formalType == dtString || formalType == dtStringC ||
+       isCPtrConstChar(formalType))                      &&
       (actualType == dtString || actualType == dtStringC)) {
     if (actualSym && actualSym->isImmediate()) {
       *paramNarrows = true;

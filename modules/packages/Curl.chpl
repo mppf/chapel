@@ -749,7 +749,7 @@ module Curl {
       var buf:curl_str_buf;
       var ret = false;
 
-      if startsWith(fl.url_c, "http://".c_str()) || startsWith(fl.url_c, "https://".c_str()) {
+      if startsWith(fl.url_c, "http://") || startsWith(fl.url_c, "https://") {
         // We're on HTTP/HTTPS so we should look for byte ranges to see if we
         // can request them
 

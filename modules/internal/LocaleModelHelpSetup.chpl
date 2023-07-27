@@ -137,7 +137,7 @@ module LocaleModelHelpSetup {
     if CHPL_COMM == "gasnet" {
       if CHPL_COMM_SUBSTRATE == "udp" {
         try! {
-          const spawnfn = getenv("GASNET_SPAWNFN".c_str());
+          const spawnfn = getenv("GASNET_SPAWNFN");
           const spawnfnS = string.createBorrowingBuffer(spawnfn);
           if spawnfn != nil && spawnfnS == "L" {
             return true;

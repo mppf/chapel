@@ -126,10 +126,9 @@ module ChapelUtil {
 
   }
 
-  // TODO: How to get rid of this param c_string?
   // param s is used for error reporting
   pragma "command line setting"
-  proc _command_line_cast(param s: c_string, type t, x:c_ptrConst(c_char)) {
+  proc _command_line_cast(param s: string, type t, x:c_ptrConst(c_char)) {
     if isSyncType(t) then
       compilerError("config variables of sync type are not supported");
     if isSingleType(t) then
@@ -217,12 +216,12 @@ module ChapelUtil {
     extern proc chpl_execute_module_deinit(deinitFun:c_fn_ptr);
 
     if printModuleDeinitOrder then
-      printf("Deinitializing Modules:\n".c_str());
+      printf("Deinitializing Modules:\n");
     var prev = chpl_moduleDeinitFuns;
     while prev {
       const curr = prev!;
       if printModuleDeinitOrder then
-        printf("  %s\n".c_str(), curr.moduleName);
+        printf("  %s\n", curr.moduleName);
       chpl_execute_module_deinit(curr.deinitFun);
       prev = curr.prevModule;
       delete curr;

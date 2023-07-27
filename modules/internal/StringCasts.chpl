@@ -265,19 +265,6 @@ module StringCasts {
     return ret;
   }
 
-//
-// casts from string to c_ptrConst(c_char/int(8)/uint(8))
-//
-inline operator :(x: string, type t:c_ptrConst(?eltType))
-  where eltType == c_char || eltType == c_uchar ||
-        eltType == int(8) || eltType == uint(8)
-{
-  private use ByteBufferHelpers;
-  var buff: bufferType = x.buff;
-  var asCString = __primitive("cast", t, buff);
-  return asCString:t;
-}
-
 
 operator :(x: string, type t:chpl_anycomplex) throws {
     pragma "fn synchronization free"
