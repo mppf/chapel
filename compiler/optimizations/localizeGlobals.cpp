@@ -88,7 +88,7 @@ void LocalizeGlobals::process(FnSymbol* fn) {
           if (VarSymbol* localVarSym = toVarSymbol(var))
             if (Immediate* immediate = localVarSym->immediate)
               if (immediate->const_kind == CONST_KIND_STRING)
-                local_global->immediate = new Immediate(immediate);
+                local_global->immediate = new Immediate(*immediate);
 
         globals.put(var, local_global);
       }
