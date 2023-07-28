@@ -474,9 +474,9 @@ module String {
                                         size=length+1);
   }
 
-  proc chpl_createStringWithLiteral(buffer: c_ptrConst(c_char),
+  proc chpl_createStringWithLiteral(buffer: chpl_c_string,
                                     offset: int,
-                                    x: c_ptrConst(c_char),
+                                    x: chpl_c_string,
                                     length: int,
                                     numCodepoints: int) : string {
     // copy the string to the combined buffer

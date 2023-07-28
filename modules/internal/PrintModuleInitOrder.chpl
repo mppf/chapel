@@ -37,7 +37,7 @@ module PrintModuleInitOrder {
   // Called by all modules during initialization
   //
   pragma "print module init fn"
-  proc printModuleInit(s1: c_ptrConst(c_char), s2: c_ptrConst(c_char), len: int) {
+  proc printModuleInit(s1: chpl_c_string, s2: chpl_c_string, len: int) {
     extern proc printf(s1: c_ptrConst(c_char), len: int(32), s2: c_ptrConst(c_char));
     if printModuleInitOrder then
       printf(s1, moduleInitLevel+len:int(32)+2:int(32), s2);

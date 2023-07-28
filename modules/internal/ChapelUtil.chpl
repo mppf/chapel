@@ -205,7 +205,7 @@ module ChapelUtil {
   // Support for module deinit functions.
   config param printModuleDeinitOrder = false;
 
-  proc chpl_addModule(moduleName: c_ptrConst(c_char), deinitFun: c_fn_ptr) {
+  proc chpl_addModule(moduleName: chpl_c_string, deinitFun: c_fn_ptr) {
     chpl_moduleDeinitFuns =
       new unmanaged chpl_ModuleDeinit(moduleName, deinitFun, chpl_moduleDeinitFuns);
   }
