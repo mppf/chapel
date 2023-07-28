@@ -73,6 +73,7 @@ void LocalizeGlobals::process(FnSymbol* fn) {
         !lhsOfMove &&
         var->hasFlag(FLAG_CONST) &&
         !var->hasFlag(FLAG_EXTERN) &&
+        !var->isImmediate() &&
         var->defPoint->parentSymbol != rootModule) {
       VarSymbol* local_global = globals.get(var);
       SET_LINENO(se); // Set the se line number for output
@@ -84,11 +85,11 @@ void LocalizeGlobals::process(FnSymbol* fn) {
 
         // Copy string immediates to localized strings so that
         // we can show the string value in comments next to uses.
-        if (!fLlvmCodegen)
+        /*if (!fLlvmCodegen)
           if (VarSymbol* localVarSym = toVarSymbol(var))
             if (Immediate* immediate = localVarSym->immediate)
               if (immediate->const_kind == CONST_KIND_STRING)
-                local_global->immediate = new Immediate(*immediate);
+                local_global->immediate = new Immediate(*immediate);*/
 
         globals.put(var, local_global);
       }
