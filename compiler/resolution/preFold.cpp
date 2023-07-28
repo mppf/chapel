@@ -2550,7 +2550,7 @@ static Expr* preFoldNamed(CallExpr* call) {
             }
             // Handle c_ptrConst(c_char):string and string:c_ptrConst(c_char) casts
             else if (oldType == dtString && isCPtrConstChar(newType)) {
-              retval = new CallExpr("c_str", dtMethodToken, new_StringSymbol(imm->v_string.c_str()));
+              retval = new CallExpr("c_str", gMethodToken, new_StringSymbol(imm->v_string.c_str()));
             }
             else {
               retval = new SymExpr(new_StringSymbol(imm->v_string.c_str()));
