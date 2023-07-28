@@ -2541,22 +2541,13 @@ static Expr* preFoldNamed(CallExpr* call) {
               retval = call;
             }
           } else if (imm != NULL && fromString && toString) {
-            // Handle string:c_string and c_string:string casts
-            if (newType == dtStringC && oldType == dtString) {
+            if (newType == dtStringC || isCPtrConstChar(newType))
               retval = new SymExpr(new_CStringSymbol(imm->v_string.c_str()));
-            }
-            else if (oldType == dtStringC && newType == dtString) {
+            else
               retval = new SymExpr(new_StringSymbol(imm->v_string.c_str()));
-            }
-            // Handle c_ptrConst(c_char):string and string:c_ptrConst(c_char) casts
-            else if (oldType == dtString && isCPtrConstChar(newType)) {
-              retval = new CallExpr("c_str", gMethodToken, new_StringSymbol(imm->v_string.c_str()));
-            }
-            else {
-              retval = new SymExpr(new_StringSymbol(imm->v_string.c_str()));
-            }
 
             call->replace(retval);
+
           // Handle string:bytes and c_string:bytes casts
           } else if (imm != NULL && fromString && toBytes) {
 
