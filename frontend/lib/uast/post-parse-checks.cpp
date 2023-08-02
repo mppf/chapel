@@ -1312,6 +1312,14 @@ void Visitor::visit(const Function* node) {
   checkLambdaReturnIntent(node);
   checkConstReturnIntent(node);
   checkProcDefFormalsAreNamed(node);
+
+  // check for nested methods
+  if (node->isMethod()) {
+    auto enclosingDecl = searchParentsForDecl(node, nullptr);
+    if (enclosingDecl && enclosingDecl->isFunction()) {
+      warn(node, "nested method");
+    }
+  }
 }
 
 void Visitor::visit(const FunctionSignature* node) {
