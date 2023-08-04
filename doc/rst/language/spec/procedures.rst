@@ -1439,9 +1439,10 @@ Given a set of candidate functions, the following steps are applied to
 remove candidates from the set. After the process completes, the
 remaining candidates in the set are the most specific functions.
 
-1. If any candidate is more visible (or shadows) another candidate,
-   discard all candidates that are less visible than (or shadowed by)
-   another candidate.
+1. If the candidates include a mix of methods an non-methods, discard all
+   of the non-methods. Then, if any candidate is more visible (or shadows)
+   another candidate, discard all candidates that are less visible than
+   (or shadowed by) another candidate.
 
 2. If at least one candidate requires promotion and at least one
    candidate does not use promotion, discard all candidates that use

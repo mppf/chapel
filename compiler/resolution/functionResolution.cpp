@@ -1926,8 +1926,10 @@ isDefinedInUseImport(BlockStmt* block, FnSymbol* fn,
 // Enclosing scope adds 2 distance
 // Shadow scope adds 1 distance
 //
-// Returns -1 if the function is not found here
-// or if the block was already visited.
+// Returns -1:
+//  * if the function is a method
+//  * if the function is not found here
+//  * if the block was already visited.
 static int
 computeVisibilityDistanceInternal(BlockStmt* block, FnSymbol* fn,
                                   int distance, Vec<BlockStmt*>& visited) {
@@ -1972,8 +1974,11 @@ computeVisibilityDistanceInternal(BlockStmt* block, FnSymbol* fn,
 // Returns a distance measure used to compare the visibility
 // of two functions.
 //
-// Returns -1 if the function is not found here
+// Returns -1 if the function is not found here or if it is a method
 static int computeVisibilityDistance(Expr* expr, FnSymbol* fn) {
+  if (fn->hasFlag(FLAG_METHOD))
+    return -1;
+
   //
   // call helper function with visited set to avoid infinite recursion
   //
@@ -6334,7 +6339,8 @@ static void discardWorseWhereClauses(Vec<ResolutionCandidate*>&   candidates,
 }
 
 // Discard candidates with further visibility distance
-// than other candidates.
+// than other candidates. This includes discarding non-methods
+// if some candidates are methods.
 static void discardWorseVisibility(Vec<ResolutionCandidate*>&   candidates,
                                    const DisambiguationContext& DC,
                                    std::vector<bool>&           discarded) {
