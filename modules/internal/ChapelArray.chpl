@@ -863,14 +863,14 @@ module ChapelArray {
   }  // record _distribution
 
   @chpldoc.nodoc
-  inline operator ==(d1: _distribution(?), d2: _distribution(?)) {
+  inline operator _distribution.==(d1: _distribution(?), d2: _distribution(?)) {
     if (d1._value == d2._value) then
       return true;
     return d1._value.dsiEqualDMaps(d2._value);
   }
 
   @chpldoc.nodoc
-  inline operator !=(d1: _distribution(?), d2: _distribution(?)) {
+  inline operator _distribution.!=(d1: _distribution(?), d2: _distribution(?)) {
     return !(d1 == d2);
   }
 
@@ -2146,7 +2146,7 @@ module ChapelArray {
 
   // The same as the built-in _cast, except accepts a param arg.
   @chpldoc.nodoc
-  operator :(param arg, type t:_array) {
+  operator _array.:(param arg, type t:_array) {
     var result: t;
     // The would-be param version of proc =, inlined.
     chpl__transferArray(result, arg);
@@ -2155,26 +2155,26 @@ module ChapelArray {
 
   // How to cast arrays to strings
   @chpldoc.nodoc
-  operator :(x: [], type t:string) {
+  operator _array.:(x: [], type t:string) {
     import IO.FormattedIO.string;
     return try! "%?".format(x);
   }
 
   pragma "fn returns aliasing array"
   @chpldoc.nodoc
-  operator #(arr: [], counts: integral) {
+  operator _array.#(arr: [], counts: integral) {
     return arr[arr.domain#counts];
   }
 
   pragma "fn returns aliasing array"
   @chpldoc.nodoc
-  operator #(arr: [], counts: _tuple) {
+  operator _array.#(arr: [], counts: _tuple) {
     return arr[arr.domain#counts];
   }
 
   pragma "last resort"
   @chpldoc.nodoc
-  operator #(arr: [], counts) {
+  operator _array.#(arr: [], counts) {
     compilerError("cannot apply '#' to '", arr.type:string,
                   "' using count(s) of type ", counts.type:string);
   }
@@ -2248,7 +2248,7 @@ module ChapelArray {
   //
   @chpldoc.nodoc
   @unstable(category="experimental", reason="assignment between distributions is currently unstable due to lack of testing")
-  operator =(ref a: _distribution, b: _distribution) {
+  operator _distribution.=(ref a: _distribution, b: _distribution) {
     if a._value == nil {
       __primitive("move", a, chpl__autoCopy(b.clone(), definedConst=false));
     } else {
@@ -2357,7 +2357,7 @@ module ChapelArray {
 
   pragma "find user line"
   @chpldoc.nodoc
-  inline operator =(ref a: [], b:[]) {
+  inline operator _array.=(ref a: [], b:[]) {
     if a.rank != b.rank then
       compilerError("rank mismatch in array assignment");
 
@@ -2734,7 +2734,7 @@ module ChapelArray {
   }
 
   @chpldoc.nodoc
-  inline operator =(ref a: [], b:domain) {
+  inline operator _array.=(ref a: [], b:domain) {
     if a.rank != b.rank then
       compilerError("rank mismatch in array assignment");
     if b.isAssociative() && a.isRectangular() then
@@ -2743,7 +2743,7 @@ module ChapelArray {
   }
 
   @chpldoc.nodoc
-  inline operator =(a: [], b: range(?)) {
+  inline operator _array.=(a: [], b: range(?)) {
     if a.rank == 1 then
       chpl__transferArray(a, b);
     else
@@ -2751,7 +2751,7 @@ module ChapelArray {
   }
 
   @chpldoc.nodoc
-  inline operator =(ref a: [], b: _iteratorRecord) {
+  inline operator _array.=(ref a: [], b: _iteratorRecord) {
     // e.g. b might be a list
     chpl__transferArray(a, b);
   }
@@ -2759,7 +2759,7 @@ module ChapelArray {
   // TODO Jade 6/29/23: this should be deprecated/removed with _desync
   pragma "last resort"
   @chpldoc.nodoc
-  inline operator =(ref a: [], b: ?t)
+  inline operator _array.=(ref a: [], b: ?t)
   where !(isTupleType(t) || isCoercible(t, _desync(a.eltType))) {
     // e.g. b might be a list
     chpl__transferArray(a, b);
@@ -2818,7 +2818,7 @@ module ChapelArray {
   }
 
   @chpldoc.nodoc
-  operator =(ref a: [], b: _tuple) where a.isRectangular() {
+  operator _array.=(ref a: [], b: _tuple) where a.isRectangular() {
     initArrFromTuple(a, b, _tElt.assign);
   }
 
@@ -2861,7 +2861,7 @@ module ChapelArray {
   }
 
   @chpldoc.nodoc
-  operator =(ref a: [], b: _desync(a.eltType)) {
+  operator _array.=(ref a: [], b: _desync(a.eltType)) {
     forall e in a do
       e = b;
   }
@@ -2869,14 +2869,14 @@ module ChapelArray {
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated(notes="Direct assignment to 'sync' variables is deprecated; apply a 'write??()' method to modify one")
-  operator =(ref a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.=(ref a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e = b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated(notes="Direct assignment to 'single' variables is deprecated; apply '.writeEF()' to modify one")
-  operator =(ref a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.=(ref a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e = b;
   }
@@ -2885,221 +2885,221 @@ module ChapelArray {
   // op= overloads for array/scalar pairs
   //
   @chpldoc.nodoc
-  operator +=(a: [], b: _desync(a.eltType)) {
+  operator _array.+=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e += b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator +=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.+=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e += b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator +=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.+=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e += b;
   }
 
   @chpldoc.nodoc
-  operator -=(a: [], b: _desync(a.eltType)) {
+  operator _array.-=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e -= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator -=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.-=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e -= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator -=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.-=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e -= b;
   }
 
   @chpldoc.nodoc
-  operator *=(a: [], b: _desync(a.eltType)) {
+  operator _array.*=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e *= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator *=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.*=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e *= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator *=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.*=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e *= b;
   }
 
   @chpldoc.nodoc
-  operator /=(a: [], b: _desync(a.eltType)) {
+  operator _array./=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e /= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator /=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array./=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e /= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator /=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array./=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e /= b;
   }
 
   @chpldoc.nodoc
-  operator %=(a: [], b: _desync(a.eltType)) {
+  operator _array.%=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e %= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator %=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.%=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e %= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator %=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.%=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e %= b;
   }
 
   @chpldoc.nodoc
-  operator **=(a: [], b: _desync(a.eltType)) {
+  operator _array.**=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e **= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator **=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.**=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e **= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator **=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.**=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e **= b;
   }
 
   @chpldoc.nodoc
-  operator &=(a: [], b: _desync(a.eltType)) {
+  operator _array.&=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e &= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator &=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.&=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e &= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator &=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.&=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e &= b;
   }
 
   @chpldoc.nodoc
-  operator |=(a: [], b: _desync(a.eltType)) {
+  operator _array.|=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e |= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator |=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.|=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e |= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator |=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.|=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e |= b;
   }
 
   @chpldoc.nodoc
-  operator ^=(a: [], b: _desync(a.eltType)) {
+  operator _array.^=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e ^= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator ^=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.^=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e ^= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator ^=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.^=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e ^= b;
   }
 
   @chpldoc.nodoc
-  operator >>=(a: [], b: _desync(a.eltType)) {
+  operator _array.>>=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e >>= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator >>=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.>>=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e >>= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator >>=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.>>=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e >>= b;
   }
 
   @chpldoc.nodoc
-  operator <<=(a: [], b: _desync(a.eltType)) {
+  operator _array.<<=(a: [], b: _desync(a.eltType)) {
     forall e in a do
       e <<= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'sync' variables are deprecated; add explicit '.read??'/'.write??' methods to modify one")
-  operator <<=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
+  operator _array.<<=(a: [], b: _desync(a.eltType)) where isSyncType(a.eltType) {
     forall e in a do
       e <<= b;
   }
   // required to prevent deprecation warnings being related to internal modules
   @chpldoc.nodoc
   @deprecated("'op=' assignments to 'single' variables are deprecated; add explicit '.read??'/'.writeEF' methods to modify one")
-  operator <<=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
+  operator _array.<<=(a: [], b: _desync(a.eltType)) where isSingleType(a.eltType) {
     forall e in a do
       e <<= b;
   }
@@ -3108,7 +3108,7 @@ module ChapelArray {
   // Swap operator for arrays
   //
   @chpldoc.nodoc
-  inline operator <=>(x: [?xD], y: [?yD]) {
+  inline operator _array.<=>(x: [?xD], y: [?yD]) {
     if x.rank != y.rank then
       compilerError("rank mismatch in array swap");
 

@@ -353,7 +353,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator #(dom: domain, counts: integral) {
+  operator _domain.#(dom: domain, counts: integral) {
     errorIfNotRectangular(dom, "#", " and arrays");
     if dom.rank != 1 then compilerError(
       "cannot apply '#' with an integer to multi-dimensional domains and arrays");
@@ -362,7 +362,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator #(dom: domain, counts: _tuple) {
+  operator _domain.#(dom: domain, counts: _tuple) {
     errorIfNotRectangular(dom, "#", " and arrays");
     if (counts.size != dom.rank) then compilerError(
       "rank mismatch in '#'");
@@ -371,13 +371,13 @@ module ChapelDomain {
 
   pragma "last resort"
   @chpldoc.nodoc
-  operator #(dom: domain, counts) {
+  operator _domain.#(dom: domain, counts) {
     compilerError("cannot apply '#' to '", dom.type:string,
                   "' using count(s) of type ", counts.type:string);
   }
 
   @chpldoc.nodoc
-  operator +(d: domain, i: index(d)) {
+  operator _domain.+(d: domain, i: index(d)) {
     if d.isRectangular() then
       compilerError("Cannot add indices to a rectangular domain");
     else
@@ -385,7 +385,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator +(i, d: domain) where isSubtype(i.type, index(d)) && !d.isIrregular() {
+  operator _domain.+(i, d: domain) where isSubtype(i.type, index(d)) && !d.isIrregular() {
     if d.isRectangular() then
       compilerError("Cannot add indices to a rectangular domain");
     else
@@ -393,19 +393,19 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator +(in d: domain, i: index(d)) where d.isIrregular() {
+  operator _domain.+(in d: domain, i: index(d)) where d.isIrregular() {
     d.add(i);
     return d;
   }
 
   @chpldoc.nodoc
-  operator +(i, in d: domain) where isSubtype(i.type,index(d)) && d.isIrregular() {
+  operator _domain.+(i, in d: domain) where isSubtype(i.type,index(d)) && d.isIrregular() {
     d.add(i);
     return d;
   }
 
   @chpldoc.nodoc
-  operator +(in d1: domain, d2: domain) where
+  operator _domain.+(in d1: domain, d2: domain) where
                                     d1.type == d2.type &&
                                     d1.isIrregular() &&
                                     d2.isIrregular() {
@@ -415,7 +415,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator +(d1: domain, d2: domain) {
+  operator _domain.+(d1: domain, d2: domain) {
     if (d1.isRectangular() || d2.isRectangular()) then
       compilerError("Cannot add indices to a rectangular domain");
     else
@@ -423,12 +423,12 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator +=(ref D: domain, idx) { D.add(idx); }
+  inline operator _domain.+=(ref D: domain, idx) { D.add(idx); }
   @chpldoc.nodoc
-  inline operator +=(ref D: domain, param idx) { D.add(idx); }
+  inline operator _domain.+=(ref D: domain, param idx) { D.add(idx); }
 
   @chpldoc.nodoc
-  operator -(d: domain, i: index(d)) {
+  operator _domain.-(d: domain, i: index(d)) {
     if d.isRectangular() then
       compilerError("Cannot remove indices from a rectangular domain");
     else
@@ -436,13 +436,13 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator -(in d: domain, i: index(d)) where d.isIrregular() {
+  operator _domain.-(in d: domain, i: index(d)) where d.isIrregular() {
     d.remove(i);
     return d;
   }
 
   @chpldoc.nodoc
-  operator -(in d1: domain, d2: domain) where
+  operator _domain.-(in d1: domain, d2: domain) where
                                     d1.type == d2.type &&
                                     d1.isSparse() {
     // This should eventually become a forall loop
@@ -451,7 +451,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator -(d1: domain, d2: domain) {
+  operator _domain.-(d1: domain, d2: domain) {
     if (d1.isRectangular() || d2.isRectangular()) then
       compilerError("Cannot remove indices from a rectangular domain");
     else
@@ -459,12 +459,12 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator -=(ref D: domain, idx) { D.remove(idx); }
+  inline operator _domain.-=(ref D: domain, idx) { D.remove(idx); }
   @chpldoc.nodoc
-  inline operator -=(ref D: domain, param idx) { D.remove(idx); }
+  inline operator _domain.-=(ref D: domain, param idx) { D.remove(idx); }
 
   @chpldoc.nodoc
-  inline operator ==(d1: domain, d2: domain) where d1.isRectangular() &&
+  inline operator _domain.==(d1: domain, d2: domain) where d1.isRectangular() &&
                                                    d2.isRectangular() {
     if d1._value.rank != d2._value.rank {
       return false;
@@ -478,13 +478,13 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator !=(d1: domain, d2: domain) where d1.isRectangular() &&
+  inline operator _domain.!=(d1: domain, d2: domain) where d1.isRectangular() &&
                                                    d2.isRectangular() {
     return !(d1 == d2);
   }
 
   @chpldoc.nodoc
-  inline operator ==(d1: domain, d2: domain) where d1.isAssociative() &&
+  inline operator _domain.==(d1: domain, d2: domain) where d1.isAssociative() &&
                                                    d2.isAssociative() {
     if d1._value == d2._value then return true;
     if d1.sizeAs(uint) != d2.sizeAs(uint) then return false;
@@ -495,13 +495,13 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator !=(d1: domain, d2: domain) where d1.isAssociative() &&
+  inline operator _domain.!=(d1: domain, d2: domain) where d1.isAssociative() &&
                                                    d2.isAssociative() {
     return !(d1 == d2);
   }
 
   @chpldoc.nodoc
-  inline operator ==(d1: domain, d2: domain) where d1.isSparse() &&
+  inline operator _domain.==(d1: domain, d2: domain) where d1.isSparse() &&
                                                    d2.isSparse() {
     if d1._value == d2._value then return true;
     if d1.sizeAs(uint) != d2.sizeAs(uint) then return false;
@@ -513,7 +513,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator !=(d1: domain, d2: domain) where d1.isSparse() &&
+  inline operator _domain.!=(d1: domain, d2: domain) where d1.isSparse() &&
                                                    d2.isSparse() {
     return !(d1 == d2);
   }
@@ -536,12 +536,12 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  inline operator ==(d1: domain, d2: domain) {
+  inline operator _domain.==(d1: domain, d2: domain) {
     cmpError(d1, d2);
   }
 
   @chpldoc.nodoc
-  inline operator !=(d1: domain, d2: domain) {
+  inline operator _domain.!=(d1: domain, d2: domain) {
     cmpError(d1, d2);
   }
 
@@ -552,7 +552,7 @@ module ChapelDomain {
            (d1.isSparse()      && d2.isSparse()     );
 
   @chpldoc.nodoc
-  operator -(a :domain, b :domain) where (a.type == b.type) &&
+  operator _domain.-(a :domain, b :domain) where (a.type == b.type) &&
     a.isAssociative() {
     var newDom : a.type;
     serial !newDom._value.parSafe do
@@ -567,7 +567,7 @@ module ChapelDomain {
      occurs.
   */
   @chpldoc.nodoc
-  operator -=(ref a :domain, b :domain) where (a.type == b.type) &&
+  operator _domain.-=(ref a :domain, b :domain) where (a.type == b.type) &&
     a.isAssociative() {
     for e in b do
       if a.contains(e) then
@@ -575,25 +575,25 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator |(a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.|(a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     return a + b;
   }
 
   @chpldoc.nodoc
-  operator |=(ref a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.|=(ref a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     for e in b do
       a.add(e);
   }
 
   @chpldoc.nodoc
-  operator |=(a :domain, b: domain) where a.isRectangular() {
+  operator _domain.|=(a :domain, b: domain) where a.isRectangular() {
     compilerError("cannot invoke '|=' on a rectangular domain");
   }
 
   @chpldoc.nodoc
-  operator +=(ref a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.+=(ref a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     a |= b;
   }
@@ -604,7 +604,7 @@ module ChapelDomain {
      occurs.
   */
   @chpldoc.nodoc
-  operator &(a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.&(a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     var newDom : a.type;
 
@@ -615,7 +615,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator &=(ref a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.&=(ref a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     var removeSet: domain(a.idxType);
     for e in a do
@@ -626,12 +626,12 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator &=(a :domain, b: domain) where a.isRectangular() {
+  operator _domain.&=(a :domain, b: domain) where a.isRectangular() {
     compilerError("cannot invoke '&=' on a rectangular domain");
   }
 
   @chpldoc.nodoc
-  operator ^(a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.^(a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     var newDom : a.type;
 
@@ -651,7 +651,7 @@ module ChapelDomain {
      added to the LHS.
   */
   @chpldoc.nodoc
-  operator ^=(ref a :domain, b: domain) where (a.type == b.type) &&
+  operator _domain.^=(ref a :domain, b: domain) where (a.type == b.type) &&
     a.isAssociative() {
     for e in b do
       if a.contains(e) then
@@ -661,7 +661,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator ^=(a :domain, b: domain) where a.isRectangular() {
+  operator _domain.^=(a :domain, b: domain) where a.isRectangular() {
     compilerError("cannot invoke '^=' on a rectangular domain");
   }
 
@@ -669,7 +669,7 @@ module ChapelDomain {
   // BaseSparseDom operator overloads
   //
   @chpldoc.nodoc
-  operator +=(ref sd: domain, inds: [] index(sd)) where sd.isSparse() {
+  operator _domain.+=(ref sd: domain, inds: [] index(sd)) where sd.isSparse() {
     if inds.sizeAs(int) == 0 then return;
 
     sd._value.dsiBulkAdd(inds);
@@ -678,7 +678,7 @@ module ChapelDomain {
 
   // TODO: Currently not optimized
   @chpldoc.nodoc
-  operator +=(ref sd: domain, d: domain)
+  operator _domain.+=(ref sd: domain, d: domain)
   where sd.isSparse() && d.rank==sd.rank && sd.idxType==d.idxType {
     if d.sizeAs(int) == 0 then return;
 
@@ -697,13 +697,13 @@ module ChapelDomain {
 
   // TODO: Implement bulkRemove
   @chpldoc.nodoc
-  operator -=(ref sd: domain, inds: [] index(sd)) where sd.isSparse() {
+  operator _domain.-=(ref sd: domain, inds: [] index(sd)) where sd.isSparse() {
     for ind in inds do
       sd -= ind;
   }
 
   @chpldoc.nodoc
-  operator -=(ref sd: domain, d: domain)
+  operator _domain.-=(ref sd: domain, d: domain)
   where sd.isSparse() && d.rank==sd.rank && sd.idxType==d.idxType {
     for ind in d do
       sd -= ind;
@@ -713,7 +713,7 @@ module ChapelDomain {
   // Assignment of domains
   //
   @chpldoc.nodoc
-  operator =(ref a: domain, b: domain) {
+  operator _domain.=(ref a: domain, b: domain) {
     if a.rank != b.rank then
       compilerError("rank mismatch in domain assignment");
 
@@ -761,7 +761,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator =(ref a: domain, b: _tuple) {
+  operator _domain.=(ref a: domain, b: _tuple) {
     if chpl__isLegalRectTupDomAssign(a, b) {
       a = {(...b)};
     } else {
@@ -773,12 +773,12 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator =(ref d: domain, r: range(?)) {
+  operator _domain.=(ref d: domain, r: range(?)) {
     d = {r};
   }
 
   @chpldoc.nodoc
-  operator =(ref a: domain, b) {  // b is iteratable
+  operator _domain.=(ref a: domain, b) {  // b is iteratable
     if a.isRectangular() then
       compilerError("Illegal assignment to a rectangular domain");
     a.clear();
@@ -800,7 +800,7 @@ module ChapelDomain {
 
   // This is the definition of the 'by' operator for domains.
   @chpldoc.nodoc
-  operator by(a: domain, b) {
+  operator _domain.by(a: domain, b) {
     errorIfNotRectangular(a, "by");
     param newStrides = if ! allUint(b) then strideKind.any
                        else chpl_strideProduct(a.strides, strideKind.positive);
@@ -812,7 +812,7 @@ module ChapelDomain {
   }
 
   @chpldoc.nodoc
-  operator by(a: domain, param b: integral) {
+  operator _domain.by(a: domain, param b: integral) {
     errorIfNotRectangular(a, "by");
     param newStrides = chpl_strideProduct(a.dim(0), b);
     var r: a.rank*range(a._value.idxType, boundKind.both, newStrides);
@@ -825,7 +825,7 @@ module ChapelDomain {
   // It produces a new domain with the specified alignment.
   // See also: 'align' operator on ranges.
   @chpldoc.nodoc
-  operator align(a: domain, b) {
+  operator _domain.align(a: domain, b) {
     errorIfNotRectangular(a, "align");
     var r: a.rank*range(a._value.idxType, boundKind.both, a.strides);
     var t = _makeIndexTuple(a.rank, b, "alignment", expand=true);
