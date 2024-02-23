@@ -277,22 +277,32 @@ void LibraryFileWriter::noteToplevelSymbolsForTable(
   }
 }
 
+struct SymInfo {
+  const uast::AstNode* uast = nullptr;
+  std::string symTabId;
+  const resolution::TypedFnSignature* tfs = nullptr;
+  types::QualifiedType type;
+  SymInfo(const uast::AstNode* uast,
+          std::string symTabId,
+          const resolution::TypedFnSignature* tfs,
+          types::QualifiedType type)
+    : uast(uast), symTabId(std::move(symTabId)), tfs(tfs), type(type) {
+  }
+};
+
 static bool
-symbolIdLess(const std::pair<const uast::AstNode*, std::string>& a,
-             const std::pair<const uast::AstNode*, std::string>& b) {
-  // Should be sorting by ID minus the top-level symbol name,
-  // but that will be the same for all, so we can sort using the
-  // ID's symbol path.
-  return a.second < b.second;
+symbolIdLess(const SymInfo& a, const SymInfo& b) {
+  return a.symTabId < b.symTabId;
 }
 
-static std::vector<std::pair<const uast::AstNode*, std::string>>
+// TODO: include symbols from code-gen time here
+static std::vector<SymInfo>
 computeSymbolNames(const uast::Module* mod,
                    const std::vector<const uast::AstNode*>& symbolTableVec) {
 
   std::string modPrefix = mod->id().symbolPath().str();
 
-  std::vector<std::pair<const uast::AstNode*, std::string>> result;
+  std::vector<SymInfo> result;
   for (auto sym: symbolTableVec) {
     // compute the symbol table ID
     UniqueString symPath = sym->id().symbolPath();
@@ -321,7 +331,7 @@ computeSymbolNames(const uast::Module* mod,
       symId.append(name.str());
     }
     // store the symbol and name in the result vector
-    result.emplace_back(sym, std::move(symId));
+    result.emplace_back(sym, std::move(symId), nullptr, types::QualifiedType());
   }
 
   std::sort(result.begin(), result.end(), symbolIdLess);
@@ -368,14 +378,20 @@ LibraryFileWriter::writeSymbolTable(const ModInfo& info,
   // uast and location section offsets
 
   // Copy the vector of symbol table symbols and sort it by ID/name
-  auto symsAndNames = computeSymbolNames(mod, reg.symbolTableVec);
+  auto symsAndNames = computeSymbolNames(mod, reg.symbolTableVec /*, info.genMap*/);
 
   std::string lastSymId;
   std::string lastCname;
 
   for (auto pair : symsAndNames) {
-    const uast::AstNode* sym = pair.first;
-    const std::string& symId = pair.second;
+    const uast::AstNode* sym = pair.uast;
+    const std::string& symId = pair.symTabId;
+    const std::vector<GenInfo>* gens = nullptr;
+
+    auto search = info.genMap.find(sym->id());
+    if (search != info.genMap.end()) {
+      gens = &search->second;
+    }
 
     // create an error if the string length is too long
     ser.checkStringLength(symId.size());
@@ -388,10 +404,17 @@ LibraryFileWriter::writeSymbolTable(const ModInfo& info,
     // write the 3 relative offsets
     ser.writeData(&entry, sizeof(entry));
 
-    // write the tag / flags / kind information
+    // write the tag / kind information
     auto tag = sym->tag();
     CHPL_ASSERT((int) tag < 256);
     ser.writeByte(tag);
+
+    // write the flags
+    {
+      uint8_t flags = 0;
+      if (sym->isFunction()) flags |= 1;
+      ser.writeByte(flags);
+    }
 
     {
       //  * write the number of bytes in common with the previous one
@@ -405,13 +428,11 @@ LibraryFileWriter::writeSymbolTable(const ModInfo& info,
     }
 
     // write the number of generated versions
-    auto search = info.genMap.find(sym->id());
-    if (search != info.genMap.end()) {
-      const std::vector<GenInfo>& gens = search->second;
-      ser.writeVUint(gens.size()); // number of generated versions
-      for (const auto& g : gens) {
-        // output the byte indicating if it is an instantiation
-        ser.writeByte(g.isInstantiation);
+    if (gens != nullptr) {
+      ser.writeVUint(gens->size()); // number of generated versions
+      for (const auto& g : *gens) {
+        // output the offset TODO
+        ser.writeVUint(0);
         // output the cname
         std::string cname = g.cname.str();
         // write the number of bytes in common with the previous one

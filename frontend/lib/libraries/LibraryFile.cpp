@@ -409,6 +409,8 @@ bool LibraryFile::readModuleSection(Context* context,
     des.readData(&entry, sizeof(entry));
     // read the tag
     des.readByte();
+    // read the flags
+    des.readByte();
 
     {
       // read the variable-byte encoded common prefix length
@@ -437,7 +439,7 @@ bool LibraryFile::readModuleSection(Context* context,
     cnames.clear();
     // read the data from each code-generated version
     for (unsigned int j = 0; j < nGenerated; j++) {
-      des.readByte(); // isInstantiation
+      des.readVUint(); // offset TODO
 
       // read the variable-byte encoded common prefix length
       unsigned int nCommonPrefix = des.readVUint();

@@ -110,6 +110,7 @@ struct SymbolTableEntry {
   // TODO: type entry / function entry.
   // followed by
   //  * a byte storing ast tag
+  //  * a byte storing flags
   //  * a variable-byte length & string storing a symbol table ID
 };
 

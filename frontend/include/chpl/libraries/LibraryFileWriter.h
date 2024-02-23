@@ -23,6 +23,7 @@
 #include "chpl/framework/ID.h"
 #include "chpl/framework/UniqueString.h"
 #include "chpl/libraries/LibraryFileFormat.h"
+#include "chpl/types/QualifiedType.h"
 
 #include <fstream>
 #include <unordered_map>
@@ -34,6 +35,9 @@ namespace chpl {
 class Context;
 namespace uast {
   class Module;
+}
+namespace resolution {
+  class TypedFnSignature;
 }
 namespace libraries {
 
@@ -86,8 +90,8 @@ class LibraryFileWriter {
  public:
   struct GenInfo {
     UniqueString cname;
-    bool isInstantiation = false;
-    // TODO: other information about instantiations
+    const resolution::TypedFnSignature* tfs = nullptr;
+    types::QualifiedType type;
   };
 
  private:

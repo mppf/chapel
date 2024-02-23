@@ -2787,7 +2787,7 @@ extractModuleCode(ModuleSymbol* modSym,
         if (!fnId.isEmpty()) {
           LibGenInfo info;
           info.cname = UniqueString::get(gContext, fn->cname);
-          info.isInstantiation = fn->hasFlag(FLAG_INSTANTIATED_GENERIC);
+          //info.isInstantiation = fn->hasFlag(FLAG_INSTANTIATED_GENERIC);
           genMap[fnId].push_back(info);
           extractGvs.insert(g);
         }
@@ -2801,7 +2801,7 @@ extractModuleCode(ModuleSymbol* modSym,
         LibGenInfo info;
         info.cname = UniqueString::get(gContext, v->cname);
         // instantiations of module-scope variables should not be possible
-        info.isInstantiation = false;
+        //info.isInstantiation = false;
         INT_ASSERT(!v->hasFlag(FLAG_INSTANTIATED_GENERIC));
         genMap[vId].push_back(info);
         extractGvs.insert(g);

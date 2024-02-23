@@ -176,7 +176,11 @@ This section consists of:
    * 4 byte relative offset from the location section start,
      pointing to the location group for this symbol
 
-   * a byte storing flags / kind information
+   * a byte storing what kind of symbol it is
+
+   * a byte, F, storing flags
+
+     * F & 1 == 1 if and only if it represents a function (proc/iter/operator)
 
    * the symbol table ID, stored in a compressed form. It is formed by
      concatenating the first A bytes of the previous symbol table ID with
@@ -189,14 +193,19 @@ This section consists of:
 
      * B bytes of suffix
 
-  * unsigned variable-byte encoded number, G, of code-generated versions
+  * unsigned variable-byte encoded number, G, of typed / code-generated versions
 
-  * for each of the G code-generated versions
+  * for each of the G typed / code-generated versions, information about
+    that one. Any code-generated versions occur after any
+    non-code-generated versions
 
-    * byte indicating 0 if it is concrete and nonzero for an
-      instantiation
+    * 4 byte relative offset
 
-    * additional information TBD for instantiations
+      * if it's a function, the offset is an offset within the Functions
+        section that points to a Function entry
+
+      * otherwise, the offset is within the Types section and points to a
+        Type entry.
 
     * the name of the symbol in the generated code, also called a "cname",
       stored in a compressed form. It is formed by concatenating the first
