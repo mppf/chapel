@@ -561,49 +561,57 @@ struct SearchScope {
   };
 
   int reason = 0; // this is a bitmap of Reasons
-  VisibilitySymbols::ShadowScope shadow = VisibilitySymbols::REGULAR_SCOPE;
 
   // which index in SearchScopes was the scope that
   // caused this scope to be initially included?
   int firstPrec = -1;
+
   // what is the scope distance to this from the original scope?
-  int firstDistance = 0;
+  int distance = 0;
 
-  const Scope* scope = nullptr;             // for use/import,
-                                            // the used/imported module
+  // what is the scope that we are considering here?
+  const Scope* scope = nullptr;
 
-  // What renames are in effect at this point?
+  // the cached public module contents, if this is a module scope
+  // brought in due to use/import.
+  const ModulePublicSymbols* publicModuleContents = nullptr;
+
+  // What renames were in effect when adding this scope?
+  // (Does not concern itself with renames for this scope itself;
+  //  that is handled in 'only' below)
   // These are from the point of view of the original scope.
   // Each is a pair (name as declared, the name used here)
   Renames renames;
 
-  std::vector<VisibilitySymbols> vs; // for use/import, what is brought in?
-                                     // empty means, bring in all
-
-  const ModulePublicSymbols* publicModuleContents = nullptr;
+  // During name lookup, what names should we consider?
+  // If this is empty, it will bring in all names.
+  // A value of "_" means "don't include it"
+  // For 'use M only X as Y'
+  //   * scope would refer to M
+  //   * key in this map would be Y
+  //   * value in this map would be X
+  std::map<UniqueString, UniqueString> only;
 
   bool operator==(const SearchScope& other) const {
     return reason == other.reason &&
-           shadow == other.shadow &&
            firstPrec == other.firstPrec &&
-           firstDistance == other.firstDistance &&
+           distance == other.distance &&
            scope == other.scope &&
+           publicModuleContents == other.publicModuleContents &&
            renames == other.renames &&
-           vs == other.vs &&
-           publicModuleContents == other.publicModuleContents;
+           only == other.only;
   }
   bool operator!=(const SearchScope& other) const {
     return !(*this == other);
   }
   void swap(SearchScope& other) {
     std::swap(reason, other.reason);
-    std::swap(shadow, other.shadow);
     std::swap(firstPrec, other.firstPrec);
-    std::swap(firstDistance, other.firstDistance);
+    std::swap(distance, other.distance);
     std::swap(scope, other.scope);
-    renames.swap(other.renames);
-    vs.swap(other.vs);
     std::swap(publicModuleContents, other.publicModuleContents);
+    renames.swap(other.renames);
+    only.swap(other.only);
   }
   static bool update(SearchScope& keep,
                      SearchScope& addin) {
@@ -612,6 +620,14 @@ struct SearchScope {
   void mark(Context* context) const {
     context->markPointer(scope);
     context->markPointer(publicModuleContents);
+    for (const auto& pair: renames) {
+      pair.first.mark(context);
+      pair.second.mark(context);
+    }
+    for (const auto& pair: only) {
+      pair.first.mark(context);
+      pair.second.mark(context);
+    }
   }
 
   void stringify(std::ostream& ss, chpl::StringifyKind stringKind) const;
@@ -622,17 +638,17 @@ struct SearchScope {
 void SearchScope::stringify(std::ostream& ss, chpl::StringifyKind stringKind) const {
   ss << "SearchScope(";
   ss << "reason=" << reason << " ";
-  ss << "shadow=" << shadow << " ";
+  //ss << "shadow=" << shadow << " ";
   ss << "firstPrec=" << firstPrec << " ";
-  ss << "firstDistance=" << firstDistance << " ";
+  ss << "distance=" << distance << " ";
   ss << "scope=" << scope->id().str() << " ";
   ss << "renames={";
   for (auto pair : renames) {
     ss << pair.first.str() << " " << pair.second.str() << " ";
   }
-  ss << "} vs={";
-  for (const auto& s : vs) {
-    s.stringify(ss, stringKind);
+  ss << "} only={";
+  for (auto pair : only) {
+    ss << pair.first.str() << " -> " << pair.second.str() << " ";
   }
   ss << "} publicModuleContents=" << (publicModuleContents?1:0) << " ";
   ss << ")\n";
@@ -650,8 +666,8 @@ struct CompareSearchScopes {
     if (ap != bp) {
       return ap < bp;
     }
-    if (a.shadow != b.shadow) {
-      return a.shadow < b.shadow;
+    if (a.distance != b.distance) {
+      return a.distance < b.distance;
     }
     return a.renames < b.renames;
   }
@@ -890,11 +906,11 @@ int LookupHelper::gatherScope(const Scope* scope,
   printf("gathering scope %s\n", scope->id().str().c_str());
 
   SearchScope ss;
-  ss.shadow = shadow;
+  //ss.shadow = shadow;
   ss.reason = reason;
   ss.scope = scope;
   ss.firstPrec = prec;
-  ss.firstDistance = distance;
+  ss.distance = distance;
   ss.renames = renames;
   // no need to include vs for the map search
 
@@ -923,7 +939,8 @@ int LookupHelper::gatherScope(const Scope* scope,
   }
   // also compute the public module contents,
   // if the scope represents a module and we are configured to do so
-  if (allowCachedModuleContents && isModule(scope->tag())) {
+  if (allowCachedModuleContents && isModule(scope->tag()) &&
+      (reason & SearchScope::DIRECT) == 0) {
     const ModulePublicSymbols* modSyms = publicSymbolsForModule(context, scope);
     ss.publicModuleContents = modSyms;
   }
