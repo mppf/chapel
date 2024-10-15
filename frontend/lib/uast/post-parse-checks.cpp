@@ -164,6 +164,7 @@ struct Visitor {
   void checkInheritExprValid(const AstNode* node);
   void checkIterNames(const Function* node);
   void checkFunctionReturnsYields(const Function* node);
+  void checkMainFunctions(const Function* node);
 
   /*
   TODO
@@ -1752,6 +1753,7 @@ void Visitor::visit(const Function* node) {
   checkProcDefFormalsAreNamed(node);
   checkIterNames(node);
   checkFunctionReturnsYields(node);
+  checkMainFunctions(node);
 }
 
 void Visitor::visit(const FunctionSignature* node) {
@@ -2017,6 +2019,21 @@ void Visitor::checkFunctionReturnsYields(const Function* node) {
   if (counter.nReturnSomething > 0 && counter.nReturnEmpty > 0) {
     CHPL_REPORT(context_, InvalidReturns,
                 counter.firstReturnSomething, counter.firstReturnEmpty);
+  }
+}
+
+void Visitor::checkMainFunctions(const Function* fn) {
+  if (fn->name() == USTR("main") &&
+      fn->kind() == Function::PROC &&
+      !fn->isMethod()) {
+    const AstNode* p = parent();
+    if (p != nullptr && !p->isModule()) {
+      error(fn, "'proc main' must be defined at module scope");
+    }
+    if (fn->returnIntent() == Function::PARAM ||
+        fn->returnIntent() == Function::TYPE) {
+      error(fn, "'proc main' cannot return a 'type' or 'param'");
+    }
   }
 }
 
