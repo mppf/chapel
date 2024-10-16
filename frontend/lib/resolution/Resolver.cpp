@@ -1024,7 +1024,7 @@ void Resolver::resolveTypeQueries(const AstNode* formalTypeExpr,
       auto sig = typeConstructorInitial(context, baseCt);
 
       // Generate a simple CallInfo for the call
-      auto callInfo = CallInfo::createSimple(call);
+      auto callInfo = CallInfo::createUnknown(call);
       // generate a FormalActualMap
       auto faMap = FormalActualMap(sig, callInfo);
 
