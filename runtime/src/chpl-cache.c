@@ -3889,7 +3889,6 @@ void chpl_cache_comm_get(void *addr, c_nodeid_t node, void* raddr,
                "%d:%p to %p\n",
                chpl_nodeID, (int)chpl_task_getId(), chpl_lookupFilename(fn), ln,
                (int)size, node, raddr, addr));
-  chpl_comm_diags_verbose_rdma("cache-get", node, size, ln, fn, commID);
 
 #ifdef DUMP
   chpl_cache_print();
@@ -3900,10 +3899,13 @@ void chpl_cache_comm_get(void *addr, c_nodeid_t node, void* raddr,
                        0, commID, ln, fn);
 
   if (size != 0) {
-    if (all_hits)
+    if (all_hits) {
+      chpl_comm_diags_verbose_rdma("cache-get-hit", node, size, ln, fn, commID);
       chpl_comm_diags_incr(cache_get_hits);
-    else
+    } else {
+      chpl_comm_diags_verbose_rdma("cache-get-miss", node, size, ln, fn, commID);
       chpl_comm_diags_incr(cache_get_misses);
+    }
   }
 
   return;
